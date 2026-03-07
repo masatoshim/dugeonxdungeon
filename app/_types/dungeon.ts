@@ -1,22 +1,52 @@
-import { DungeonStatus } from "@prisma/client"; // EnumをPrismaからインポート
+import { DungeonStatus } from "@prisma/client";
 
-export interface CreateDungeonRequest {
+/**
+ * ダンジョンデータの基本形
+ */
+export interface DungeonBase {
   name: string;
-  code: string; // ユニークな識別子
-  userId: string; // 作成者のユーザーID
-  mapData: any; // Json型に対応（具体的なマップ構造があればその型）
+  code: string;
+  userId: string;
+  mapData: any;
   mapSizeHeight: number;
   mapSizeWidth: number;
+  description?: string;
+  timeLimit?: number;
+  difficulty?: number;
+  status?: DungeonStatus;
+  isTemplate?: boolean;
+}
+
+/**
+ * DBから取得したときの型（IDや日付、作成者情報を含む）
+ */
+export interface Dungeon extends DungeonBase {
+  id: string;
+  createdBy: string;
+  updatedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+  tags?: { id: number; name: string }[];
+}
+
+/**
+ * 新規作成リクエスト用（IDなどは不要）
+ */
+export interface CreateDungeonRequest extends DungeonBase {
   createdBy: string;
   updatedBy: string;
-
-  // --- 任意項目（省略時はデフォルト値が使用される想定） ---
-  description?: string;
-  timeLimit?: number; // default: 60
-  difficulty?: number; // default: 1
-  status?: DungeonStatus; // default: DRAFT
-  isTemplate?: boolean; // default: false
-
-  // --- タグ情報（IDの配列で受け取るのが一般的です） ---
   tagIds?: number[];
+}
+
+/**
+ * APIレスポンス用
+ */
+export interface DungeonsIndexResponse {
+  dungeons: Dungeon[];
+  meta: {
+    totalCount: number;
+    index: number;
+    limit: number;
+    hasNext: boolean;
+  };
 }
