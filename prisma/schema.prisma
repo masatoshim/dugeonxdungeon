@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String   @id @default(uuid())
+  userName          String   @unique
+  nickName          String?
+  email             String?  @unique
+  iconImageKey      String?
+  // --- ゲーム統計情報 ---
+  ranking           Int?     @default(0)
+  clearPlayCount    Int      @default(0)
+  failurePlayCount  Int      @default(0)
+  interruptPlayCount Int     @default(0)
+  playDungeonCount  Int      @default(0)
+  totalPlayTime     Int      @default(0)
+  totalPlayScore    Int      @default(0)
+  // --- ステータスフラグ ---
+  isActive          Boolean  @default(true)
+  deletedFlg        Boolean  @default(false)
+  // --- 監査・追跡情報 ---
+  lastLoginAt       DateTime?
+  createdBy         String?
+  updatedBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  // --- リレーション設定 ---
+  dungeons          Dungeon[]
+  playHistories     PlayHistory[]
+  favouriteDungeons FavouritesDungeon[]
+}
+
+enum DungeonStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+}
+
+model Dungeon {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  userId      String   // Userモデルとのリレーション用FK
+  // --- 基本情報 ---
+  name        String
+  description String?
+  // --- マップ設定 ---
+  mapData     Json
+  mapSizeHeight Int
+  mapSizeWidth  Int
+  // --- ゲーム設定 ---
+  timeLimit   Int      @default(60)
+  difficulty  Int      @default(1)
+  status      DungeonStatus @default(DRAFT)
+  publishedAt DateTime?
+  isTemplate  Boolean  @default(false)
+  // --- 統計・メトリクス ---
+  clearPlayCount     Int @default(0)
+  failurePlayCount   Int @default(0)
+  interruptPlayCount Int @default(0)
+  totalPlayTime      Int @default(0)
+  totalPlayScore     Int @default(0)
+  favouritesCount    Int @default(0)
+  // --- メタデータ ---
+  version     Int      @default(1)
+  deletedFlg  Boolean  @default(false)
+  createdBy   String
+  updatedBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // 1人のユーザーが複数のダンジョンを持つ
+  user       User     @relation(fields: [userId], references: [id])
+  // --- リレーション設定 ---
+  dungeonTags       DungeonTag[]
+  playHistories     PlayHistory[]
+  favouritedBy      FavouritesDungeon[]
+}
+
+model Tag {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  dungeonTags DungeonTag[]
+}
+
+model DungeonTag {
+  id        Int      @id @default(autoincrement())
+  // 外部キー
+  dungeonId String
+  dungeon   Dungeon  @relation(fields: [dungeonId], references: [id], onDelete: Cascade)
+  tagId     Int
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  // --- 制約とインデックス ---
+  @@unique([dungeonId, tagId])
+  @@index([dungeonId])
+  @@index([tagId])
+}
+
+enum PlayStatus {
+  CLEAR
+  FAILURE
+  INTERRUPT
+}
+
+model PlayHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  dungeonId  String
+  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
+  // --- プレイ記録 ---
+  playTime   Int      @default(0) 
+  playScore  Int      @default(0)
+  playStatus PlayStatus
+  // --- メタデータ ---
+  createdAt  DateTime @default(now())
+  // --- 一意性制約とインデックス ---
+  @@unique([userId, dungeonId, createdAt])  
+  @@index([userId])
+  @@index([dungeonId])
+  @@index([createdAt])
+}
+
+model FavouritesDungeon {
+  id         String   @id @default(uuid())
+  // --- 外部キー ---
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  dungeonId  String
+  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
+  // --- Timestamp ---
+  createdAt  DateTime @default(now())
+  // --- 一意性制約とインデックス ---
+  @@unique([userId, dungeonId])  
+  @@index([userId])
+  @@index([dungeonId])
+}
