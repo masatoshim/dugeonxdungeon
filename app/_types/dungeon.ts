@@ -1,48 +1,57 @@
 import { DungeonStatus } from "@prisma/client";
 
 /**
- * ダンジョンデータの基本形
+ * ダンジョンデータの共通プロパティ
  */
 export interface DungeonBase {
+  id: string;
   name: string;
   code: string;
   userId: string;
+  description: string | null;
   mapData: any;
   mapSizeHeight: number;
   mapSizeWidth: number;
-  description?: string;
-  timeLimit?: number;
-  difficulty?: number;
-  status?: DungeonStatus;
-  isTemplate?: boolean;
-}
-
-/**
- * DBから取得したときの型（IDや日付、作成者情報を含む）
- */
-export interface Dungeon extends DungeonBase {
-  id: string;
-  createdBy: string;
-  updatedBy?: string;
-  createdAt: string;
-  updatedAt?: string;
-  tags?: { id: number; name: string }[];
-}
-
-/**
- * 新規作成リクエスト用（IDなどは不要）
- */
-export interface CreateDungeonRequest extends DungeonBase {
+  timeLimit: number;
+  difficulty: number;
+  status: DungeonStatus;
+  isTemplate: boolean;
+  userName?: string;
+  nickName?: string | null;
+  tags?: string[];
   createdBy: string;
   updatedBy: string;
-  tagIds?: number[];
+}
+
+/**
+ * DB内部やサーバーサイドでのみ使用する型
+ */
+export interface DungeonEntity extends DungeonBase {
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
  * APIレスポンス用
  */
+export interface DungeonResponse extends DungeonBase {
+  totalPlayCount: number;
+  createdAt: string; // ISO 8601 文字列
+  updatedAt: string;
+}
+
+/**
+ * 新規作成リクエスト用
+ */
+export interface CreateDungeonRequest extends Omit<DungeonBase, "id" | "status" | "isTemplate"> {
+  tagIds?: number[];
+}
+
+/**
+ * 一覧取得APIのレスポンス全体
+ */
 export interface DungeonsIndexResponse {
-  dungeons: Dungeon[];
+  dungeons: DungeonResponse[];
   meta: {
     totalCount: number;
     index: number;

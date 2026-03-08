@@ -17,6 +17,7 @@ model User {
   userName          String   @unique
   nickName          String?
   email             String?  @unique
+  emailVerified     DateTime?
   iconImageKey      String?
   // --- 権限設定 ---
   role              Role     @default(USER) // デフォルトは一般ユーザー
@@ -41,6 +42,48 @@ model User {
   dungeons          Dungeon[]
   playHistories     PlayHistory[]
   favouriteDungeons FavouritesDungeon[]
+  // --- 認証用 ---
+  hashedPassword    String?
+  accounts          Account[]
+  sessions          Session[]
+}
+
+// Googleなどの外部連携情報（OAuth用）
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// セッション情報（JWT戦略なら空のまま）
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// メール認証などの確認用（今回はパスワード認証なので予備）
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 enum DungeonStatus {
@@ -53,6 +96,7 @@ model Dungeon {
   id          String   @id @default(uuid())
   code        String   @unique
   userId      String   // Userモデルとのリレーション用FK
+  user        User     @relation(fields: [userId], references: [id])
   // --- 基本情報 ---
   name        String
   description String?
@@ -80,8 +124,6 @@ model Dungeon {
   updatedBy   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  // 1人のユーザーが複数のダンジョンを持つ
-  user       User     @relation(fields: [userId], references: [id])
   // --- リレーション設定 ---
   dungeonTags       DungeonTag[]
   playHistories     PlayHistory[]
