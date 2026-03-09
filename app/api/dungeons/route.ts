@@ -3,7 +3,7 @@ import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
-import { DungeonStatus, Prisma } from "@prisma/client";
+import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
 
 // GET: ダンジョン一覧取得
 export async function GET(request: Request) {
@@ -84,6 +84,7 @@ export async function GET(request: Request) {
     (
       [
         "mapSizeHeight",
+        "mapSizeWidth",
         "timeLimit",
         "difficulty",
         "clearPlayCount",
@@ -106,6 +107,43 @@ export async function GET(request: Request) {
     };
     setListFilter("isTemplate", "isTemplateList");
     setListFilter("deletedFlg", "deletedFlgList");
+
+    // プレイ状況による絞り込みロジック
+    if (userId && searchParams.get("playStatusList")) {
+      const playStatusParam = searchParams.get("playStatusList");
+      const playStatusList = playStatusParam ? (playStatusParam.split(",") as PlayStatus[]) : [];
+      where.playHistories = {
+        some: {
+          userId: userId,
+          playStatus: { in: playStatusList },
+        },
+      };
+    }
+
+    // お気に入りによる絞り込みロジック
+    if (userId && searchParams.get("isFavouritesList")) {
+      const isFavouritesParam = searchParams.get("isFavouritesList")?.split(",") || [];
+      const includeFavourites = isFavouritesParam.includes("true");
+      const includeNotFavourites = isFavouritesParam.includes("false");
+      // true と false の両方が指定されている、または指定がない場合は絞り込み不要
+      if (includeFavourites !== includeNotFavourites) {
+        if (includeFavourites) {
+          // お気に入り登録しているものだけを表示 (some)
+          where.favouritedBy = {
+            some: {
+              userId: userId,
+            },
+          };
+        } else if (includeNotFavourites) {
+          // お気に入り登録していないものだけを表示 (none)
+          where.favouritedBy = {
+            none: {
+              userId: userId,
+            },
+          };
+        }
+      }
+    }
 
     // DB実行 (合計件数とデータ取得)
     const [totalCount, dungeonsRaw] = await Promise.all([
