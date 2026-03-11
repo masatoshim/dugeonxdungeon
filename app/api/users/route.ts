@@ -20,21 +20,21 @@ export async function GET(request: Request) {
     const sortField = searchParams.get("sort") || "createdAt";
     const sortOrder = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-    // Where句（検索条件）の動的構築
-    const where: Prisma.UserWhereInput = {};
+    //検索条件の動的構築
+    const andConditions: Prisma.UserWhereInput[] = [];
 
     // 文字列部分一致
     if (searchParams.get("userName")) {
-      where.userName = { contains: searchParams.get("userName")! };
+      andConditions.push({ userName: { contains: searchParams.get("userName")! } });
     }
     if (searchParams.get("nickName")) {
-      where.nickName = { contains: searchParams.get("nickName")! };
+      andConditions.push({ nickName: { contains: searchParams.get("nickName")! } });
     }
 
     // Role絞り込み
     const roleParam = searchParams.get("roleList");
     if (roleParam) {
-      where.role = { in: roleParam.split(",") as Role[] };
+      andConditions.push({ role: { in: roleParam.split(",") as Role[] } });
     }
 
     // 範囲フィルター用ヘルパー
@@ -45,11 +45,18 @@ export async function GET(request: Request) {
 
       if (val || from || to) {
         const transform = (v: string) => (type === "number" ? Number(v) : new Date(v));
-        (where as any)[field] = {
-          ...(val && { equals: transform(val) }),
-          ...(from && { gte: transform(from) }),
-          ...(to && { lte: transform(to) }),
-        };
+        if (val) {
+          andConditions.push({
+            [field]: transform(val),
+          });
+        } else {
+          andConditions.push({
+            [field]: {
+              ...(from && { gte: transform(from) }),
+              ...(to && { lte: transform(to) }),
+            },
+          });
+        }
       }
     };
 
@@ -71,43 +78,51 @@ export async function GET(request: Request) {
       const activeParam = searchParams.get("isActiveList");
       if (activeParam) {
         const activeValues = activeParam.split(",").map((v) => v === "true");
-        where.OR = activeValues.map((v) => ({ isActive: v }));
+        andConditions.push({ OR: activeValues.map((v) => ({ isActive: v })) });
       }
       const deletedFlgParam = searchParams.get("deletedFlgList");
       if (deletedFlgParam) {
         const deletedValues = deletedFlgParam.split(",").map((v) => v === "true");
-        where.OR = deletedValues.map((v) => ({ deletedFlg: v }));
+        andConditions.push({ OR: deletedValues.map((v) => ({ deletedFlg: v })) });
       }
-      if (searchParams.get("createdBy")) where.createdBy = { contains: searchParams.get("createdBy")! };
-      if (searchParams.get("updatedBy")) where.updatedBy = { contains: searchParams.get("updatedBy")! };
+      if (searchParams.get("createdBy"))
+        andConditions.push({ createdBy: { contains: searchParams.get("createdBy")! } });
+      if (searchParams.get("updatedBy"))
+        andConditions.push({ updatedBy: { contains: searchParams.get("updatedBy")! } });
       // 日付項目の実行
       (["lastLoginAt", "createdAt", "updatedAt"] as const).forEach((field) => addRangeFilter(field, "date"));
     } else {
       // 一般ユーザーの場合は、削除済みでない・アクティブなユーザーのみ
-      where.deletedFlg = false;
-      where.isActive = true;
+      andConditions.push({ deletedFlg: false });
+      andConditions.push({ isActive: true });
     }
 
     // ダンジョンコードによるリレーション絞り込み
     if (searchParams.get("createDungeonCodeList")) {
-      where.dungeons = { some: { code: { in: searchParams.get("createDungeonCodeList")!.split(",") } } };
+      andConditions.push({
+        dungeons: { some: { code: { in: searchParams.get("createDungeonCodeList")!.split(",") } } },
+      });
     }
     if (searchParams.get("historyDungeonCodeList")) {
-      where.playHistories = {
-        some: { dungeon: { code: { in: searchParams.get("historyDungeonCodeList")!.split(",") } } },
-      };
+      andConditions.push({
+        playHistories: {
+          some: { dungeon: { code: { in: searchParams.get("historyDungeonCodeList")!.split(",") } } },
+        },
+      });
     }
     if (searchParams.get("favouriteDungeonCodeList")) {
-      where.favouriteDungeons = {
-        some: { dungeon: { code: { in: searchParams.get("favouriteDungeonCodeList")!.split(",") } } },
-      };
+      andConditions.push({
+        favouriteDungeons: {
+          some: { dungeon: { code: { in: searchParams.get("favouriteDungeonCodeList")!.split(",") } } },
+        },
+      });
     }
 
     // DB実行 (合計件数とデータ取得)
     const [totalCount, usersRaw] = await Promise.all([
-      prisma.user.count({ where }),
+      prisma.user.count({ where: { AND: andConditions } }),
       prisma.user.findMany({
-        where,
+        where: { AND: andConditions },
         take: limit,
         skip: index,
         orderBy: { [sortField]: sortOrder },

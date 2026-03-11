@@ -21,8 +21,8 @@ export async function GET(request: Request) {
     const sortField = searchParams.get("sort") || "createdAt";
     const sortOrder = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-    // Where句（検索条件）の動的構築
-    let where: Prisma.DungeonWhereInput = {};
+    //検索条件の動的構築
+    const andConditions: Prisma.DungeonWhereInput[] = [];
 
     // status検索
     const statusParam = searchParams.get("statusList");
@@ -31,21 +31,21 @@ export async function GET(request: Request) {
       // 【管理者】
       // statusList が指定されていればその状態に絞り込み、なければ全件
       if (statusList.length > 0) {
-        where.status = { in: statusList };
+        andConditions.push({ status: { in: statusList } });
       }
     } else {
       // 【一般ユーザー】
       // 基本は「公開済み」 or 「自分自身のもの」
-      where.OR = [{ status: "PUBLISHED" }, ...(userId ? [{ userId: userId }] : [])];
+      andConditions.push({ OR: [{ status: "PUBLISHED" }, ...(userId ? [{ userId: userId }] : [])] });
       // さらに一般ユーザーが「自分の下書きだけ見たい」などの指定をした場合
       if (statusList.length > 0) {
-        where.AND = [{ status: { in: statusList } }];
+        andConditions.push({ status: { in: statusList } });
       }
     }
 
     // 文字列部分一致
-    if (searchParams.get("code")) where.code = { contains: searchParams.get("code")! };
-    if (searchParams.get("name")) where.name = { contains: searchParams.get("name")! };
+    if (searchParams.get("code")) andConditions.push({ code: { contains: searchParams.get("code")! } });
+    if (searchParams.get("name")) andConditions.push({ name: { contains: searchParams.get("name")! } });
     // user検索用のオブジェクトを準備
     const userFilter: Prisma.UserWhereInput = {};
     if (searchParams.get("userName")) {
@@ -55,13 +55,13 @@ export async function GET(request: Request) {
       userFilter.nickName = { contains: searchParams.get("nickName")! };
     }
     if (Object.keys(userFilter).length > 0) {
-      where.user = { is: userFilter };
+      andConditions.push({ user: { is: userFilter } });
     }
 
     // 横断検索 (text)
     const searchText = searchParams.get("text");
     if (searchText) {
-      where.OR = [{ name: { contains: searchText } }, { description: { contains: searchText } }];
+      andConditions.push({ OR: [{ name: { contains: searchText } }, { description: { contains: searchText } }] });
     }
 
     // 範囲フィルター用ヘルパー
@@ -72,11 +72,18 @@ export async function GET(request: Request) {
 
       if (val || from || to) {
         const transform = (v: string) => (type === "number" ? Number(v) : new Date(v));
-        (where as any)[field] = {
-          ...(val && { equals: transform(val) }),
-          ...(from && { gte: transform(from) }),
-          ...(to && { lte: transform(to) }),
-        };
+        if (val) {
+          andConditions.push({
+            [field]: transform(val),
+          });
+        } else {
+          andConditions.push({
+            [field]: {
+              ...(from && { gte: transform(from) }),
+              ...(to && { lte: transform(to) }),
+            },
+          });
+        }
       }
     };
 
@@ -85,6 +92,7 @@ export async function GET(request: Request) {
       [
         "mapSizeHeight",
         "mapSizeWidth",
+        "mapSize",
         "timeLimit",
         "difficulty",
         "clearPlayCount",
@@ -102,22 +110,43 @@ export async function GET(request: Request) {
     const setListFilter = (field: keyof Prisma.DungeonWhereInput, param: string) => {
       const list = searchParams.getAll(param);
       if (list.length > 0) {
-        (where as any)[field] = { in: list.map((v) => v === "true") };
+        andConditions.push({ [field]: { in: list.map((v) => v === "true") } });
       }
     };
+    setListFilter("difficulty", "difficultyList");
     setListFilter("isTemplate", "isTemplateList");
     setListFilter("deletedFlg", "deletedFlgList");
 
     // プレイ状況による絞り込みロジック
-    if (userId && searchParams.get("playStatusList")) {
-      const playStatusParam = searchParams.get("playStatusList");
-      const playStatusList = playStatusParam ? (playStatusParam.split(",") as PlayStatus[]) : [];
-      where.playHistories = {
-        some: {
-          userId: userId,
-          playStatus: { in: playStatusList },
-        },
-      };
+    const playStatusParam = searchParams.get("playStatusList");
+    if (userId && playStatusParam) {
+      const playStatusList = playStatusParam.split(",") as PlayStatus[];
+
+      if (playStatusList.length > 0) {
+        const wantCleared = playStatusList.includes("CLEAR");
+        // "NOT_CLEARED" という指定、または CLEAR を含まずに他のステータスを指定した場合の判定
+        const isSeekingNotCleared = !wantCleared || playStatusList.includes("NOT_CLEARED" as any);
+
+        if (isSeekingNotCleared && playStatusList.length === 1 && playStatusList[0] === ("NOT_CLEARED" as any)) {
+          // 未攻略のみ検索
+          andConditions.push({
+            playHistories: { none: { userId, playStatus: "CLEAR" } },
+          });
+        } else {
+          // 指定されたステータス（FAILUREなど）の履歴があるものを検索
+          andConditions.push({
+            playHistories: {
+              some: { userId, playStatus: { in: playStatusList.filter((s) => s !== ("NOT_CLEARED" as any)) } },
+            },
+          });
+          // かつ、一度でもクリアしているものは除外する
+          if (isSeekingNotCleared) {
+            andConditions.push({
+              playHistories: { none: { userId, playStatus: "CLEAR" } },
+            });
+          }
+        }
+      }
     }
 
     // お気に入りによる絞り込みロジック
@@ -129,27 +158,31 @@ export async function GET(request: Request) {
       if (includeFavourites !== includeNotFavourites) {
         if (includeFavourites) {
           // お気に入り登録しているものだけを表示 (some)
-          where.favouritedBy = {
-            some: {
-              userId: userId,
+          andConditions.push({
+            favouritedBy: {
+              some: {
+                userId: userId,
+              },
             },
-          };
+          });
         } else if (includeNotFavourites) {
           // お気に入り登録していないものだけを表示 (none)
-          where.favouritedBy = {
-            none: {
-              userId: userId,
+          andConditions.push({
+            favouritedBy: {
+              none: {
+                userId: userId,
+              },
             },
-          };
+          });
         }
       }
     }
 
     // DB実行 (合計件数とデータ取得)
     const [totalCount, dungeonsRaw] = await Promise.all([
-      prisma.dungeon.count({ where }),
+      prisma.dungeon.count({ where: { AND: andConditions } }),
       prisma.dungeon.findMany({
-        where,
+        where: { AND: andConditions },
         include: {
           user: { select: { userName: true, nickName: true } },
           dungeonTags: { include: { tag: true } },

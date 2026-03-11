@@ -104,6 +104,7 @@ model Dungeon {
   mapData     Json
   mapSizeHeight Int
   mapSizeWidth  Int
+  mapSize       Int
   // --- ゲーム設定 ---
   timeLimit   Int      @default(60)
   difficulty  Int      @default(1)

@@ -6,9 +6,9 @@ import { DungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 
 // GET: ダンジョン詳細取得
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 認証セッションを取得して「管理者かどうか」を確認
     const session = await getServerSession(authOptions);
@@ -52,9 +52,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // PATCH: ダンジョン更新
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -112,9 +112,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 // DELETE: ダンジョン削除
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     // 認証チェック

@@ -12,6 +12,7 @@ export interface DungeonBase {
   mapData: any;
   mapSizeHeight: number;
   mapSizeWidth: number;
+  mapSize: number;
   timeLimit: number;
   difficulty: number;
   status: DungeonStatus;
