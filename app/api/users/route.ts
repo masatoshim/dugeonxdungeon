@@ -123,6 +123,15 @@ export async function GET(request: Request) {
       prisma.user.count({ where: { AND: andConditions } }),
       prisma.user.findMany({
         where: { AND: andConditions },
+        include: {
+          dungeons: {
+            select: {
+              id: true,
+              code: true,
+              status: true,
+            },
+          },
+        },
         take: limit,
         skip: index,
         orderBy: { [sortField]: sortOrder },
@@ -132,10 +141,17 @@ export async function GET(request: Request) {
     // 後処理
     const users: UserResponse[] = usersRaw.map((u) => ({
       ...u,
+      totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
+      dungeonCount: u.dungeons.length,
+      publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
       createdAt: u.createdAt.toISOString(),
       updatedAt: u.updatedAt.toISOString(),
-      // 管理者以外にはメールを隠す
+      // 管理者のみ、または本人のみ取得可能にする項目
+      emailVerified: isAdmin || session?.user?.id === u.id ? u.emailVerified?.toISOString() : undefined,
+      lastLoginAt: isAdmin || session?.user?.id === u.id ? u.lastLoginAt?.toISOString() : undefined,
       email: isAdmin || session?.user?.id === u.id ? u.email : undefined,
+      isActive: isAdmin || session?.user?.id === u.id ? u.isActive : undefined,
+      deletedFlg: isAdmin || session?.user?.id === u.id ? u.deletedFlg : undefined,
     }));
 
     // レスポンス

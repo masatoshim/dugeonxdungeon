@@ -1,4 +1,5 @@
 import { DungeonStatus } from "@prisma/client";
+import { DateTime } from "next-auth/providers/kakao";
 
 /**
  * ダンジョンデータの共通プロパティ
@@ -28,8 +29,8 @@ export interface DungeonBase {
  * DB内部やサーバーサイドでのみ使用する型
  */
 export interface DungeonEntity extends DungeonBase {
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: DateTime;
+  updatedAt: DateTime;
 }
 
 /**

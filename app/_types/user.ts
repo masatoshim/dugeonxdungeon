@@ -1,27 +1,46 @@
 import { Role } from "@prisma/client";
+import { DateTime } from "next-auth/providers/kakao";
 
 /**
  * ユーザー情報の基本レスポンス
  */
-export interface UserResponse {
+export interface UserBase {
   id: string;
   userName: string;
   nickName: string | null;
   iconImageKey: string | null;
-  role: Role;
+  role?: Role;
   // 統計情報
   ranking: number | null;
-  clearPlayCount: number;
-  playDungeonCount: number;
   totalPlayScore: number;
-  // 日付（ISO文字列）
-  createdAt: string;
-  updatedAt: string;
+  totalPlayTime: number;
+  totalPlayCount: number;
+  playDungeonCount: number;
+  clearPlayCount: number;
+  failurePlayCount: number;
+  interruptPlayCount: number;
+  dungeonCount: number;
+  publishedDungeonCount: number;
+  dungeons?: { id?: string; code?: string }[] | null;
+  playHistories?: { id?: string; code?: string; createdAt?: string }[] | null;
+  favouriteDungeons?: { id: string; code: string }[] | null;
   // 管理者のみ、または本人のみ取得可能にする項目
   email?: string | null;
   isActive?: boolean;
+  deletedFlg?: boolean;
+  createdBy?: string | null;
+  updatedBy?: string | null;
 }
 
+/**
+ * APIレスポンス用
+ */
+export interface UserResponse extends UserBase {
+  emailVerified?: string | null; // ISO 8601 文字列
+  lastLoginAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
 /**
  * ユーザー一覧取得のレスポンス
  */

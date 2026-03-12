@@ -14,11 +14,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const session = await getServerSession(authOptions);
     const isAdmin = session?.user?.role === "ADMIN";
 
-    const whereCondition: any = { id };
+    const whereCondition: Prisma.DungeonWhereInput = { id };
     if (!isAdmin) {
       whereCondition.status = "PUBLISHED";
     }
 
+    // ダンジョンの取得
     const dungeon = await prisma.dungeon.findFirst({
       where: whereCondition,
       include: {
