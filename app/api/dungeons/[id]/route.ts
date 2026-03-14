@@ -10,16 +10,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
-    }
     const userId = session?.user?.id;
     const isAdmin = session?.user?.role === "ADMIN";
 
     const { id } = await params;
     const andConditions: Prisma.DungeonWhereInput = { id };
     if (!isAdmin) {
-      // 【一般ユーザー】
+      // 【一般ユーザー & 未登録ユーザー】
       // 基本は「公開済み」 or 「自分自身のもの」
       andConditions.OR = [{ status: "PUBLISHED" }, ...(userId ? [{ userId: userId }] : [])];
     }
