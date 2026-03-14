@@ -11,14 +11,21 @@ const adapter = PrismaAdapter(prisma);
 const customAdapter = {
   ...adapter,
   createUser: (data: any) => {
-    // 1. Googleから渡ってくるが、DBに保存したくない項目（imageなど）を抽出
+    // Googleから渡ってくるが、DBに保存したくない項目（imageなど）を抽出
     const { name, image, emailVerified, ...rest } = data;
+
+    const now = new Date(); // UTC時刻として扱われる
+    const generatedUserName = name || "User_" + Math.random().toString(36).slice(-4);
 
     return prisma.user.create({
       data: {
-        ...rest, // ここには email だけが含まれる
-        userName: name || "GoogleUser",
-        // iconImageKey はここでは指定しない（DBのデフォルト値または null になる）
+        ...rest,
+        userName: name,
+        nickName: generatedUserName, // サインアップ時は userName と同様
+        lastLoginAt: now, // 初回ログイン時刻
+        createdBy: generatedUserName,
+        updatedBy: generatedUserName,
+        emailVerified: now, // サインアップ時に確認済みとする
         isActive: true,
         deletedFlg: false,
       },
@@ -64,10 +71,28 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     // Google認証時などの「ログイン可否」の最終判定
     async signIn({ user, account, profile }) {
+      if (!user?.id) return true;
       // DBから最新のユーザー情報を取得してチェック
       const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+
+      // DBにまだ存在しない（＝今まさに createUser されたばかりの新規ユーザー）場合
+      if (!dbUser) {
+        // 新規登録時は createUser 側で lastLoginAt を入れているので、
+        // ここでは何もせず true を返してログインを完了させる
+        return true;
+      }
+
       if (dbUser?.deletedFlg || dbUser?.isActive === false) {
         return false; // ログイン拒否
+      }
+      if (user?.id) {
+        // 既存ユーザーのログイン時に lastLoginAt を更新する
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lastLoginAt: new Date(),
+          },
+        });
       }
       return true;
     },
@@ -75,6 +100,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.userName = (user as any).userName;
       }
       return token;
     },
@@ -82,6 +108,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.name = token.userName as string;
       }
       return session;
     },

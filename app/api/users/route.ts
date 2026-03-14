@@ -213,6 +213,7 @@ export async function POST(request: Request) {
 
     // パスワードのハッシュ化
     const hashedPassword = await bcrypt.hash(password, 10);
+    const now = new Date();
 
     // ユーザー作成
     const newUser = await prisma.user.create({
@@ -222,6 +223,7 @@ export async function POST(request: Request) {
         hashedPassword,
         nickName: userName, // 初期値としてニックネームにユーザー名を入れる
         role: "USER",
+        emailVerified: now,
         isActive: true,
         deletedFlg: false,
       },
