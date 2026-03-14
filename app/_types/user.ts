@@ -2,14 +2,30 @@ import { Role } from "@prisma/client";
 import { DateTime } from "next-auth/providers/kakao";
 
 /**
- * ユーザー情報の基本レスポンス
+ * ユーザー情報の共通プロパティ
  */
 export interface UserBase {
   id: string;
   userName: string;
   nickName: string | null;
   iconImageKey: string | null;
+  // 管理者のみ、または本人のみ取得可能にする項目
+  email?: string | null;
+  isActive?: boolean;
+  deletedFlg?: boolean;
+  createdBy?: string | null;
+  updatedBy?: string | null;
   role?: Role;
+}
+
+/**
+ * APIレスポンス
+ */
+export interface UserResponse extends UserBase {
+  emailVerified?: string | null; // ISO 8601 文字列
+  lastLoginAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   // 統計情報
   ranking: number | null;
   totalPlayScore: number;
@@ -24,25 +40,23 @@ export interface UserBase {
   dungeons?: { id?: string; code?: string }[] | null;
   playHistories?: { id?: string; code?: string; createdAt?: string }[] | null;
   favouriteDungeons?: { id: string; code: string }[] | null;
-  // 管理者のみ、または本人のみ取得可能にする項目
-  email?: string | null;
-  isActive?: boolean;
-  deletedFlg?: boolean;
-  createdBy?: string | null;
-  updatedBy?: string | null;
 }
 
 /**
- * APIレスポンス用
+ * 更新リクエスト
  */
-export interface UserResponse extends UserBase {
-  emailVerified?: string | null; // ISO 8601 文字列
-  lastLoginAt?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-}
+export interface UpdateUserRequest extends Omit<UserBase, "id"> {}
+
 /**
- * ユーザー一覧取得のレスポンス
+ * 更新レスポンス
+ */
+export interface UpdateUserResponse {
+  message: string;
+  user: UserBase;
+}
+
+/**
+ * 一覧取得のレスポンス
  */
 export interface UsersIndexResponse {
   users: UserResponse[];
@@ -52,16 +66,4 @@ export interface UsersIndexResponse {
     limit: number;
     hasNext: boolean;
   };
-}
-
-/**
- * ユーザー更新リクエスト
- * 一般ユーザーが変更できる項目に限定
- */
-export interface UpdateUserRequest {
-  nickName?: string | null;
-  iconImageKey?: string | null;
-  // 管理者のみ変更可能な項目（API内部で権限チェックする）
-  role?: Role;
-  isActive?: boolean;
 }

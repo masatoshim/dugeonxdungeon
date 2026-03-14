@@ -4,8 +4,12 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { Role, Prisma } from "@prisma/client";
 import { UserResponse, UsersIndexResponse } from "@/app/_types";
+import bcrypt from "bcrypt";
+import { z } from "zod";
 
-// GET: ユーザー一覧取得
+/**
+ * GET: ユーザー一覧取得
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
@@ -164,5 +168,77 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("User List Error:", error);
     return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
+  }
+}
+
+// バリデーションスキーマの定義
+const passwordSchema = z
+  .string()
+  .min(8, "8文字以上で入力してください")
+  .max(100) // 念のための上限
+  .regex(/[a-z]/, "小文字を含めてください")
+  .regex(/[A-Z]/, "大文字を含めてください")
+  .regex(/[0-9]/, "数字を含めてください");
+
+/**
+ * POST: ユーザー新規登録
+ */
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { userName, email, password } = body;
+
+    // パスワードチェック
+    const result = passwordSchema.safeParse(password);
+    if (!result.success) {
+      return NextResponse.json({ message: result.error.message }, { status: 400 });
+    }
+
+    // バリデーション
+    if (!userName || !email || !password) {
+      return NextResponse.json({ message: "必須項目が不足しています" }, { status: 400 });
+    }
+
+    // 重複チェック
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ userName: userName }, { email: email }],
+        deletedFlg: false, // 論理削除されていないユーザーのみチェック
+      },
+    });
+
+    if (existingUser) {
+      return NextResponse.json({ message: "ユーザー名またはメールアドレスが既に登録されています" }, { status: 409 });
+    }
+
+    // パスワードのハッシュ化
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ユーザー作成
+    const newUser = await prisma.user.create({
+      data: {
+        userName,
+        email,
+        hashedPassword,
+        nickName: userName, // 初期値としてニックネームにユーザー名を入れる
+        role: "USER",
+        isActive: true,
+        deletedFlg: false,
+      },
+    });
+
+    // 作成後、自分自身で更新情報を入れる
+    await prisma.user.update({
+      where: { id: newUser.id },
+      data: {
+        createdBy: newUser.id,
+        updatedBy: newUser.id,
+      },
+    });
+
+    return NextResponse.json({ message: "ユーザー登録が完了しました", userId: newUser.id }, { status: 201 });
+  } catch (error) {
+    console.error("Signup Error:", error);
+    return NextResponse.json({ message: "サーバーエラーが発生しました" }, { status: 500 });
   }
 }

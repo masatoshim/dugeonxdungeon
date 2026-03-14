@@ -2,7 +2,7 @@ import { DungeonStatus } from "@prisma/client";
 import { DateTime } from "next-auth/providers/kakao";
 
 /**
- * ダンジョンデータの共通プロパティ
+ * ダンジョン情報の共通プロパティ
  */
 export interface DungeonBase {
   id: string;
@@ -26,15 +26,7 @@ export interface DungeonBase {
 }
 
 /**
- * DB内部やサーバーサイドでのみ使用する型
- */
-export interface DungeonEntity extends DungeonBase {
-  createdAt: DateTime;
-  updatedAt: DateTime;
-}
-
-/**
- * APIレスポンス用
+ * APIレスポンス
  */
 export interface DungeonResponse extends DungeonBase {
   totalPlayCount: number;
@@ -43,14 +35,29 @@ export interface DungeonResponse extends DungeonBase {
 }
 
 /**
- * 新規作成リクエスト用
+ * 新規作成リクエスト
  */
 export interface CreateDungeonRequest extends Omit<DungeonBase, "id" | "status" | "isTemplate"> {
   tagIds?: number[];
 }
 
 /**
- * 一覧取得APIのレスポンス全体
+ * 更新リクエスト
+ */
+export interface UpdateDungeonRequest extends Omit<DungeonBase, "id" | "isTemplate"> {
+  tagIds?: number[];
+}
+
+/**
+ * 更新レスポンス
+ */
+export interface UpdateDungeonResponse {
+  message: string;
+  dungeon: DungeonBase;
+}
+
+/**
+ * 一覧取得APIのレスポンス
  */
 export interface DungeonsIndexResponse {
   dungeons: DungeonResponse[];

@@ -2,26 +2,31 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 
 // GET: ダンジョン詳細取得
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
-
-    // 認証セッションを取得して「管理者かどうか」を確認
+    // 認証セッションの取得
     const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
+    }
+    const userId = session?.user?.id;
     const isAdmin = session?.user?.role === "ADMIN";
 
-    const whereCondition: Prisma.DungeonWhereInput = { id };
+    const { id } = await params;
+    const andConditions: Prisma.DungeonWhereInput = { id };
     if (!isAdmin) {
-      whereCondition.status = "PUBLISHED";
+      // 【一般ユーザー】
+      // 基本は「公開済み」 or 「自分自身のもの」
+      andConditions.OR = [{ status: "PUBLISHED" }, ...(userId ? [{ userId: userId }] : [])];
     }
 
     // ダンジョンの取得
     const dungeon = await prisma.dungeon.findFirst({
-      where: whereCondition,
+      where: andConditions,
       include: {
         user: { select: { userName: true, nickName: true } },
         dungeonTags: { include: { tag: true } },
@@ -55,14 +60,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 // PATCH: ダンジョン更新
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    // 認証セッションの取得
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
       return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const { id } = await params;
+    const body: UpdateDungeonRequest = await request.json();
     const { tagIds, ...updateData } = body;
 
     // 権限チェック：対象のダンジョンが存在し、かつ編集権限があるか確認
@@ -99,7 +104,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
-    return NextResponse.json(updatedDungeon);
+    const response: UpdateDungeonResponse = {
+      message: "ダンジョン情報を更新しました",
+      dungeon: updatedDungeon,
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Dungeon Update Error:", error);
 
@@ -108,25 +118,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         return NextResponse.json({ message: "コードが重複しています" }, { status: 409 });
       }
     }
-    return NextResponse.json({ message: "更新に失敗しました" }, { status: 500 });
+    return NextResponse.json({ message: "サーバーエラーが発生しました" }, { status: 500 });
   }
 }
 
 // DELETE: ダンジョン削除
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
-    const session = await getServerSession(authOptions);
-
-    // 認証チェック
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
-    }
-
     // 権限チェック：管理者（ADMIN）のみ許可
-    const isAdmin = session.user.role === "ADMIN";
-    if (!isAdmin) {
-      return NextResponse.json({ message: "この操作は管理者のみ許可されています（物理削除）" }, { status: 403 });
+    const session = await getServerSession(authOptions);
+    if (session?.user?.role !== "ADMIN") {
+      return NextResponse.json({ message: "管理者権限が必要です" }, { status: 403 });
+    }
+    const { id } = await params;
+
+    // 削除対象の存在確認と、現在の値を取得
+    const dungeon = await prisma.dungeon.findUnique({ where: { id } });
+    if (!dungeon) {
+      return NextResponse.json({ message: "ダンジョンが見つかりません" }, { status: 404 });
     }
 
     // 削除処理

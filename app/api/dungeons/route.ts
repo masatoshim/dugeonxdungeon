@@ -5,13 +5,18 @@ import { authOptions } from "@/app/_libs/auth";
 import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
 import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
 
-// GET: ダンジョン一覧取得
+/**
+ * GET: ダンジョン一覧取得
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
+    }
     const userId = session?.user?.id;
     const isAdmin = session?.user?.role === "ADMIN";
 
@@ -237,7 +242,9 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: ダンジョン新規作成
+/**
+ * POST: ダンジョン新規作成
+ */
 export async function POST(request: Request) {
   try {
     // セッション（ログインユーザー）の確認
