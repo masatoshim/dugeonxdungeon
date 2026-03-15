@@ -74,9 +74,28 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  pages: {
+    signIn: "/login",
+    newUser: "/signup", // 新規ユーザー時の遷移先
+    error: "/signup", // エラーが発生した時に新規登録画面（またはログイン画面）へ飛ばす
+  },
   callbacks: {
     // Google認証時などの「ログイン可否」の最終判定
     async signIn({ user, account, profile }) {
+      // 既存のユーザーをメールアドレスで検索
+      const existingUser = await prisma.user.findUnique({
+        where: { email: user.email as string },
+      });
+      // 「既にユーザーが存在する」かつ「Google連携（account.provider）ではない」場合
+      // つまり、メール+パスワードで既に登録されている場合
+      if (existingUser && account?.provider === "google") {
+        // ここで既存ユーザーがGoogleと紐付いていない（パスワード設定がある等）なら拒否
+        if (existingUser.hashedPassword) {
+          // エラーを投げると pages.error で指定したURLに ?error=... が付いてリダイレクトされる
+          throw new Error("AlreadyRegisteredWithPassword");
+        }
+      }
+
       if (!user?.id) return true;
       // DBから最新のユーザー情報を取得してチェック
       const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
