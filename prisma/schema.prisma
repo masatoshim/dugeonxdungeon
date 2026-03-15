@@ -63,11 +63,13 @@ model Session {
 }
 
 model VerificationToken {
-  identifier String
+  id         String   @id @default(uuid())
+  identifier String   // ユーザーの識別子（email）
   token      String   @unique
-  expires    DateTime
+  expires    DateTime // 有効期限
+  createdAt  DateTime @default(now())
 
-  @@unique([identifier, token])
+  @@unique([identifier, token]) // 同じメールアドレスに対して同じトークンが重複するのを防ぐ
 }
 
 model Dungeon {

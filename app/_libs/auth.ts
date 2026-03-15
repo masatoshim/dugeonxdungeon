@@ -10,24 +10,30 @@ const adapter = PrismaAdapter(prisma);
 // createUser メソッドを上書きする
 const customAdapter = {
   ...adapter,
-  createUser: (data: any) => {
+  createUser: async (data: any) => {
     // Googleから渡ってくるが、DBに保存したくない項目（imageなど）を抽出
     const { name, image, emailVerified, ...rest } = data;
 
     const now = new Date(); // UTC時刻として扱われる
     const generatedUserName = name || "User_" + Math.random().toString(36).slice(-4);
 
-    return prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         ...rest,
         userName: name,
         nickName: generatedUserName, // サインアップ時は userName と同様
         lastLoginAt: now, // 初回ログイン時刻
-        createdBy: generatedUserName,
-        updatedBy: generatedUserName,
         emailVerified: now, // サインアップ時に確認済みとする
         isActive: true,
         deletedFlg: false,
+      },
+    });
+
+    return await prisma.user.update({
+      where: { id: newUser.id },
+      data: {
+        createdBy: newUser.id,
+        updatedBy: newUser.id,
       },
     });
   },

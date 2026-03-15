@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // バリデーションスキーマの定義
 const signupSchema = z.object({
@@ -41,22 +42,15 @@ export default function SignupPage() {
         body: JSON.stringify(data),
       });
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "登録に失敗しました");
+      if (res.status === 201) {
+        // 登録成功、確認待ち画面へ
+        router.push(`/signup/verify-request?email=${encodeURIComponent(data.email)}`);
+      } else if (res.status === 429) {
+        // 制限エラーの時は、エラーメッセージをトースト等で表示
+        toast.error("現在、送信制限中です。サポートへご連絡ください。");
       }
-
-      // 登録成功後、そのままログインさせてダッシュボードへ
-      await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        callbackUrl: "/", // todo: dashboardに遷移するよう変更する
-      });
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      toast.error("通信エラーが発生しました");
     }
   };
 
