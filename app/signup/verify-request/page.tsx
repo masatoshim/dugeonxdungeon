@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-export default function VerifyRequestPage({ searchParams }: { searchParams: { email?: string } }) {
-  const email = searchParams.email;
+export default async function VerifyRequestPage({ searchParams }: { searchParams: Promise<{ email?: string }> }) {
+  const { email } = await searchParams;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-4 text-white">

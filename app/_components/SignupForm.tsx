@@ -58,12 +58,14 @@ export default function SignupForm() {
       if (res.status === 201) {
         // 登録成功、確認待ち画面へ
         router.push(`/signup/verify-request?email=${encodeURIComponent(data.email)}`);
-      } else if (res.status === 429) {
-        // 制限エラーの時は、エラーメッセージをトースト等で表示
-        toast.error("現在、送信制限中です。サポートへご連絡ください。");
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.message || errorData.error || "登録に失敗しました");
+        setLoading(false);
       }
     } catch (error) {
       toast.error("通信エラーが発生しました");
+      setLoading(false);
     }
   };
 
