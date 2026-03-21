@@ -21,8 +21,8 @@ export interface DungeonBase {
   userName?: string;
   nickName?: string | null;
   tags?: string[];
-  createdBy: string;
-  updatedBy: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 /**
@@ -30,8 +30,8 @@ export interface DungeonBase {
  */
 export interface DungeonResponse extends DungeonBase {
   totalPlayCount: number;
-  createdAt: string; // ISO 8601 文字列
-  updatedAt: string;
+  createdAt?: string; // ISO 8601 文字列
+  updatedAt?: string;
 }
 
 /**

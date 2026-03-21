@@ -17,6 +17,9 @@ export async function GET(request: Request) {
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    }
     const isAdmin = session?.user?.role === "ADMIN";
 
     // ページネーション・ソート設定
@@ -144,20 +147,27 @@ export async function GET(request: Request) {
     ]);
 
     // 後処理
-    const users: UserResponse[] = usersRaw.map((u) => ({
-      ...u,
-      totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
-      dungeonCount: u.dungeons.length,
-      publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
-      createdAt: u.createdAt.toISOString(),
-      updatedAt: u.updatedAt.toISOString(),
-      // 管理者のみ、または本人のみ取得可能にする項目
-      emailVerified: isAdmin || session?.user?.id === u.id ? u.emailVerified?.toISOString() : undefined,
-      lastLoginAt: isAdmin || session?.user?.id === u.id ? u.lastLoginAt?.toISOString() : undefined,
-      email: isAdmin || session?.user?.id === u.id ? u.email : undefined,
-      isActive: isAdmin || session?.user?.id === u.id ? u.isActive : undefined,
-      deletedFlg: isAdmin || session?.user?.id === u.id ? u.deletedFlg : undefined,
-    }));
+    const users: UserResponse[] = usersRaw.map((u) => {
+      const { hashedPassword, ...rest } = u;
+      const hasPrivateAccess = isAdmin || session?.user?.id === u.id;
+      return {
+        ...rest,
+        totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
+        publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
+        // 管理者のみ、または本人のみ取得可能にする項目
+        dungeonCount: hasPrivateAccess ? u.dungeons.length : undefined,
+        createdBy: hasPrivateAccess ? u.createdBy : undefined,
+        updatedBy: hasPrivateAccess ? u.updatedBy : undefined,
+        createdAt: hasPrivateAccess ? u.createdAt.toISOString() : undefined,
+        updatedAt: hasPrivateAccess ? u.updatedAt.toISOString() : undefined,
+        emailVerified: hasPrivateAccess ? u.emailVerified?.toISOString() : undefined,
+        lastLoginAt: hasPrivateAccess ? u.lastLoginAt?.toISOString() : undefined,
+        email: hasPrivateAccess ? u.email : undefined,
+        isActive: hasPrivateAccess ? u.isActive : undefined,
+        deletedFlg: hasPrivateAccess ? u.deletedFlg : undefined,
+        role: hasPrivateAccess ? u.role : undefined,
+      };
+    });
 
     // レスポンス
     const response: UsersIndexResponse = {

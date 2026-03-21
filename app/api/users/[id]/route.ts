@@ -14,6 +14,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     // 認証セッションを取得して「管理者かどうか」を確認
     const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    }
     const currentUserId = session?.user?.id;
     const isAdmin = session?.user?.role === "ADMIN";
     const isOwner = currentUserId === id;

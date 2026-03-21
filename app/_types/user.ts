@@ -35,8 +35,8 @@ export interface UserResponse extends UserBase {
   clearPlayCount: number;
   failurePlayCount: number;
   interruptPlayCount: number;
-  dungeonCount: number;
   publishedDungeonCount: number;
+  dungeonCount?: number;
   dungeons?: { id?: string; code?: string }[] | null;
   playHistories?: { id?: string; code?: string; createdAt?: string }[] | null;
   favouriteDungeons?: { id: string; code: string }[] | null;
