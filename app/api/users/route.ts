@@ -139,6 +139,24 @@ export async function GET(request: Request) {
               status: true,
             },
           },
+          playHistories: {
+            select: {
+              createdAt: true,
+              dungeon: {
+                select: { code: true, status: true },
+              },
+              user: {
+                select: { id: true },
+              },
+            },
+          },
+          favouriteDungeons: {
+            select: {
+              dungeon: {
+                select: { code: true, status: true },
+              },
+            },
+          },
         },
         take: limit,
         skip: index,
@@ -152,6 +170,21 @@ export async function GET(request: Request) {
       const hasPrivateAccess = isAdmin || session?.user?.id === u.id;
       return {
         ...rest,
+        dungeons: u.dungeons
+          .filter((d) => hasPrivateAccess || d.status === "PUBLISHED")
+          .map((d) => {
+            return { dungeonCode: d.code };
+          }),
+        playHistories: u.playHistories
+          .filter((h) => hasPrivateAccess || h.dungeon.status === "PUBLISHED")
+          .map((h) => {
+            return { dungeonCode: h.dungeon.code, userId: h.user.id, createdAt: h.createdAt.toISOString() };
+          }),
+        favouriteDungeons: u.favouriteDungeons
+          .filter((f) => hasPrivateAccess || f.dungeon.status === "PUBLISHED")
+          .map((f) => {
+            return { dungeonCode: f.dungeon.code };
+          }),
         totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
         publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
         // 管理者のみ、または本人のみ取得可能にする項目

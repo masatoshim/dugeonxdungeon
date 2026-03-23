@@ -1,5 +1,4 @@
 import { DungeonStatus } from "@prisma/client";
-import { DateTime } from "next-auth/providers/kakao";
 
 /**
  * ダンジョン情報の共通プロパティ

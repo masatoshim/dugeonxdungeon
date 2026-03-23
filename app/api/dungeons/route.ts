@@ -187,7 +187,7 @@ export async function GET(request: Request) {
       // true と false の両方が指定されている、または指定がない場合は絞り込み不要
       if (includeFavourites !== includeNotFavourites) {
         if (includeFavourites) {
-          // お気に入り登録しているものだけを表示 (some)
+          // お気に入り登録しているものだけを表示
           andConditions.push({
             favouritedBy: {
               some: {
@@ -196,7 +196,7 @@ export async function GET(request: Request) {
             },
           });
         } else if (includeNotFavourites) {
-          // お気に入り登録していないものだけを表示 (none)
+          // お気に入り登録していないものだけを表示
           andConditions.push({
             favouritedBy: {
               none: {

@@ -12,6 +12,8 @@ model User {
   nickName           String?
   email              String?             @unique
   iconImageKey       String?
+  role               Role                @default(USER)
+  // --- ゲーム統計情報 ---
   ranking            Int?                @default(0)
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
@@ -19,21 +21,24 @@ model User {
   playDungeonCount   Int                 @default(0)
   totalPlayTime      Int                 @default(0)
   totalPlayScore     Int                 @default(0)
+  // --- ステータスフラグ ---
   isActive           Boolean             @default(true)
   deletedFlg         Boolean             @default(false)
+  // --- 監査・追跡情報 ---
   lastLoginAt        DateTime?
   createdBy          String?
   updatedBy          String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-  role               Role                @default(USER)
   emailVerified      DateTime?
+  // --- 認証用 ---
   hashedPassword     String?
   accounts           Account[]
+  sessions           Session[]
+  // --- リレーション設定 ---
   dungeons           Dungeon[]
   favouriteDungeons  FavouritesDungeon[]
   playHistories      PlayHistory[]
-  sessions           Session[]
 }
 
 model Account {
@@ -76,30 +81,35 @@ model Dungeon {
   id                 String              @id @default(uuid())
   code               String              @unique
   userId             String
+  user               User                @relation(fields: [userId], references: [id])
   name               String
   description        String?
+  // --- マップ設定 ---
   mapData            Json
   mapSizeHeight      Int
   mapSizeWidth       Int
+  mapSize            Int
+  // --- ゲーム設定 ---
   timeLimit          Int                 @default(60)
   difficulty         Int                 @default(1)
   status             DungeonStatus       @default(DRAFT)
   publishedAt        DateTime?
   isTemplate         Boolean             @default(false)
+  // --- 統計・メトリクス ---
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
   interruptPlayCount Int                 @default(0)
   totalPlayTime      Int                 @default(0)
   totalPlayScore     Int                 @default(0)
   favouritesCount    Int                 @default(0)
+  // --- 監査・追跡情報 ---
   version            Int                 @default(1)
   deletedFlg         Boolean             @default(false)
   createdBy          String
   updatedBy          String
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-  mapSize            Int
-  user               User                @relation(fields: [userId], references: [id])
+  // --- リレーション設定 ---
   dungeonTags        DungeonTag[]
   favouritedBy       FavouritesDungeon[]
   playHistories      PlayHistory[]
