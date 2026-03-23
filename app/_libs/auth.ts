@@ -65,7 +65,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.hashedPassword);
-        if (isValid) return user;
+        if (isValid)
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.userName,
+            nickName: user.nickName ?? user.userName,
+            role: user.role,
+          };
 
         return null;
       },
@@ -113,6 +120,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role;
         token.userName = (user as any).userName;
+        token.nickName = (user as any).nickName;
       }
       return token;
     },
@@ -121,6 +129,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.name = token.userName as string;
+        session.user.nickName = token.nickName as string;
       }
       return session;
     },
@@ -135,6 +144,7 @@ export const authOptions: NextAuthOptions = {
           where: { id: user.id },
           data: {
             userName: generatedName,
+            nickName: generatedName,
             createdBy: user.id,
             updatedBy: user.id,
           },

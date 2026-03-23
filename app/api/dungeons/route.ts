@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
+import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/types";
 import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
 
 /**

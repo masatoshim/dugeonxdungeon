@@ -10,6 +10,7 @@ declare module "next-auth" {
       id: string;
       role?: string; // 管理者機能
       name: string;
+      nickName: string;
     } & DefaultSession["user"];
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
     deletedFlg?: boolean;
     isActive?: boolean;
     userName?: string;
+    nickName?: string;
   }
 }
 
@@ -33,5 +35,6 @@ declare module "next-auth/jwt" {
     id: string;
     role: string;
     userName: string;
+    nickName?: string;
   }
 }

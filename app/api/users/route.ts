@@ -3,7 +3,7 @@ import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { Role, Prisma } from "@prisma/client";
-import { UserResponse, UsersIndexResponse } from "@/app/_types";
+import { UserResponse, UsersIndexResponse } from "@/types";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 import { sendVerificationEmail, sendAdminAlertEmail } from "@/app/_libs/mail";
