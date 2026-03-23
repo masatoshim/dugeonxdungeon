@@ -14,6 +14,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     // 認証セッションを取得して「管理者かどうか」を確認
     const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    }
     const currentUserId = session?.user?.id;
     const isAdmin = session?.user?.role === "ADMIN";
     const isOwner = currentUserId === id;
@@ -36,23 +39,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           },
         },
         playHistories: {
-          select: {
+          select: { createdAt: true },
+          include: {
             dungeon: {
-              select: {
-                id: true,
-                code: true,
-                createdAt: true,
-              },
+              select: { code: true, status: true },
+            },
+            user: {
+              select: { id: true },
             },
           },
         },
         favouriteDungeons: {
-          select: {
+          include: {
             dungeon: {
-              select: {
-                id: true,
-                code: true,
-              },
+              select: { code: true, status: true },
             },
           },
         },
@@ -63,6 +63,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ message: "ユーザーが見つかりません" }, { status: 404 });
     }
 
+    const hasPrivateAccess = isAdmin || session?.user?.id === user.id;
     const response: UserResponse = {
       id: user.id,
       userName: user.userName,
@@ -80,15 +81,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       dungeonCount: user.dungeons.length,
       publishedDungeonCount: user.dungeons.filter((d) => d.status === "PUBLISHED").length,
       // ダンジョン関連
-      dungeons: user.dungeons.map((d) => ({ id: d.id, code: d.code })),
-      favouriteDungeons: user.favouriteDungeons.map((f) => ({ id: f.dungeon.id, code: f.dungeon.code })),
-      playHistories: user.playHistories.map((p) => ({
-        id: p.dungeon.id,
-        code: p.dungeon.code,
-        createdAt: p.dungeon.createdAt?.toISOString(),
-      })),
+      dungeons: user.dungeons
+        .filter((d) => hasPrivateAccess || d.status === "PUBLISHED")
+        .map((d) => {
+          return { dungeonCode: d.code };
+        }),
+      playHistories: user.playHistories
+        .filter((h) => hasPrivateAccess || h.dungeon.status === "PUBLISHED")
+        .map((h) => {
+          return { dungeonCode: h.dungeon.code, userId: h.user.id, createdAt: h.createdAt.toISOString() };
+        }),
+      favouriteDungeons: user.favouriteDungeons
+        .filter((f) => hasPrivateAccess || f.dungeon.status === "PUBLISHED")
+        .map((f) => {
+          return { dungeonCode: f.dungeon.code };
+        }),
       // 管理者のみ、または本人のみ取得可能にする項目
-      ...((isOwner || isAdmin) && {
+      ...(hasPrivateAccess && {
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
         lastLoginAt: user.lastLoginAt?.toISOString() ?? undefined,

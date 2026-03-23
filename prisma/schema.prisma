@@ -1,74 +1,64 @@
 generator client {
   provider = "prisma-client-js"
-//  output   = "../app/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 model User {
-  id                String   @id @default(uuid())
-  userName          String   @unique
-  nickName          String?
-  email             String?  @unique
-  emailVerified     DateTime?
-  iconImageKey      String?
-  // --- 権限設定 ---
-  role              Role     @default(USER) // デフォルトは一般ユーザー
+  id                 String              @id @default(uuid())
+  userName           String              @unique
+  nickName           String?
+  email              String?             @unique
+  iconImageKey       String?
+  role               Role                @default(USER)
   // --- ゲーム統計情報 ---
-  ranking           Int?     @default(0)
-  clearPlayCount    Int      @default(0)
-  failurePlayCount  Int      @default(0)
-  interruptPlayCount Int     @default(0)
-  playDungeonCount  Int      @default(0)
-  totalPlayTime     Int      @default(0)
-  totalPlayScore    Int      @default(0)
+  ranking            Int?                @default(0)
+  clearPlayCount     Int                 @default(0)
+  failurePlayCount   Int                 @default(0)
+  interruptPlayCount Int                 @default(0)
+  playDungeonCount   Int                 @default(0)
+  totalPlayTime      Int                 @default(0)
+  totalPlayScore     Int                 @default(0)
   // --- ステータスフラグ ---
-  isActive          Boolean  @default(true)
-  deletedFlg        Boolean  @default(false)
+  isActive           Boolean             @default(true)
+  deletedFlg         Boolean             @default(false)
   // --- 監査・追跡情報 ---
-  lastLoginAt       DateTime?
-  createdBy         String?
-  updatedBy         String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  // --- リレーション設定 ---
-  dungeons          Dungeon[]
-  playHistories     PlayHistory[]
-  favouriteDungeons FavouritesDungeon[]
+  lastLoginAt        DateTime?
+  createdBy          String?
+  updatedBy          String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  emailVerified      DateTime?
   // --- 認証用 ---
-  hashedPassword    String?
-  accounts          Account[]
-  sessions          Session[]
+  hashedPassword     String?
+  accounts           Account[]
+  sessions           Session[]
+  // --- リレーション設定 ---
+  dungeons           Dungeon[]
+  favouriteDungeons  FavouritesDungeon[]
+  playHistories      PlayHistory[]
 }
 
-// Googleなどの外部連携情報（OAuth用）
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
-// セッション情報（JWT戦略なら空のまま）
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -77,58 +67,52 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// メール認証などの確認用（今回はパスワード認証なので予備）
 model VerificationToken {
-  identifier String
+  id         String   @id @default(uuid())
+  identifier String   // ユーザーの識別子（email）
   token      String   @unique
-  expires    DateTime
+  expires    DateTime // 有効期限
+  createdAt  DateTime @default(now())
 
-  @@unique([identifier, token])
-}
-
-enum DungeonStatus {
-  DRAFT
-  PUBLISHED
-  PRIVATE
+  @@unique([identifier, token]) // 同じメールアドレスに対して同じトークンが重複するのを防ぐ
 }
 
 model Dungeon {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  userId      String   // Userモデルとのリレーション用FK
-  user        User     @relation(fields: [userId], references: [id])
-  // --- 基本情報 ---
-  name        String
-  description String?
+  id                 String              @id @default(uuid())
+  code               String              @unique
+  userId             String
+  user               User                @relation(fields: [userId], references: [id])
+  name               String
+  description        String?
   // --- マップ設定 ---
-  mapData     Json
-  mapSizeHeight Int
-  mapSizeWidth  Int
-  mapSize       Int
+  mapData            Json
+  mapSizeHeight      Int
+  mapSizeWidth       Int
+  mapSize            Int
   // --- ゲーム設定 ---
-  timeLimit   Int      @default(60)
-  difficulty  Int      @default(1)
-  status      DungeonStatus @default(DRAFT)
-  publishedAt DateTime?
-  isTemplate  Boolean  @default(false)
+  timeLimit          Int                 @default(60)
+  difficulty         Int                 @default(1)
+  status             DungeonStatus       @default(DRAFT)
+  publishedAt        DateTime?
+  isTemplate         Boolean             @default(false)
   // --- 統計・メトリクス ---
-  clearPlayCount     Int @default(0)
-  failurePlayCount   Int @default(0)
-  interruptPlayCount Int @default(0)
-  totalPlayTime      Int @default(0)
-  totalPlayScore     Int @default(0)
-  favouritesCount    Int @default(0)
-  // --- メタデータ ---
-  version     Int      @default(1)
-  deletedFlg  Boolean  @default(false)
-  createdBy   String
-  updatedBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  clearPlayCount     Int                 @default(0)
+  failurePlayCount   Int                 @default(0)
+  interruptPlayCount Int                 @default(0)
+  totalPlayTime      Int                 @default(0)
+  totalPlayScore     Int                 @default(0)
+  favouritesCount    Int                 @default(0)
+  // --- 監査・追跡情報 ---
+  version            Int                 @default(1)
+  deletedFlg         Boolean             @default(false)
+  createdBy          String
+  updatedBy          String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   // --- リレーション設定 ---
-  dungeonTags       DungeonTag[]
-  playHistories     PlayHistory[]
-  favouritedBy      FavouritesDungeon[]
+  dungeonTags        DungeonTag[]
+  favouritedBy       FavouritesDungeon[]
+  playHistories      PlayHistory[]
 }
 
 model Tag {
@@ -139,54 +123,60 @@ model Tag {
 }
 
 model DungeonTag {
-  id        Int      @id @default(autoincrement())
-  // 外部キー
+  id        Int     @id @default(autoincrement())
   dungeonId String
-  dungeon   Dungeon  @relation(fields: [dungeonId], references: [id], onDelete: Cascade)
   tagId     Int
-  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  // --- 制約とインデックス ---
+  dungeon   Dungeon @relation(fields: [dungeonId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
   @@unique([dungeonId, tagId])
   @@index([dungeonId])
   @@index([tagId])
 }
 
-enum PlayStatus {
-  CLEAR
-  FAILURE
-  INTERRUPT
-}
-
 model PlayHistory {
-  id         String   @id @default(uuid())
+  id         String     @id @default(uuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
   dungeonId  String
-  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
-  // --- プレイ記録 ---
-  playTime   Int      @default(0) 
-  playScore  Int      @default(0)
+  playTime   Int        @default(0)
+  playScore  Int        @default(0)
   playStatus PlayStatus
-  // --- メタデータ ---
-  createdAt  DateTime @default(now())
-  // --- 一意性制約とインデックス ---
-  @@unique([userId, dungeonId, createdAt])  
+  createdAt  DateTime   @default(now())
+  dungeon    Dungeon    @relation(fields: [dungeonId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@unique([userId, dungeonId, createdAt])
   @@index([userId])
   @@index([dungeonId])
   @@index([createdAt])
 }
 
 model FavouritesDungeon {
-  id         String   @id @default(uuid())
-  // --- 外部キー ---
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  dungeonId  String
-  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
-  // --- Timestamp ---
-  createdAt  DateTime @default(now())
-  // --- 一意性制約とインデックス ---
-  @@unique([userId, dungeonId])  
+  id        String   @id @default(uuid())
+  userId    String
+  dungeonId String
+  createdAt DateTime @default(now())
+  dungeon   Dungeon  @relation(fields: [dungeonId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, dungeonId])
   @@index([userId])
   @@index([dungeonId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum DungeonStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+}
+
+enum PlayStatus {
+  CLEAR
+  FAILURE
+  INTERRUPT
 }

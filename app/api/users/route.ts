@@ -6,6 +6,7 @@ import { Role, Prisma } from "@prisma/client";
 import { UserResponse, UsersIndexResponse } from "@/app/_types";
 import bcrypt from "bcrypt";
 import { z } from "zod";
+import { sendVerificationEmail, sendAdminAlertEmail } from "@/app/_libs/mail";
 
 /**
  * GET: ユーザー一覧取得
@@ -16,6 +17,9 @@ export async function GET(request: Request) {
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    }
     const isAdmin = session?.user?.role === "ADMIN";
 
     // ページネーション・ソート設定
@@ -135,6 +139,24 @@ export async function GET(request: Request) {
               status: true,
             },
           },
+          playHistories: {
+            select: {
+              createdAt: true,
+              dungeon: {
+                select: { code: true, status: true },
+              },
+              user: {
+                select: { id: true },
+              },
+            },
+          },
+          favouriteDungeons: {
+            select: {
+              dungeon: {
+                select: { code: true, status: true },
+              },
+            },
+          },
         },
         take: limit,
         skip: index,
@@ -143,20 +165,42 @@ export async function GET(request: Request) {
     ]);
 
     // 後処理
-    const users: UserResponse[] = usersRaw.map((u) => ({
-      ...u,
-      totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
-      dungeonCount: u.dungeons.length,
-      publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
-      createdAt: u.createdAt.toISOString(),
-      updatedAt: u.updatedAt.toISOString(),
-      // 管理者のみ、または本人のみ取得可能にする項目
-      emailVerified: isAdmin || session?.user?.id === u.id ? u.emailVerified?.toISOString() : undefined,
-      lastLoginAt: isAdmin || session?.user?.id === u.id ? u.lastLoginAt?.toISOString() : undefined,
-      email: isAdmin || session?.user?.id === u.id ? u.email : undefined,
-      isActive: isAdmin || session?.user?.id === u.id ? u.isActive : undefined,
-      deletedFlg: isAdmin || session?.user?.id === u.id ? u.deletedFlg : undefined,
-    }));
+    const users: UserResponse[] = usersRaw.map((u) => {
+      const { hashedPassword, ...rest } = u;
+      const hasPrivateAccess = isAdmin || session?.user?.id === u.id;
+      return {
+        ...rest,
+        dungeons: u.dungeons
+          .filter((d) => hasPrivateAccess || d.status === "PUBLISHED")
+          .map((d) => {
+            return { dungeonCode: d.code };
+          }),
+        playHistories: u.playHistories
+          .filter((h) => hasPrivateAccess || h.dungeon.status === "PUBLISHED")
+          .map((h) => {
+            return { dungeonCode: h.dungeon.code, userId: h.user.id, createdAt: h.createdAt.toISOString() };
+          }),
+        favouriteDungeons: u.favouriteDungeons
+          .filter((f) => hasPrivateAccess || f.dungeon.status === "PUBLISHED")
+          .map((f) => {
+            return { dungeonCode: f.dungeon.code };
+          }),
+        totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
+        publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
+        // 管理者のみ、または本人のみ取得可能にする項目
+        dungeonCount: hasPrivateAccess ? u.dungeons.length : undefined,
+        createdBy: hasPrivateAccess ? u.createdBy : undefined,
+        updatedBy: hasPrivateAccess ? u.updatedBy : undefined,
+        createdAt: hasPrivateAccess ? u.createdAt.toISOString() : undefined,
+        updatedAt: hasPrivateAccess ? u.updatedAt.toISOString() : undefined,
+        emailVerified: hasPrivateAccess ? u.emailVerified?.toISOString() : undefined,
+        lastLoginAt: hasPrivateAccess ? u.lastLoginAt?.toISOString() : undefined,
+        email: hasPrivateAccess ? u.email : undefined,
+        isActive: hasPrivateAccess ? u.isActive : undefined,
+        deletedFlg: hasPrivateAccess ? u.deletedFlg : undefined,
+        role: hasPrivateAccess ? u.role : undefined,
+      };
+    });
 
     // レスポンス
     const response: UsersIndexResponse = {
@@ -211,32 +255,75 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "ユーザー名またはメールアドレスが既に登録されています" }, { status: 409 });
     }
 
-    // パスワードのハッシュ化
+    // パスワードハッシュ化とトークンの有効期限の設定
     const hashedPassword = await bcrypt.hash(password, 10);
+    const token = crypto.randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 有効期限
 
-    // ユーザー作成
-    const newUser = await prisma.user.create({
-      data: {
-        userName,
-        email,
-        hashedPassword,
-        nickName: userName, // 初期値としてニックネームにユーザー名を入れる
-        role: "USER",
-        isActive: true,
-        deletedFlg: false,
-      },
+    const now = new Date();
+
+    // ユーザー作成とトークン作成をトランザクションで実行
+    const newUser = await prisma.$transaction(async (tx) => {
+      // ユーザー作成
+      const user = await prisma.user.create({
+        data: {
+          userName,
+          nickName: userName,
+          email,
+          hashedPassword,
+          role: "USER",
+          emailVerified: now,
+          isActive: false, // メール認証が完了するまでログインさせない
+          deletedFlg: false,
+        },
+      });
+
+      // 作成後、自分自身で更新情報を入れる
+      const updatedUser = await tx.user.update({
+        where: { id: user.id },
+        data: {
+          createdBy: user.id,
+          updatedBy: user.id,
+        },
+      });
+
+      // トークンを保存
+      await tx.verificationToken.create({
+        data: {
+          identifier: email,
+          token: token,
+          expires: expires,
+        },
+      });
+      return updatedUser;
     });
+    try {
+      // 確認メールを送信
+      await sendVerificationEmail(email, token);
 
-    // 作成後、自分自身で更新情報を入れる
-    await prisma.user.update({
-      where: { id: newUser.id },
-      data: {
-        createdBy: newUser.id,
-        updatedBy: newUser.id,
-      },
-    });
+      return NextResponse.json(
+        {
+          message: "確認メールを送信しました。24時間以内にリンクをクリックして登録を完了してください。",
+        },
+        { status: 201 },
+      );
+    } catch (mailError: any) {
+      // Resend の制限（429 Too Many Requests）をキャッチ
+      if (mailError?.status === 429) {
+        // 管理者へ緊急通知
+        sendAdminAlertEmail(email).catch(console.error);
 
-    return NextResponse.json({ message: "ユーザー登録が完了しました", userId: newUser.id }, { status: 201 });
+        return NextResponse.json(
+          {
+            message:
+              "現在、確認メールの送信制限に達しています。時間を置いて再度お試しいただくか、サポートへご連絡ください。",
+          },
+          { status: 429 },
+        );
+      }
+
+      throw mailError;
+    }
   } catch (error) {
     console.error("Signup Error:", error);
     return NextResponse.json({ message: "サーバーエラーが発生しました" }, { status: 500 });

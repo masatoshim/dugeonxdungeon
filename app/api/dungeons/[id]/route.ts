@@ -5,23 +5,22 @@ import { authOptions } from "@/app/_libs/auth";
 import { DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 
-// GET: ダンジョン詳細取得
+/**
+ * GET: ダンジョン詳細取得
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
-    }
-    const userId = session?.user?.id;
+    const sessionUserId = session?.user?.id;
     const isAdmin = session?.user?.role === "ADMIN";
 
     const { id } = await params;
     const andConditions: Prisma.DungeonWhereInput = { id };
     if (!isAdmin) {
-      // 【一般ユーザー】
+      // 【一般ユーザー & 未登録ユーザー】
       // 基本は「公開済み」 or 「自分自身のもの」
-      andConditions.OR = [{ status: "PUBLISHED" }, ...(userId ? [{ userId: userId }] : [])];
+      andConditions.OR = [{ status: "PUBLISHED" }, ...(sessionUserId ? [{ userId: sessionUserId }] : [])];
     }
 
     // ダンジョンの取得
@@ -39,14 +38,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         { status: 404 },
       );
     }
-
+    const { user, ...rest } = dungeon;
+    const hasPrivateAccess = isAdmin || sessionUserId === dungeon.userId;
     const response: DungeonResponse = {
-      ...dungeon,
+      ...rest,
       totalPlayCount: dungeon.clearPlayCount + dungeon.failurePlayCount + dungeon.interruptPlayCount,
       tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
       createdAt: dungeon.createdAt.toISOString(),
       updatedAt: dungeon.updatedAt.toISOString(),
-      userName: dungeon.user.userName,
+      userName: hasPrivateAccess ? dungeon.user.userName : undefined,
       nickName: dungeon.user.nickName,
     };
 
@@ -57,7 +57,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-// PATCH: ダンジョン更新
+/**
+ * PATCH: ダンジョン更新
+ */
+// todo: ユーザーが自由に更新されたら困るパラメータについては、別途制限を設けて、別APIを作成する
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     // 認証セッションの取得
@@ -122,7 +125,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 }
 
-// DELETE: ダンジョン削除
+/**
+ * DELETE: ダンジョン削除
+ */
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     // 権限チェック：管理者（ADMIN）のみ許可
