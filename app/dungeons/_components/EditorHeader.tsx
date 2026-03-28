@@ -1,3 +1,5 @@
+import { EditorSizeInput } from "@/app/dungeons/_components";
+
 type Props = {
   cols: number;
   rows: number;
@@ -47,23 +49,14 @@ export const EditorHeader = ({ cols, rows, config, onConfigChange, onSizeChange,
         </div>
       </div>
 
-      {/* サイズとボタン */}
       <div className="flex items-center gap-4">
+        {/* ダンジョンサイズ */}
         <div className="flex items-center gap-2 bg-black/30 p-1.5 rounded border border-gray-800">
-          <input
-            type="number"
-            value={cols}
-            onChange={(e) => onSizeChange(rows, parseInt(e.target.value))}
-            className="w-10 bg-transparent text-center text-xs"
-          />
+          <EditorSizeInput label="R" initialValue={rows} onConfirm={(newRows) => onSizeChange(newRows, cols)} />
           <span className="text-gray-600">×</span>
-          <input
-            type="number"
-            value={rows}
-            onChange={(e) => onSizeChange(parseInt(e.target.value), cols)}
-            className="w-10 bg-transparent text-center text-xs"
-          />
+          <EditorSizeInput label="C" initialValue={cols} onConfirm={(newCols) => onSizeChange(rows, newCols)} />
         </div>
+        {/* ボタン */}
         <div className="flex gap-2">
           <button
             onClick={() => onSave("DRAFT")}

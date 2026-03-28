@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DUNGEON_DEFAULT, TILE_CONFIG, EntityData, TileConfigKey, TILE_CATEGORIES } from "@/types";
 import { TileIconForm, EditorHeader, TilePalette } from "@/app/dungeons/_components";
+import { toast } from "sonner";
 
 // セット設置の状態管理
 type LinkingState = {
@@ -13,6 +14,7 @@ type LinkingState = {
 
 export function DungeonEditor({ isAdmin }: { isAdmin: boolean }) {
   const router = useRouter();
+  // 各項目を初期化
   const [rows, setRows] = useState<number>(DUNGEON_DEFAULT.ROWS);
   const [cols, setCols] = useState<number>(DUNGEON_DEFAULT.COLS);
   const [config, setConfig] = useState({
@@ -21,6 +23,7 @@ export function DungeonEditor({ isAdmin }: { isAdmin: boolean }) {
     timeLimit: DUNGEON_DEFAULT.TIME_LIMIT,
   });
 
+  // マップ情報を初期化
   const [tiles, setTiles] = useState<string[][]>(() => {
     return Array(DUNGEON_DEFAULT.ROWS)
       .fill(0)
@@ -46,7 +49,7 @@ export function DungeonEditor({ isAdmin }: { isAdmin: boolean }) {
   const currentTileConfig = useMemo(() => TILE_CONFIG[selectedTile as TileConfigKey], [selectedTile]);
 
   /**
-   * ダンジョンサイズ変更（形が崩れないように再実装）
+   * ダンジョンサイズ変更
    */
   const updateTilesSize = (newRows: number, newCols: number) => {
     setTiles((prev) => {
@@ -109,7 +112,7 @@ export function DungeonEditor({ isAdmin }: { isAdmin: boolean }) {
         if (!isGimmick || incomingType !== linkingState.pendingType) {
           const targetName =
             linkingState.pendingType === "DOOR" ? "扉" : linkingState.pendingType === "KEY" ? "鍵" : "ボタン";
-          alert(`セット設置中です。対になる「${targetName}」を設置してください。`);
+          toast.error(`セット設置中です。対になる「${targetName}」を設置してください。`);
           return;
         }
       }
@@ -119,7 +122,7 @@ export function DungeonEditor({ isAdmin }: { isAdmin: boolean }) {
         const hasPlayer = tiles
           .flat()
           .some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER);
-        if (hasPlayer) return alert("プレイヤーは1つしか設置できません。");
+        if (hasPlayer) return toast.error("プレイヤーは1つしか設置できません。");
       }
 
       // --- 3. ステート更新 ---
@@ -265,9 +268,9 @@ export function DungeonEditor({ isAdmin }: { isAdmin: boolean }) {
             )}
           </div>
 
-          <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 min-h-[600px] flex items-center justify-center">
+          <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 min-h-[600px] flex">
             <div
-              className="inline-grid gap-0 shadow-2xl ring-4 ring-black bg-gray-800"
+              className="inline-grid gap-0 shadow-2xl ring-4 ring-black bg-gray-800 m-auto"
               style={{ gridTemplateColumns: `repeat(${cols}, 32px)` }}
             >
               {tiles.map((row, r) =>
