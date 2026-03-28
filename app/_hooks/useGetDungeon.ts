@@ -11,7 +11,7 @@ export const useGetDungeon = (id?: string) => {
   );
 
   return {
-    dungeon: data ?? {},
+    dungeon: data,
     fetched: !isLoading,
     isLoading,
     error: error instanceof Error ? error.message : "",

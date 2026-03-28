@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/types";
+import { DungeonBase, DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/types";
 import { Prisma } from "@prisma/client";
 
 /**
@@ -84,9 +84,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const isAdmin = session.user.role === "ADMIN";
-    const isOwner = dungeon.userId === session.user.id;
-
-    if (!isAdmin && !isOwner) {
+    const hasPrivateAccess = isAdmin || session.user.id === dungeon.userId;
+    if (!hasPrivateAccess) {
       return NextResponse.json({ message: "編集権限がありません" }, { status: 403 });
     }
 
@@ -105,11 +104,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             }
           : undefined,
       },
+      include: {
+        user: { select: { userName: true, nickName: true } },
+        dungeonTags: { include: { tag: true } },
+      },
     });
+
+    const responseDungeon: DungeonBase = {
+      ...updatedDungeon,
+      tags: updatedDungeon.dungeonTags.map((dt) => dt.tag.name),
+      nickName: updatedDungeon.user.nickName,
+      userName: hasPrivateAccess ? updatedDungeon.user.userName : undefined,
+    };
 
     const response: UpdateDungeonResponse = {
       message: "ダンジョン情報を更新しました",
-      dungeon: updatedDungeon,
+      dungeon: responseDungeon,
     };
 
     return NextResponse.json(response);

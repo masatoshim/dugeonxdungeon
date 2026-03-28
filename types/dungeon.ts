@@ -1,7 +1,7 @@
 import { DungeonStatus, PlayStatus } from "@prisma/client";
 
 /**
- * ダンジョン情報の共通プロパティ
+ * ダンジョン取得の共通プロパティ
  */
 export interface DungeonBase {
   id: string;
@@ -18,8 +18,8 @@ export interface DungeonBase {
   status: DungeonStatus;
   isTemplate: boolean;
   userName?: string;
-  nickName?: string | null;
-  tags?: string[];
+  nickName: string | null;
+  tags: string[];
   createdBy?: string;
   updatedBy?: string;
 }
@@ -33,8 +33,7 @@ export interface DungeonFilter {
   index?: number;
   sort?: string;
   order?: string;
-
-  // 検索・フィルター
+  // ユーザーID
   userId?: string;
   createdBy?: string;
   updatedBy?: string;
@@ -92,17 +91,17 @@ export interface DungeonFilter {
   updatedAtFrom?: string;
   updatedAtTo?: string;
   // 単一 or リスト
-  statusList?: string;
   status?: DungeonStatus;
-  isTemplateList?: string;
+  statusList?: string;
   isTemplate?: "true" | "false";
-  deletedFlgList?: string;
+  isTemplateList?: string;
   deletedFlg?: "true" | "false";
-  isFavouritesList?: string;
+  deletedFlgList?: string;
   isFavourites?: "true" | "false";
+  isFavouritesList?: string;
   difficultyList?: string;
-  playStatusList?: string;
   playStatus?: PlayStatus;
+  playStatusList?: string;
 }
 
 /**
@@ -117,14 +116,38 @@ export interface DungeonResponse extends DungeonBase {
 /**
  * 新規作成リクエスト
  */
-export interface CreateDungeonRequest extends Omit<DungeonBase, "id" | "status" | "isTemplate"> {
+export interface CreateDungeonRequest {
+  name: string;
+  userId: string;
+  mapData: any;
+  mapSizeHeight: number;
+  mapSizeWidth: number;
+  mapSize: number;
+  createdBy: string;
+  updatedBy: string;
+  code: string;
+  description?: string | null;
+  timeLimit?: number;
+  difficulty?: number;
+  status?: DungeonStatus;
   tagIds?: number[];
 }
 
 /**
  * 更新リクエスト
  */
-export interface UpdateDungeonRequest extends Omit<DungeonBase, "id" | "isTemplate"> {
+export interface UpdateDungeonRequest {
+  name?: string;
+  description?: string | null;
+  mapData?: any;
+  mapSizeHeight?: number;
+  mapSizeWidth?: number;
+  mapSize?: number;
+  timeLimit?: number;
+  difficulty?: number;
+  status?: DungeonStatus;
+  updatedBy: string;
+  deletedFlg?: boolean;
   tagIds?: number[];
 }
 

@@ -5,15 +5,8 @@ import Link from "next/link";
 
 export default function Header() {
   const sessionContext = useSession();
-
   const session = sessionContext?.data;
   const status = sessionContext?.status;
-
-  // ログインユーザーが管理者かどうかを判定
-  const isAdmin = session?.user?.role === "ADMIN";
-
-  // 「創る」のリンク先をロールによって切り替え
-  const createDungeonLink = isAdmin ? "/admin/dungeons/new" : "/dungeons/new";
 
   return (
     <header
@@ -26,7 +19,7 @@ export default function Header() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-        {/* Todo:ロゴ画像に切り替える */}
+        {/* todo: ロゴ画像に切り替える */}
         <Link href="/" style={{ fontWeight: "bold", fontSize: "1.2rem", textDecoration: "none", color: "inherit" }}>
           DUNGEON×DUNGEON
         </Link>
@@ -36,7 +29,7 @@ export default function Header() {
           <Link href="/dungeons" style={{ textDecoration: "none", color: "#333" }}>
             遊ぶ
           </Link>
-          <Link href={createDungeonLink} style={{ textDecoration: "none", color: "#333" }}>
+          <Link href="/dungeons/new" style={{ textDecoration: "none", color: "#333" }}>
             創る
           </Link>
           <Link href="/ranking" style={{ textDecoration: "none", color: "#333" }}>

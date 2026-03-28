@@ -3,6 +3,7 @@ import { updateDungeon } from "@/app/_libs/dungeons-api";
 import { UpdateDungeonRequest, DungeonResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export const useUpdateDungeon = (id: string) => {
   const router = useRouter();
@@ -13,15 +14,20 @@ export const useUpdateDungeon = (id: string) => {
     (key, { arg }) => updateDungeon(id, arg),
     {
       onSuccess: (data) => {
+        toast.success("ダンジョンを更新しました");
         // 管理者用のダンジョン一覧画面へ
         if (session?.user?.role === "ADMIN") {
           // todo: 未実装
           // router.push("/admin/dungeons");
           return;
+        } else {
+          // 一般ユーザー用のダンジョン一覧画面へ
+          // todo: 未実装
+          // router.push("/dungeons");
         }
-        // 一般ユーザー用のダンジョン一覧画面へ
-        // todo: 未実装
-        // router.push("/dungeons");
+      },
+      onError: (err) => {
+        toast.error(`更新に失敗しました: ${err.message}`);
       },
     },
   );

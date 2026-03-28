@@ -307,7 +307,7 @@ export async function POST(request: Request) {
 
     // リクエストボディの取得
     const body: CreateDungeonRequest = await request.json();
-    const { mapData, tagIds, ...dungeonData } = body;
+    const { userId, mapData, tagIds, ...dungeonData } = body;
 
     // mapData 内部プロパティのバリデーション
     if (!mapData) {
@@ -319,24 +319,23 @@ export async function POST(request: Request) {
     }
 
     // ダンジョン作成と、タグの中間テーブル保存を同時に行う
-    const generatedCode = crypto.randomUUID().split("-")[0]; // todo: dungeon-codeのコード体系は劣後対応とする
     const newDungeon = await prisma.dungeon.create({
       data: {
         ...dungeonData,
-        code: generatedCode,
-        userId: session.user.id,
+        code: dungeonData.code || `DN-${crypto.randomUUID().slice(0, 8)}`,
         mapData: mapData,
-        mapSizeHeight: height,
-        mapSizeWidth: width,
-        mapSize: width * height,
-        createdBy: session.user.id,
-        updatedBy: session.user.id,
-        // 中間テーブル（DungeonTag）への紐付け
-        dungeonTags: {
-          create: tagIds?.map((id) => ({
-            tag: { connect: { id } },
-          })),
+        user: {
+          connect: { id: userId },
         },
+        // 中間テーブル（DungeonTag）への紐付け
+        dungeonTags:
+          tagIds && tagIds.length > 0
+            ? {
+                create: tagIds.map((id) => ({
+                  tag: { connect: { id } },
+                })),
+              }
+            : undefined,
       },
     });
 
