@@ -18,14 +18,10 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
     let val = parseInt(tempValue);
 
     // 空文字、NaN、1未満は 4 に戻す（ダンジョンサイズの最小値）
-    if (isNaN(val) || val < 1) {
-      val = 4;
-    }
+    if (isNaN(val) || val < 1) val = 4;
 
     // ダンジョンサイズの最大値を超えないよう設定
-    if (val > 999) {
-      val = 999;
-    }
+    if (val > 99) val = 99;
 
     setTempValue(val.toString());
     onConfirm(val); // 確定した数値のみを親に返す
