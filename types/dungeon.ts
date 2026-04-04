@@ -137,6 +137,7 @@ export interface CreateDungeonRequest {
  * 更新リクエスト
  */
 export interface UpdateDungeonRequest {
+  code?: string;
   name?: string;
   description?: string | null;
   mapData?: any;

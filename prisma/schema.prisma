@@ -173,6 +173,7 @@ enum DungeonStatus {
   DRAFT
   PUBLISHED
   PRIVATE
+  DELETED // 論理削除
 }
 
 enum PlayStatus {

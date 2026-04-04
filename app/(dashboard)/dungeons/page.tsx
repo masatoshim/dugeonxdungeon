@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useGetDungeons } from "@/app/_hooks";
 import { useSession } from "next-auth/react";
-import { DungeonRow } from "@/app/_components/DungeonRow";
+import { DungeonRow } from "@/app/_components/dungeons/DungeonRow";
 
 export default function MyDungeonsPage() {
   const router = useRouter();
