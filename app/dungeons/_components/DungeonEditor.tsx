@@ -50,6 +50,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isDirty },
   } = useForm<DungeonFormData>({
     resolver: zodResolver(dungeonSchema),
@@ -228,6 +229,14 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       } else {
         await create(payload);
       }
+      reset(data);
+      if (isAdmin) {
+        // todo: 未実装
+        // router.push("/admin/dungeons/admin");
+        return;
+      } else {
+        router.push("/dungeons");
+      }
     } catch (e) {
       // todo: エラーはHooks内のtoastで処理
     }
@@ -248,6 +257,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             rows={rows}
             config={formValues}
             errors={errors}
+            status={initialData?.status ?? "DRAFT"}
             isDirty={isDirty}
             isEditMode={isEditMode}
             isAdmin={isAdmin}
@@ -266,7 +276,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               // todo: テストプレイ用URLへ遷移
               // todo: 未実装
               // router.push(`/dungeons/${id}/test-play`);
-              toast.info("テストプレイ画面へ移動します...");
+              toast.info("テストプレイ画面へ移動します...（未実装）");
             }}
             onDelete={(physical) => {
               if (physical) {

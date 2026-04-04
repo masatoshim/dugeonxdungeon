@@ -61,7 +61,7 @@ export async function GET(request: Request) {
           andConditions.push({ userId: targetUserId });
         }
       } else {
-        // userId 指定がない場合：「公開済み」または「自分のもの」を表示
+        // userId 指定がない場合：「公開済」または「自分のもの」を表示
         andConditions.push({
           OR: [{ status: "PUBLISHED" }, ...(sessionUserId ? [{ userId: sessionUserId }] : [])],
         });

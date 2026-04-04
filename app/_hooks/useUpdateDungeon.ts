@@ -4,10 +4,12 @@ import { UpdateDungeonRequest, DungeonResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 
 export const useUpdateDungeon = (id: string) => {
   const router = useRouter();
   const { data: session } = useSession();
+  const { mutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation<DungeonResponse, Error, string[], UpdateDungeonRequest>(
     ["/api/dungeons", id],
@@ -15,16 +17,7 @@ export const useUpdateDungeon = (id: string) => {
     {
       onSuccess: (data) => {
         toast.success("ダンジョンを更新しました");
-        // 管理者用のダンジョン一覧画面へ
-        if (session?.user?.role === "ADMIN") {
-          // todo: 未実装
-          // router.push("/admin/dungeons");
-          return;
-        } else {
-          // 一般ユーザー用のダンジョン一覧画面へ
-          // todo: 未実装
-          // router.push("/dungeons");
-        }
+        mutate("/api/dungeons");
       },
       onError: (err) => {
         toast.error(`更新に失敗しました: ${err.message}`);

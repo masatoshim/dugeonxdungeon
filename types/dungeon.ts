@@ -32,7 +32,7 @@ export interface DungeonFilter {
   limit?: number;
   index?: number;
   sort?: string;
-  order?: string;
+  order?: "asc" | "desc";
   // ユーザーID
   userId?: string;
   createdBy?: string;

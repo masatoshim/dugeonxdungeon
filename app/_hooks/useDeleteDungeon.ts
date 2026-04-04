@@ -14,15 +14,6 @@ export const useDeleteDungeon = (id: string) => {
     {
       onSuccess: () => {
         toast.success("ダンジョンを削除しました");
-        // 管理者の場合は管理一覧へ、ユーザーの場合はマイページへ
-        if (session?.user?.role === "ADMIN") {
-          // todo: 未実装
-          router.push("/admin/dungeons");
-        } else {
-          // 一般ユーザー用のダンジョン一覧画面へ
-          // todo: 未実装
-          router.push("/dungeons");
-        }
       },
       onError: (err) => {
         toast.error(`削除に失敗しました: ${err.message}`);
