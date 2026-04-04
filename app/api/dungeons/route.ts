@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
+import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/types";
 import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
 
 /**
@@ -30,8 +30,13 @@ export async function GET(request: Request) {
     const andConditions: Prisma.DungeonWhereInput[] = [];
 
     // status検索
-    const statusParam = searchParams.get("statusList");
-    const statusList = statusParam ? (statusParam.split(",") as DungeonStatus[]) : [];
+    const statusListParam = searchParams.get("statusList");
+    const statusParam = searchParams.get("status");
+    const statusList = statusListParam
+      ? (statusListParam.split(",") as DungeonStatus[])
+      : statusParam
+        ? [statusParam as DungeonStatus]
+        : [];
     const targetUserId = searchParams.get("userId");
     if (isAdmin) {
       // 【管理者】
@@ -140,41 +145,56 @@ export async function GET(request: Request) {
         andConditions.push({ [field]: { in: list.map((v) => v === "true") } });
       }
     };
-    setListFilter("difficulty", "difficultyList");
     setListFilter("isTemplate", "isTemplateList");
     setListFilter("deletedFlg", "deletedFlgList");
+    const isTemplateParam = searchParams.get("isTemplate");
+    if (isTemplateParam) {
+      andConditions.push({ isTemplate: isTemplateParam === "true" });
+    }
+    const deletedFlgParam = searchParams.get("deletedFlg");
+    if (deletedFlgParam) {
+      andConditions.push({ deletedFlg: deletedFlgParam === "true" });
+    }
 
+    const difficultyListParam = searchParams.get("difficultyList");
+    const difficultyList = difficultyListParam ? difficultyListParam.split(",") : [];
+    if (difficultyList.length > 0) {
+      andConditions.push({ difficulty: { in: difficultyList.map((d) => Number(d)) } });
+    }
     // プレイ状況による絞り込みロジック
-    const playStatusParam = searchParams.get("playStatusList");
-    if (sessionUserId && playStatusParam) {
-      const playStatusList = playStatusParam.split(",") as PlayStatus[];
+    const playStatusListParam = searchParams.get("playStatusList");
+    const playStatusParam = searchParams.get("playStatus");
+    const playStatusList = playStatusListParam
+      ? (playStatusListParam.split(",") as PlayStatus[])
+      : playStatusParam
+        ? [playStatusParam as PlayStatus]
+        : [];
 
-      if (playStatusList.length > 0) {
-        const wantCleared = playStatusList.includes("CLEAR");
-        // "NOT_CLEARED" という指定、または CLEAR を含まずに他のステータスを指定した場合の判定
-        const isSeekingNotCleared = !wantCleared || playStatusList.includes("NOT_CLEARED" as any);
+    if (sessionUserId && playStatusList.length > 0) {
+      const wantCleared = playStatusList.includes("CLEAR");
+      // "NOT_CLEARED" という指定、または CLEAR を含まずに他のステータスを指定した場合の判定
+      const isSeekingNotCleared = !wantCleared || playStatusList.includes("NOT_CLEARED" as any);
 
-        if (isSeekingNotCleared && playStatusList.length === 1 && playStatusList[0] === ("NOT_CLEARED" as any)) {
-          // 未攻略のみ検索
+      if (isSeekingNotCleared && playStatusList.length === 1 && playStatusList[0] === ("NOT_CLEARED" as any)) {
+        // 未攻略のみ検索
+        andConditions.push({
+          playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } },
+        });
+      } else {
+        // 指定されたステータス（FAILUREなど）の履歴があるものを検索
+        andConditions.push({
+          playHistories: {
+            some: {
+              userId: sessionUserId,
+              playStatus: { in: playStatusList.filter((s) => s !== ("NOT_CLEARED" as any)) },
+            },
+          },
+        });
+        // かつ、一度でもクリアしているものは除外する
+        if (isSeekingNotCleared) {
           andConditions.push({
             playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } },
           });
-        } else {
-          // 指定されたステータス（FAILUREなど）の履歴があるものを検索
-          andConditions.push({
-            playHistories: {
-              some: {
-                userId: sessionUserId,
-                playStatus: { in: playStatusList.filter((s) => s !== ("NOT_CLEARED" as any)) },
-              },
-            },
-          });
-          // かつ、一度でもクリアしているものは除外する
-          if (isSeekingNotCleared) {
-            andConditions.push({
-              playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } },
-            });
-          }
         }
       }
     }
@@ -287,7 +307,7 @@ export async function POST(request: Request) {
 
     // リクエストボディの取得
     const body: CreateDungeonRequest = await request.json();
-    const { mapData, tagIds, ...dungeonData } = body;
+    const { userId, mapData, tagIds, ...dungeonData } = body;
 
     // mapData 内部プロパティのバリデーション
     if (!mapData) {
@@ -299,24 +319,23 @@ export async function POST(request: Request) {
     }
 
     // ダンジョン作成と、タグの中間テーブル保存を同時に行う
-    const generatedCode = crypto.randomUUID().split("-")[0]; // todo: dungeon-codeのコード体系は劣後対応とする
     const newDungeon = await prisma.dungeon.create({
       data: {
         ...dungeonData,
-        code: generatedCode,
-        userId: session.user.id,
+        code: dungeonData.code || `DN-${crypto.randomUUID().slice(0, 8)}`,
         mapData: mapData,
-        mapSizeHeight: height,
-        mapSizeWidth: width,
-        mapSize: width * height,
-        createdBy: session.user.id,
-        updatedBy: session.user.id,
-        // 中間テーブル（DungeonTag）への紐付け
-        dungeonTags: {
-          create: tagIds?.map((id) => ({
-            tag: { connect: { id } },
-          })),
+        user: {
+          connect: { id: userId },
         },
+        // 中間テーブル（DungeonTag）への紐付け
+        dungeonTags:
+          tagIds && tagIds.length > 0
+            ? {
+                create: tagIds.map((id) => ({
+                  tag: { connect: { id } },
+                })),
+              }
+            : undefined,
       },
     });
 
