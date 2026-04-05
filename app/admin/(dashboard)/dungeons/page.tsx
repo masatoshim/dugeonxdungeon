@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useGetDungeons } from "@/app/_hooks";
@@ -8,7 +9,7 @@ import { DungeonRow } from "@/app/_components/dungeons/DungeonRow";
 import { DungeonFilterBar } from "./_components/DungeonFilterBar";
 import { DungeonsIndexResponse, DungeonFilter } from "@/types";
 
-export default function AdminDungeonsPage() {
+function DungeonsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -41,7 +42,9 @@ export default function AdminDungeonsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <header>
-        <DungeonFilterBar />
+        <Suspense>
+          <DungeonFilterBar />
+        </Suspense>
       </header>
 
       <div className="bg-[#161b2e] rounded-2xl p-8 border border-gray-800 space-y-4">
@@ -59,5 +62,14 @@ export default function AdminDungeonsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminDungeonsPage() {
+  return (
+    // todo: Suspenseを使用しているページは全面見直し。コンポーネントを分けずに１ファイルにまとめる
+    <Suspense fallback={<div className="text-white">Loading...</div>}>
+      <DungeonsPageContent />
+    </Suspense>
   );
 }

@@ -146,7 +146,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     // 更新データの選別
     const updateData: any = {
-      userName: body.userName,
       nickName: body.nickName,
       email: body.email,
       iconImageKey: body.iconImageKey,
@@ -154,7 +153,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     };
     // 管理者のみが更新可能なフィールドをマージ
     if (isAdmin) {
-      if (body.role !== undefined) updateData.role = body.role;
       if (body.isActive !== undefined) updateData.isActive = body.isActive;
     }
 
