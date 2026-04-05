@@ -4,7 +4,15 @@ import { toast } from "sonner";
 import { useGetDungeons, useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
 import { useSession } from "next-auth/react";
 import { DungeonResponse, DungeonsIndexResponse } from "@/types";
+import { DungeonStatus } from "@prisma/client";
 import { KeyedMutator } from "swr";
+
+const STATUS_CONFIG: Record<DungeonStatus, { label: string; className: string }> = {
+  DRAFT: { label: "構築中", className: "bg-indigo-900/50 text-indigo-300" },
+  PRIVATE: { label: "非公開", className: "bg-red-900/50 text-red-300" },
+  DELETED: { label: "削除済", className: "bg-gray-800 text-gray-400" },
+  PUBLISHED: { label: "公開済", className: "bg-[#2ab3a3]/20 text-[#2ab3a3]" },
+};
 
 interface DungeonRowProps {
   dungeon: DungeonResponse;
@@ -14,6 +22,7 @@ interface DungeonRowProps {
 }
 
 export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode }: DungeonRowProps) {
+  const config = STATUS_CONFIG[dungeon.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PUBLISHED;
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -22,6 +31,8 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode }: Dunge
   const { update, isUpdating } = useUpdateDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteDungeon(dungeon.id);
   const isLoading = isUpdating || isDeleting;
+
+  // ダンジョンステータスの切り替え
   const toggleStatus = async () => {
     const nextStatus = dungeon.status === "PUBLISHED" ? "PRIVATE" : "PUBLISHED";
     await update({
@@ -32,21 +43,22 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode }: Dunge
     mutate();
   };
 
+  // ダンジョンの削除処理
   const handleDelete = async () => {
     if (!confirm("このダンジョンを削除してもよろしいですか？")) return;
     try {
       if (isAdminMode) {
+        // 管理者は物理削除
         remove();
       } else {
-        const newCode = dungeon.code.startsWith("DEL-") ? dungeon.code : `DEL-${dungeon.code}`;
+        // 一般ユーザーは論理削除
         await update({
           status: "DELETED",
-          code: newCode,
+          code: `DEL-${dungeon.code}`,
           deletedFlg: true,
           updatedBy: userId,
         });
       }
-
       toast.success("ダンジョンを削除しました");
       mutate();
     } catch (e) {
@@ -68,23 +80,7 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode }: Dunge
         </div>
       )}
       {/* ステータスバッジ */}
-      <span
-        className={`w-24 text-center py-1 rounded-md text-xs font-bold ${
-          dungeon.status === "DRAFT"
-            ? "bg-indigo-900/50 text-indigo-300"
-            : dungeon.status === "PRIVATE"
-              ? "bg-red-900/50 text-red-300"
-              : "bg-[#2ab3a3]/20 text-[#2ab3a3]"
-        }`}
-      >
-        {dungeon.status === "DRAFT"
-          ? "構築中"
-          : dungeon.status === "PRIVATE"
-            ? "非公開"
-            : dungeon.status === "DELETED"
-              ? "削除済"
-              : "公開済"}
-      </span>
+      <span className={`w-24 text-center py-1 rounded-md text-xs font-bold ${config.className}`}>{config.label}</span>
 
       {/* ユーザー情報の表示 (管理者のダンジョン一覧画面からユーザータブの時だけ表示) */}
       {showUserInfo && (
