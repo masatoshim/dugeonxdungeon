@@ -88,6 +88,7 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode }: Dunge
           <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white">
             {dungeon.nickName?.[0] || "U"}
           </div>
+          <span className="text-sm text-gray-300 truncate">{dungeon.userName}</span>
           <span className="text-sm text-gray-300 truncate">{dungeon.nickName}</span>
         </div>
       )}

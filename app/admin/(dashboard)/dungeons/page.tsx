@@ -15,6 +15,7 @@ export default function AdminDungeonsPage() {
 
   // 各パラメータを取得（DungeonFilterBar の updateQuery とキーを合わせる）
   const isAdmin = (searchParams.get("view") || "admin") === "admin";
+  const currentUserId = searchParams.get("userId");
   const currentStatusList = searchParams.get("statusList") || "all";
   const currentSort = searchParams.get("sort") || "createdAt";
   const currentOrder: "asc" | "desc" = searchParams.get("order") === "desc" ? "desc" : "asc";
@@ -29,13 +30,9 @@ export default function AdminDungeonsPage() {
     isTemplate: isAdmin ? "true" : "false",
     order: currentOrder,
   };
-  if (isAdmin) {
-    params.userId = session?.user?.id;
-  }
-
-  if (currentStatusList && currentStatusList !== "all") {
-    params.statusList = currentStatusList;
-  }
+  if (isAdmin) params.userId = session?.user?.id;
+  if (!isAdmin && currentUserId) params.userId = currentUserId;
+  if (currentStatusList && currentStatusList !== "all") params.statusList = currentStatusList;
 
   const { dungeons, isLoading, mutate } = useGetDungeons(params);
 
