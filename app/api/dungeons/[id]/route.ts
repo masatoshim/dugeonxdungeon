@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const andConditions: Prisma.DungeonWhereInput = { id };
     if (!isAdmin) {
       // 【一般ユーザー & 未登録ユーザー】
-      // 基本は「公開済み」 or 「自分自身のもの」
+      // 基本は「公開中」 or 「自分自身のもの」
       andConditions.OR = [{ status: "PUBLISHED" }, ...(sessionUserId ? [{ userId: sessionUserId }] : [])];
     }
 

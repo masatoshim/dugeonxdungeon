@@ -1,19 +1,19 @@
 import useSWRMutation from "swr/mutation";
-import { updateDungeon } from "@/app/_libs/dungeons-api";
-import { UpdateDungeonRequest, DungeonResponse } from "@/types";
+import { updateUser } from "@/app/_libs/users-api";
+import { UpdateUserRequest, UserResponse } from "@/types";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 
-export const useUpdateDungeon = (id: string) => {
+export const useUpdateUser = (id: string) => {
   const { mutate } = useSWRConfig();
 
-  const { trigger, isMutating, error } = useSWRMutation<DungeonResponse, Error, string[], UpdateDungeonRequest>(
-    ["/api/dungeons", id],
-    (key, { arg }) => updateDungeon(id, arg),
+  const { trigger, isMutating, error } = useSWRMutation<UserResponse, Error, string[], UpdateUserRequest>(
+    ["/api/users", id],
+    (key, { arg }) => updateUser(id, arg),
     {
       onSuccess: (data) => {
-        toast.success("ダンジョンを更新しました");
-        mutate("/api/dungeons");
+        toast.success("プロフィールを更新しました");
+        mutate("/api/users");
       },
       onError: (err) => {
         toast.error(`更新に失敗しました: ${err.message}`);

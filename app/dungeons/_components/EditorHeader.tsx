@@ -2,6 +2,7 @@ import { EditorSizeInput } from "@/app/dungeons/_components";
 import { FieldErrors } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { DungeonStatus } from "@prisma/client";
 
 // todo: ダンジョンのステータスを表示する
 // 新規登録時は常に構築中（DRAFT）
@@ -13,6 +14,7 @@ type Props = {
     description: string;
     timeLimit: number;
   };
+  status: DungeonStatus;
   errors: FieldErrors;
   isDirty: boolean; // フォームに変更があるか
   isEditMode: boolean;
@@ -30,6 +32,7 @@ export const EditorHeader = ({
   cols,
   rows,
   config,
+  status,
   errors,
   isDirty,
   isEditMode,
@@ -50,15 +53,14 @@ export const EditorHeader = ({
     router.push(isAdmin ? "/admin/dungeons" : "/dungeons");
   };
 
-  // ボタンの活性状態判定
-  // 新規登録なら常に活性、編集モードなら変更がある(isDirty)場合のみ活性
-  const isSaveActive = !isEditMode || isDirty;
-
   return (
     <div className="bg-gray-900 border-b border-gray-800 p-4 mb-6 rounded-xl shadow-2xl">
       <div className="flex flex-wrap gap-4 items-end justify-between">
         {/* 左側：基本情報入力 */}
         <div className="flex flex-wrap gap-4 flex-1">
+          <span className={`w-24 text-center py-1 rounded-md text-xs font-bold `}>
+            {status === "DRAFT" ? "構築中" : status === "PRIVATE" ? "非公開" : "公開中"}
+          </span>
           <div className="flex flex-col gap-1">
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Dungeon Name</label>
             <input
@@ -104,7 +106,7 @@ export const EditorHeader = ({
               onClick={handleCancel}
               className="px-3 py-2 text-gray-400 hover:text-white text-xs font-bold transition-colors"
             >
-              キャンセル
+              管理画面に戻る
             </button>
           </div>
 
@@ -137,7 +139,7 @@ export const EditorHeader = ({
             <button
               type="button"
               onClick={onSave}
-              disabled={!isSaveActive || isSaving}
+              disabled={(isEditMode && !isDirty) || isSaving}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold transition-all"
             >
               {isSaving ? "保存中..." : "下書き保存"}
@@ -146,7 +148,7 @@ export const EditorHeader = ({
             <button
               type="button"
               onClick={onTestPlay}
-              disabled={!isSaveActive}
+              disabled={isEditMode && !isDirty && status !== "DRAFT"}
               className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold shadow-lg shadow-amber-900/40 transition-all text-white"
             >
               テストプレイして公開

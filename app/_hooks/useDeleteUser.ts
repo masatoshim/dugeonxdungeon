@@ -1,14 +1,14 @@
 import useSWRMutation from "swr/mutation";
-import { deleteDungeon } from "@/app/_libs/dungeons-api";
+import { deleteUser } from "@/app/_libs/users-api";
 import { toast } from "sonner";
 
-export const useDeleteDungeon = (id: string) => {
+export const useDeleteUser = (id: string) => {
   const { trigger, isMutating, error } = useSWRMutation<void, Error, string[], void>(
-    ["/api/dungeons", id],
-    () => deleteDungeon(id),
+    ["/api/users", id],
+    () => deleteUser(id),
     {
       onSuccess: () => {
-        toast.success("ダンジョンを削除しました");
+        toast.success("ユーザーを削除しました");
       },
       onError: (err) => {
         toast.error(`削除に失敗しました: ${err.message}`);
