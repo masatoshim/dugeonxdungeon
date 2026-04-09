@@ -39,6 +39,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const router = useRouter();
   const isEditMode = !!initialData?.id;
 
+  // テストプレイ遷移用の一時ステート
+  const [isRedirectingToTest, setIsRedirectingToTest] = useState(false);
   // API Hooks の初期化
   const { create, isCreating } = useCreateDungeon();
   const { update, isUpdating } = useUpdateDungeon(initialData?.id || "");
@@ -224,12 +226,25 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     };
 
     try {
+      let savedDungeon: any;
       if (isEditMode) {
-        await update(payload);
+        savedDungeon = await update(payload);
       } else {
-        await create(payload);
+        savedDungeon = await create(payload);
       }
+
       reset(data);
+
+      // テストプレイボタンからの実行だった場合
+      if (isRedirectingToTest) {
+        // savedDungeon から最新の ID を取得（作成直後は ID が新しく発行されるため）
+        const targetId = savedDungeon?.id || initialData?.id;
+        if (targetId) {
+          router.push(`/dungeons/${targetId}/test-play`);
+          return;
+        }
+      }
+
       if (isAdmin) {
         // todo: 未実装
         // router.push("/admin/dungeons/admin");
@@ -239,6 +254,19 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       }
     } catch (e) {
       // todo: エラーはHooks内のtoastで処理
+    }
+  };
+
+  // テストプレイボタン押下時のハンドラー
+  const handleTestPlay = async () => {
+    // 変更がある場合、または新規作成の場合は保存処理を走らせる
+    if (isDirty || !isEditMode) {
+      setIsRedirectingToTest(true);
+      // handleSubmit を手動で実行
+      handleSubmit(onSubmit)();
+    } else {
+      // 変更がない場合はそのまま遷移
+      router.push(`/dungeons/${initialData.id}/test-play`);
     }
   };
 
@@ -270,14 +298,11 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               updateTilesSize(r, c);
               setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
             }}
-            onSave={() => handleSubmit(onSubmit)()}
-            onTestPlay={() => {
-              // todo: まずは現在の状態を下書きとして保存
-              // todo: テストプレイ用URLへ遷移
-              // todo: 未実装
-              // router.push(`/dungeons/${id}/test-play`);
-              toast.info("テストプレイ画面へ移動します...（未実装）");
+            onSave={() => {
+              setIsRedirectingToTest(false);
+              handleSubmit(onSubmit)();
             }}
+            onTestPlay={handleTestPlay}
             onDelete={(physical) => {
               if (physical) {
                 handleDelete;

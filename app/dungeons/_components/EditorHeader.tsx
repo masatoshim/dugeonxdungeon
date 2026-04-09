@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DungeonStatus } from "@prisma/client";
 
-// todo: ダンジョンのステータスを表示する
 // 新規登録時は常に構築中（DRAFT）
 type Props = {
   cols: number;

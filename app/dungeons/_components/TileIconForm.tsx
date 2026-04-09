@@ -1,5 +1,3 @@
-"use client";
-
 import { TILE_CONFIG, ASSETS } from "@/types";
 
 // タイルの表示用コンポーネント（Phaserのスプライトシートを模倣）
