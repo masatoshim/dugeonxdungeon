@@ -39,8 +39,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const router = useRouter();
   const isEditMode = !!initialData?.id;
 
-  // テストプレイ遷移用の一時ステート
-  const [isRedirectingToTest, setIsRedirectingToTest] = useState(false);
   // API Hooks の初期化
   const { create, isCreating } = useCreateDungeon();
   const { update, isUpdating } = useUpdateDungeon(initialData?.id || "");
@@ -192,7 +190,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
 
   // 保存・削除
   const { data: session } = useSession();
-  const onSubmit = async (data: DungeonFormData) => {
+  const onSubmit = async (data: DungeonFormData, isRedirectingToTest: boolean) => {
     if (linkingState.active) return toast.error("パーツのペアを完成させてください");
 
     const flatTiles = tiles.flat();
@@ -261,9 +259,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const handleTestPlay = async () => {
     // 変更がある場合、または新規作成の場合は保存処理を走らせる
     if (isDirty || !isEditMode) {
-      setIsRedirectingToTest(true);
       // handleSubmit を手動で実行
-      handleSubmit(onSubmit)();
+      handleSubmit((data) => onSubmit(data, true))();
     } else {
       // 変更がない場合はそのまま遷移
       router.push(`/dungeons/${initialData.id}/test-play`);
@@ -279,7 +276,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit((data) => onSubmit(data, false))}>
           <EditorHeader
             cols={cols}
             rows={rows}
@@ -299,8 +296,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
             }}
             onSave={() => {
-              setIsRedirectingToTest(false);
-              handleSubmit(onSubmit)();
+              handleSubmit((data) => onSubmit(data, false))();
             }}
             onTestPlay={handleTestPlay}
             onDelete={(physical) => {

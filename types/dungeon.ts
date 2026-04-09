@@ -147,7 +147,6 @@ export interface UpdateDungeonRequest {
   timeLimit?: number;
   difficulty?: number;
   status?: DungeonStatus;
-  updatedBy: string;
   deletedFlg?: boolean;
   tagIds?: number[];
 }

@@ -1,13 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useGetDungeons } from "@/app/_hooks";
 import { useSession } from "next-auth/react";
 import { DungeonRow } from "@/app/_components/dungeons/DungeonRow";
+import { Suspense } from "react";
 
 export default function MyDungeonsPage() {
+  return (
+    <Suspense fallback={<div className="text-white">Loading...</div>}>
+      <DungeonsPageContent />
+    </Suspense>
+  );
+}
+
+function DungeonsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { dungeons, isLoading, mutate } = useGetDungeons({
     userId: session?.user?.id,
@@ -15,6 +25,7 @@ export default function MyDungeonsPage() {
     sort: "createdAt",
     order: "asc",
   });
+  const highlightId = searchParams.get("highlight");
 
   if (isLoading) return <div className="text-white">Loading...</div>;
 
@@ -29,7 +40,7 @@ export default function MyDungeonsPage() {
 
       <div className="bg-[#161b2e] rounded-2xl p-8 border border-gray-800 space-y-4">
         {dungeons?.map((dungeon) => (
-          <DungeonRow key={dungeon.id} dungeon={dungeon} mutate={mutate} />
+          <DungeonRow key={dungeon.id} dungeon={dungeon} mutate={mutate} isHighlighted={highlightId === dungeon.id} />
         ))}
         {/* ダンジョン追加ボタン (10個未満の場合) */}
         {(dungeons?.length || 0) < 10 && (

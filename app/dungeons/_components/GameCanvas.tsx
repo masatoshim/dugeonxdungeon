@@ -6,14 +6,24 @@ import { MapData } from "@/types";
 interface GameCanvasProps {
   mapData: MapData;
   timeLimit: number;
+  onClear?: (score: number) => void;
 }
 
-export default function GameCanvas({ mapData, timeLimit }: GameCanvasProps) {
+export default function GameCanvas({ mapData, timeLimit, onClear }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null); // DOM用
   const phaserRef = useRef<Phaser.Game | null>(null); // Phaserインスタンス保持用
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // イベントリスナー：Phaser からの通知を受け取る
+    const handleGameClearEvent = (e: any) => {
+      if (onClear) {
+        onClear(e.detail.score);
+      }
+    };
+
+    window.addEventListener("game-clear", handleGameClearEvent);
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -36,12 +46,13 @@ export default function GameCanvas({ mapData, timeLimit }: GameCanvasProps) {
     phaserRef.current = game;
 
     return () => {
+      window.removeEventListener("game-clear", handleGameClearEvent);
       if (phaserRef.current) {
         phaserRef.current.destroy(true);
         phaserRef.current = null;
       }
     };
-  }, [mapData, timeLimit]);
+  }, [mapData, timeLimit, onClear]);
 
   return <div ref={containerRef} className="border-4 border-gray-700 rounded-lg overflow-hidden" />;
 }

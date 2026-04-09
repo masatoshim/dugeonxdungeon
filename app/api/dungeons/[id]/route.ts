@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { DungeonBase, DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/types";
 import { Prisma } from "@prisma/client";
+import { now } from "next-auth/client/_utils";
 
 /**
  * GET: ダンジョン詳細取得
@@ -94,6 +95,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       where: { id },
       data: {
         ...updateData,
+        updatedBy: session.user.id,
         // タグの更新がある場合：一度全ての紐付けを切り、新しいタグを繋ぎ直す
         dungeonTags: tagIds
           ? {

@@ -9,6 +9,15 @@ import { DungeonRow } from "@/app/_components/dungeons/DungeonRow";
 import { DungeonFilterBar } from "./_components/DungeonFilterBar";
 import { DungeonsIndexResponse, DungeonFilter } from "@/types";
 
+export default function AdminDungeonsPage() {
+  return (
+    // todo: Suspenseを使用しているページは全面見直し。コンポーネントを分けずに１ファイルにまとめる
+    <Suspense fallback={<div className="text-white">Loading...</div>}>
+      <DungeonsPageContent />
+    </Suspense>
+  );
+}
+
 function DungeonsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,6 +29,7 @@ function DungeonsPageContent() {
   const currentStatusList = searchParams.get("statusList") || "all";
   const currentSort = searchParams.get("sort") || "createdAt";
   const currentOrder: "asc" | "desc" = searchParams.get("order") === "desc" ? "desc" : "asc";
+  const highlightId = searchParams.get("highlight");
   // todo: ページ遷移機能を追加する
   const currentPage = searchParams.get("page") || "1";
 
@@ -49,7 +59,13 @@ function DungeonsPageContent() {
 
       <div className="bg-[#161b2e] rounded-2xl p-8 border border-gray-800 space-y-4">
         {dungeons?.map((dungeon) => (
-          <DungeonRow key={dungeon.id} dungeon={dungeon} mutate={mutate} showUserInfo={!isAdmin} />
+          <DungeonRow
+            key={dungeon.id}
+            dungeon={dungeon}
+            mutate={mutate}
+            showUserInfo={!isAdmin}
+            isHighlighted={highlightId === dungeon.id}
+          />
         ))}
         {isAdmin && (
           <button
@@ -62,14 +78,5 @@ function DungeonsPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function AdminDungeonsPage() {
-  return (
-    // todo: Suspenseを使用しているページは全面見直し。コンポーネントを分けずに１ファイルにまとめる
-    <Suspense fallback={<div className="text-white">Loading...</div>}>
-      <DungeonsPageContent />
-    </Suspense>
   );
 }
