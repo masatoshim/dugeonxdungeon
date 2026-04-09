@@ -59,7 +59,7 @@ export const EditorHeader = ({
         {/* 左側：基本情報入力 */}
         <div className="flex flex-wrap gap-4 flex-1">
           <span className={`w-24 text-center py-1 rounded-md text-xs font-bold `}>
-            {status === "DRAFT" ? "構築中" : status === "PRIVATE" ? "非公開" : "公開済"}
+            {status === "DRAFT" ? "構築中" : status === "PRIVATE" ? "非公開" : "公開中"}
           </span>
           <div className="flex flex-col gap-1">
             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Dungeon Name</label>

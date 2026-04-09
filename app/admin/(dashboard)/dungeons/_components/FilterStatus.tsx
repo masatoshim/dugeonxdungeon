@@ -10,7 +10,7 @@ interface StatusOption {
 const STATUS_OPTIONS: StatusOption[] = [
   { label: "構築中", value: "DRAFT" },
   { label: "非公開", value: "PRIVATE" },
-  { label: "公開済", value: "PUBLISHED" },
+  { label: "公開中", value: "PUBLISHED" },
   { label: "削除済", value: "DELETED" },
 ];
 

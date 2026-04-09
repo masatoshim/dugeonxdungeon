@@ -11,7 +11,7 @@ const STATUS_CONFIG: Record<DungeonStatus, { label: string; className: string }>
   DRAFT: { label: "構築中", className: "bg-indigo-900/50 text-indigo-300" },
   PRIVATE: { label: "非公開", className: "bg-red-900/50 text-red-300" },
   DELETED: { label: "削除済", className: "bg-gray-800 text-gray-400" },
-  PUBLISHED: { label: "公開済", className: "bg-[#2ab3a3]/20 text-[#2ab3a3]" },
+  PUBLISHED: { label: "公開中", className: "bg-[#2ab3a3]/20 text-[#2ab3a3]" },
 };
 
 interface DungeonRowProps {
