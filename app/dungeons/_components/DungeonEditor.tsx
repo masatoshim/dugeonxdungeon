@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { useSWRConfig } from "swr";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +38,7 @@ interface DungeonEditorProps {
 
 export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig(); // キャッシュ操作用
   const isEditMode = !!initialData?.id;
 
   // API Hooks の初期化
@@ -216,7 +218,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       mapSizeWidth: cols,
       mapSize: cols * rows,
       difficulty: isEditMode ? initialData.difficulty : 3,
-      status: isEditMode ? initialData.status : "DRAFT",
+      status: "DRAFT" as const, // 保存する際は常に編集中に更新
       isTemplate: isAdmin || user.role === "ADMIN",
       tagIds: [], // todo: tagセットのロジックは劣後
       createdBy: isEditMode ? initialData.createdBy : user.id,
@@ -231,12 +233,17 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         savedDungeon = await create(payload);
       }
 
+      // savedDungeonから最新のIDを取得（作成直後はIDが新しく発行されるため）
+      const targetId = savedDungeon?.id || initialData?.id;
+      if (targetId) {
+        // 保存が成功したら、そのダンジョンのキャッシュを即座に更新
+        await mutate(`/api/dungeons/${targetId}`);
+      }
+
       reset(data);
 
       // テストプレイボタンからの実行だった場合
       if (isRedirectingToTest) {
-        // savedDungeon から最新の ID を取得（作成直後は ID が新しく発行されるため）
-        const targetId = savedDungeon?.id || initialData?.id;
         if (targetId) {
           router.push(`/dungeons/${targetId}/test-play`);
           return;

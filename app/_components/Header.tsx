@@ -29,7 +29,10 @@ export default function Header() {
           <Link href="/dungeons" style={{ textDecoration: "none", color: "#333" }}>
             遊ぶ
           </Link>
-          <Link href="/dungeons/new" style={{ textDecoration: "none", color: "#333" }}>
+          <Link
+            href={session?.user.role === "ADMIN" ? "/admin/dungeons" : "/dungeons"}
+            style={{ textDecoration: "none", color: "#333" }}
+          >
             創る
           </Link>
           <Link href="/ranking" style={{ textDecoration: "none", color: "#333" }}>

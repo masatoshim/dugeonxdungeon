@@ -147,10 +147,9 @@ export const EditorHeader = ({
             <button
               type="button"
               onClick={onTestPlay}
-              disabled={isEditMode && !isDirty && status !== "DRAFT"}
               className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-xs font-bold shadow-lg shadow-amber-900/40 transition-all text-white"
             >
-              テストプレイして公開
+              {status === "DRAFT" || isDirty ? "テストプレイして公開" : "テストプレイ"}
             </button>
           </div>
         </div>
