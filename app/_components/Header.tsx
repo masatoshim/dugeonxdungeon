@@ -30,7 +30,7 @@ export default function Header() {
             遊ぶ
           </Link>
           <Link
-            href={session?.user.role === "ADMIN" ? "/admin/dungeons" : "/dungeons"}
+            href={session?.user.role === "ADMIN" ? "/admin/dashboard/dungeons" : "/dashboard/dungeons"}
             style={{ textDecoration: "none", color: "#333" }}
           >
             創る

@@ -29,7 +29,7 @@ export default function EditPage() {
 
       if (!isOwner && !isAdmin) {
         toast.error("このダンジョンを編集する権限がありません");
-        router.push("/dungeons");
+        router.push("/dashboard/dungeons");
       }
     }
   }, [status, dungeon, session, router, dungeonId]);
@@ -51,7 +51,9 @@ export default function EditPage() {
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-bold text-red-500">データが見つかりません</h2>
           <button
-            onClick={() => router.push("/dungeons")}
+            onClick={() =>
+              router.push(session?.user.role === "ADMIN" ? "/admin/dashboard/dungeons" : "/dashboard/dungeons")
+            }
             className="px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
           >
             一覧へ戻る

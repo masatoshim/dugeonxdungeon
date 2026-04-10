@@ -47,7 +47,7 @@ export default function TestPlayPage() {
       toast.success(shouldPublish ? "ダンジョンを公開しました！" : "非公開として保存しました。");
 
       const isAdmin = session?.user?.role === "ADMIN";
-      const redirectPath = isAdmin ? "/admin/dungeons" : "/dungeons";
+      const redirectPath = isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons";
       router.push(`${redirectPath}?highlight=${dungeonId}`);
     } catch (err) {
       toast.error("更新に失敗しました。");

@@ -143,7 +143,7 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighl
       <div className="flex items-center gap-2 shrink-0">
         {showUserInfo ? (
           <button
-            onClick={() => router.push(`/admin/dungeons/user/${dungeon.id}`)}
+            onClick={() => router.push(`/admin/dashboard/dungeons/user/${dungeon.id}`)}
             className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm"
           >
             詳細

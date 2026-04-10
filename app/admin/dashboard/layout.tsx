@@ -7,9 +7,9 @@ import { signOut } from "next-auth/react";
 
 // 画像に基づいたナビゲーション項目
 const navItems = [
-  { label: "ホーム", href: "/admin/home", icon: Home },
-  { label: "ユーザー一覧", href: "/admin/users", icon: Users },
-  { label: "ダンジョン一覧", href: "/admin/dungeons", icon: LayoutGrid },
+  { label: "ホーム", href: "/admin/dashboard/home", icon: Home },
+  { label: "ユーザー一覧", href: "/admin/dashboard/users", icon: Users },
+  { label: "ダンジョン一覧", href: "/admin/dashboard/dungeons", icon: LayoutGrid },
 ];
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {

@@ -6,29 +6,25 @@ export async function proxy(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  // 未ログインユーザーの制限
-  const isAuthPage = pathname === "/login";
-  const isProtectedPage =
-    pathname.startsWith("/admin") || pathname.includes("/edit") || pathname.includes("/test-play");
+  // 保護対象の判定ロジック
+  const isDashboardPage = pathname.startsWith("/dashboard");
+  const isAdminPage = pathname.startsWith("/admin");
+  const isEditOrTestPage = pathname.includes("/edit") || pathname.includes("/test-play");
 
-  if (!token && isProtectedPage) {
-    // 未ログインで保護ページへアクセスした場合はログインへ
+  // 未ログインユーザーが「管理・編集・テスト」系にアクセスした場合
+  if (!token && (isDashboardPage || isAdminPage || isEditOrTestPage)) {
     const url = new URL("/login", req.url);
-    url.searchParams.set("callbackUrl", pathname); // ログイン後に戻れるように
+    url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 
-  // 【管理者制限】
-  if (pathname.startsWith("/admin")) {
-    if (token?.role !== "ADMIN") {
-      // 管理者以外はトップへ強制送還
-      return NextResponse.redirect(new URL("/", req.url));
-    }
+  // 一般ユーザーが管理者用 /admin にアクセスした場合
+  if (isAdminPage && token?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   // ログイン済みユーザーが /login にアクセスした場合
-  if (token && isAuthPage) {
-    // ロールに関わらず、ログイン済みならトップへ（将来的に /admin/home 等へ変更可）
+  if (token && pathname === "/login") {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -36,5 +32,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/admin/:path*", "/dungeons/:id/edit", "/dungeons/:id/test-play"],
+  matcher: ["/login", "/dashboard/:path*", "/admin/:path*", "/dungeons/:id/edit", "/dungeons/:id/test-play"],
 };

@@ -6,10 +6,10 @@ import { UserCircle, LayoutGrid, Heart, History, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const navItems = [
-  { label: "プロフィール", href: "/profile", icon: UserCircle },
-  { label: "マイダンジョン一覧", href: "/dungeons", icon: LayoutGrid },
-  { label: "お気に入り", href: "/favorites", icon: Heart },
-  { label: "履歴", href: "/history", icon: History },
+  { label: "プロフィール", href: "/dashboard/profile", icon: UserCircle },
+  { label: "マイダンジョン一覧", href: "/dashboard/dungeons", icon: LayoutGrid },
+  { label: "お気に入り", href: "/dashboard/favorites", icon: Heart },
+  { label: "履歴", href: "/dashboard/history", icon: History },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

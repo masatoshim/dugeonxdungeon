@@ -49,7 +49,7 @@ export const EditorHeader = ({
   // キャンセル時の遷移先
   const handleCancel = () => {
     if (isDirty && !confirm("変更が保存されていません。終了しますか？")) return;
-    router.push(isAdmin ? "/admin/dungeons" : "/dungeons");
+    router.push(isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons");
   };
 
   return (
