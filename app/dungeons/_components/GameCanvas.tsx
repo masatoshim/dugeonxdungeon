@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import * as Phaser from "phaser";
 import { MainScene } from "@/game-core/scenes/MainScene";
@@ -11,19 +13,29 @@ interface GameCanvasProps {
 }
 
 export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: GameCanvasProps) {
-  const containerRef = useRef<HTMLDivElement>(null); // DOM用
-  const phaserRef = useRef<Phaser.Game | null>(null); // Phaserインスタンス保持用
+  const containerRef = useRef<HTMLDivElement>(null);
+  const phaserRef = useRef<Phaser.Game | null>(null);
+
+  const onClearRef = useRef(onClear);
+  const onGameOverRef = useRef(onGameOver);
+
+  useEffect(() => {
+    onClearRef.current = onClear;
+    onGameOverRef.current = onGameOver;
+  }, [onClear, onGameOver]);
 
   useEffect(() => {
     if (!containerRef.current) return;
+    if (phaserRef.current) return; // 二重生成防止
 
-    // イベントリスナー：Phaser からの通知を受け取る
+    // イベントリスナー：Phaserからの通知を受け取る
     const handleGameClearEvent = (e: any) => {
-      if (onClear) {
-        onClear(e.detail.score);
-      }
+      onClearRef.current?.(e.detail.score);
     };
-    const handleGameOverEvent = () => onGameOver?.();
+
+    const handleGameOverEvent = () => {
+      onGameOverRef.current?.();
+    };
 
     window.addEventListener("game-clear", handleGameClearEvent);
     window.addEventListener("game-over", handleGameOverEvent);
@@ -48,6 +60,7 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
 
     phaserRef.current = game;
 
+    // クリーンアップ処理
     return () => {
       window.removeEventListener("game-clear", handleGameClearEvent);
       window.removeEventListener("game-over", handleGameOverEvent);
@@ -56,7 +69,7 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
         phaserRef.current = null;
       }
     };
-  }, [mapData, timeLimit, onClear]);
+  }, []);
 
-  return <div ref={containerRef} className="border-4 border-gray-700 rounded-lg overflow-hidden" />;
+  return <div ref={containerRef} className="border-4 border-gray-700 rounded-lg overflow-hidden bg-black" />;
 }

@@ -82,10 +82,10 @@ export default function TestPlayPage() {
                 リトライ
               </button>
               <button
-                onClick={() => router.push("/dungeons")}
+                onClick={() => router.push(`/dungeons/${dungeonId}/edit`)}
                 className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold transition-all"
               >
-                一覧に戻る
+                編集画面に戻る
               </button>
             </div>
           </div>

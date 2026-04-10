@@ -27,6 +27,8 @@ export class MainScene extends Phaser.Scene {
 
   private gimmickConnections: GimmickConnection[] = [];
 
+  private isGameOver: boolean = false;
+
   constructor() {
     super("MainScene");
   }
@@ -123,7 +125,14 @@ export class MainScene extends Phaser.Scene {
       }
     });
 
-    this.physics.add.overlap(this.player, this.enemies, this.handlePlayerDeath, undefined, this);
+    // 敵に接触したらゲームオーバー
+    this.physics.add.overlap(
+      this.player,
+      this.enemies,
+      () => this.triggerGameOver("GAME OVER", "game-over"),
+      undefined,
+      this,
+    );
   }
 
   /**
@@ -254,6 +263,9 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
+    // ゲーム終了時は何もしない
+    if (this.isGameOver || (this.timerEvent && this.timerEvent.paused)) return;
+
     if (this.player) {
       this.player.update();
       this.checkGoalCondition();
@@ -285,30 +297,43 @@ export class MainScene extends Phaser.Scene {
   }
 
   /**
-   * プレイヤーが死亡した時の処理
+   * ゲームオーバー時の統合処理
    */
-  private handlePlayerDeath(playerObj: any, enemyObj: any) {
-    // すでにゲームオーバー状態なら何もしない
-    if (!this.player.active) return;
+  private triggerGameOver(message: string, notificationType: string) {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
+
     // 物理演算を停止
     this.physics.pause();
-    // プレイヤーを赤くして、動きを止める
-    const player = playerObj as Player;
-    player.setTint(0xff0000); // ToDo: 画像差し替え
-    player.active = false;
-    // 画面中央に「GAME OVER」テキストを表示
+
+    // タイマーを停止
+    if (this.timerEvent) {
+      this.timerEvent.paused = true;
+    }
+
+    // プレイヤーの操作と入力を完全に遮断
+    this.player.active = false;
+    this.player.setTint(0x555555);
+    this.input.keyboard?.shutdown();
+    this.input.keyboard?.removeAllListeners();
+
+    this.cameras.main.shake(500, 0.01);
+
+    window.dispatchEvent(new CustomEvent(notificationType));
+
+    // ゲーム画面上のテキスト表示
     const { width, height } = this.scale;
     this.add
-      .text(width / 2, height / 2, "GAME OVER", {
-        fontSize: "48px",
+      .text(width / 2, height / 2, message, {
+        fontSize: "64px",
         color: "#ff0000",
         fontStyle: "bold",
         stroke: "#000",
-        strokeThickness: 6,
+        strokeThickness: 8,
       })
       .setOrigin(0.5)
-      .setScrollFactor(0);
-    window.dispatchEvent(new CustomEvent("game-over"));
+      .setScrollFactor(0)
+      .setDepth(100);
   }
 
   private setupCamera() {
@@ -332,8 +357,7 @@ export class MainScene extends Phaser.Scene {
         this.timeLeft--;
         window.dispatchEvent(new CustomEvent("update-time", { detail: this.timeLeft }));
         if (this.timeLeft <= 0) {
-          this.handleGameOver("TIME UP!");
-          window.dispatchEvent(new CustomEvent("time-over"));
+          this.triggerGameOver("TIME UP!", "time-over");
         }
       },
       loop: true,
@@ -433,12 +457,6 @@ export class MainScene extends Phaser.Scene {
       ease: "Back.easeOut",
       delay: 200,
     });
-  }
-
-  private handleGameOver(message: string) {
-    this.timerEvent?.remove();
-    this.physics.pause();
-    this.player.setTint(0x555555);
   }
 
   private checkGoalCondition() {
