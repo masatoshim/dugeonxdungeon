@@ -308,6 +308,7 @@ export class MainScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setScrollFactor(0);
+    window.dispatchEvent(new CustomEvent("game-over"));
   }
 
   private setupCamera() {
@@ -330,7 +331,10 @@ export class MainScene extends Phaser.Scene {
       callback: () => {
         this.timeLeft--;
         window.dispatchEvent(new CustomEvent("update-time", { detail: this.timeLeft }));
-        if (this.timeLeft <= 0) this.handleGameOver("TIME UP!");
+        if (this.timeLeft <= 0) {
+          this.handleGameOver("TIME UP!");
+          window.dispatchEvent(new CustomEvent("time-over"));
+        }
       },
       loop: true,
     });

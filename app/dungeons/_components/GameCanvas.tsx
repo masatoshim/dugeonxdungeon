@@ -7,9 +7,10 @@ interface GameCanvasProps {
   mapData: MapData;
   timeLimit: number;
   onClear?: (score: number) => void;
+  onGameOver?: () => void;
 }
 
-export default function GameCanvas({ mapData, timeLimit, onClear }: GameCanvasProps) {
+export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null); // DOM用
   const phaserRef = useRef<Phaser.Game | null>(null); // Phaserインスタンス保持用
 
@@ -22,8 +23,10 @@ export default function GameCanvas({ mapData, timeLimit, onClear }: GameCanvasPr
         onClear(e.detail.score);
       }
     };
+    const handleGameOverEvent = () => onGameOver?.();
 
     window.addEventListener("game-clear", handleGameClearEvent);
+    window.addEventListener("game-over", handleGameOverEvent);
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -47,6 +50,7 @@ export default function GameCanvas({ mapData, timeLimit, onClear }: GameCanvasPr
 
     return () => {
       window.removeEventListener("game-clear", handleGameClearEvent);
+      window.removeEventListener("game-over", handleGameOverEvent);
       if (phaserRef.current) {
         phaserRef.current.destroy(true);
         phaserRef.current = null;
