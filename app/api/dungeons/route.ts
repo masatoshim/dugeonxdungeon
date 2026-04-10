@@ -15,9 +15,6 @@ export async function GET(request: Request) {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
     const sessionUserId = session?.user?.id;
-    if (!sessionUserId) {
-      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
-    }
     const isAdmin = session?.user?.role === "ADMIN";
 
     // ページネーション・ソート設定
@@ -29,6 +26,11 @@ export async function GET(request: Request) {
     //検索条件の動的構築
     const andConditions: Prisma.DungeonWhereInput[] = [];
 
+    // デフォルトで削除済みは除外
+    if (!isAdmin) {
+      andConditions.push({ deletedFlg: false });
+    }
+
     // status検索
     const statusListParam = searchParams.get("statusList");
     const statusParam = searchParams.get("status");
@@ -39,34 +41,33 @@ export async function GET(request: Request) {
         : [];
     const targetUserId = searchParams.get("userId");
     if (isAdmin) {
-      // 【管理者】
-      if (statusList.length > 0) {
-        andConditions.push({ status: { in: statusList } });
-      }
-      if (targetUserId) {
-        andConditions.push({ userId: targetUserId });
-      }
+      // 管理者は指定があれば絞り込み、なければ全件
+      if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
     } else {
-      // 【一般ユーザー】
+      // 一般・未ログインユーザー
       if (targetUserId) {
         if (targetUserId === sessionUserId) {
-          // 自分自身のデータをリクエストしている場合：指定された statusList があれば絞り込み、なければ全件
-          if (statusList.length > 0) {
-            andConditions.push({ status: { in: statusList } });
-          }
-          andConditions.push({ userId: sessionUserId });
+          if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
         } else {
-          // 他人のデータをリクエストしている場合：強制的に PUBLISHED のみ、かつその userId で絞り込み
-          andConditions.push({ status: "PUBLISHED" });
-          andConditions.push({ userId: targetUserId });
+          // 他人のID指定なら「公開中」のみ
+          andConditions.push({ status: "PUBLISHED", userId: targetUserId });
         }
       } else {
-        // userId 指定がない場合：「公開中」または「自分のもの」を表示
-        andConditions.push({
-          OR: [{ status: "PUBLISHED" }, ...(sessionUserId ? [{ userId: sessionUserId }] : [])],
-        });
+        // ID指定なしの一覧画面
         if (statusList.length > 0) {
-          andConditions.push({ status: { in: statusList } });
+          // パラメータで指定がある場合
+          // ただし自分のもの以外は PUBLISHED 以外見せないガードが必要
+          andConditions.push({
+            OR: [
+              { status: { in: statusList.filter((s) => s === "PUBLISHED") } }, // 公開済み
+              ...(sessionUserId ? [{ userId: sessionUserId, status: { in: statusList } }] : []), // 自分のなら指定通り
+            ],
+          });
+        } else {
+          // パラメータ指定がない場合の「デフォルト」
+          andConditions.push({
+            OR: [{ status: "PUBLISHED" }, ...(sessionUserId ? [{ userId: sessionUserId }] : [])],
+          });
         }
       }
     }
@@ -228,6 +229,18 @@ export async function GET(request: Request) {
       }
     }
 
+    // 判定対象のユーザーIDを決定
+    const targetCheckUserId = searchParams.get("checkUserId");
+    let effectiveCheckUserId: string | undefined = undefined;
+
+    if (isAdmin && targetCheckUserId) {
+      // 管理者が特定のユーザーを指定した場合
+      effectiveCheckUserId = targetCheckUserId;
+    } else {
+      // 一般ユーザーは常に自分自身が対象
+      effectiveCheckUserId = sessionUserId;
+    }
+
     // DB実行 (合計件数とデータ取得)
     const [totalCount, dungeonsRaw] = await Promise.all([
       prisma.dungeon.count({ where: { AND: andConditions } }),
@@ -236,6 +249,25 @@ export async function GET(request: Request) {
         include: {
           user: { select: { userName: true, nickName: true } },
           dungeonTags: { include: { tag: true } },
+          // ログイン中ユーザーの「クリア実績」があるか（Ver問わず1件あればOK）
+          playHistories: effectiveCheckUserId
+            ? {
+                where: {
+                  userId: effectiveCheckUserId,
+                  playStatus: "CLEAR",
+                },
+                take: 1,
+                select: { id: true, version: true },
+              }
+            : false,
+          // ログイン中ユーザーの「お気に入り」があるか
+          favouritedBy: effectiveCheckUserId
+            ? {
+                where: { userId: effectiveCheckUserId },
+                take: 1,
+                select: { userId: true },
+              }
+            : false,
         },
         orderBy: { [sortField]: sortOrder },
         take: limit,
@@ -245,12 +277,15 @@ export async function GET(request: Request) {
 
     // 後処理 (totalPlayCountの計算と平坦化)
     let dungeons: DungeonResponse[] = dungeonsRaw.map((d) => {
-      const { user, ...rest } = d;
+      const { user, playHistories, favouritedBy, dungeonTags, ...rest } = d;
       const hasPrivateAccess = isAdmin || sessionUserId === d.userId;
       return {
         ...rest,
         totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         tags: d.dungeonTags.map((dt) => dt.tag.name),
+        isCleared: (playHistories?.length ?? 0) > 0,
+        clearedVersion: playHistories?.[0]?.version,
+        isFavorited: (favouritedBy?.length ?? 0) > 0,
         dungeonTags: undefined,
         nickName: user.nickName,
         // 管理者のみ、または本人のみ取得可能にする項目

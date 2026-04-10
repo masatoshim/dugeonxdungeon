@@ -138,6 +138,7 @@ model PlayHistory {
   id         String     @id @default(uuid())
   userId     String
   dungeonId  String
+  version    Int        @default(1)
   playTime   Int        @default(0)
   playScore  Int        @default(0)
   playStatus PlayStatus

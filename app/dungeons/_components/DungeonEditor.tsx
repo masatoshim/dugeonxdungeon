@@ -37,6 +37,10 @@ interface DungeonEditorProps {
 }
 
 export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
+  const { data: session } = useSession();
+  const user = session?.user;
+  if (!user) return toast.error("セッションが切断されました。再ログインしてください。");
+
   const router = useRouter();
   const { mutate } = useSWRConfig(); // キャッシュ操作用
   const isEditMode = !!initialData?.id;
@@ -191,7 +195,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   );
 
   // 保存・削除
-  const { data: session } = useSession();
   const onSubmit = async (data: DungeonFormData, isRedirectingToTest: boolean) => {
     if (linkingState.active) return toast.error("パーツのペアを完成させてください");
 
@@ -201,11 +204,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     if (!flatTiles.some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.GOAL))
       return toast.error("ゴールを設置してください");
 
-    const user = session?.user;
-    if (!user) return toast.error("セッションが切断されました。再ログインしてください。");
     const { mapDataCheck, ...rest } = data; // 隠しフィールドを除外
     const payload = {
       ...rest,
+      version: isEditMode && initialData.version + 1,
       code: isEditMode ? initialData.code : `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
       userId: isEditMode ? initialData.userId : user.id,
       mapData: {

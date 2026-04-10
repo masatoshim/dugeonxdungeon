@@ -94,20 +94,27 @@ export interface DungeonFilter {
   status?: DungeonStatus;
   statusList?: string;
   isTemplate?: "true" | "false";
-  isTemplateList?: string;
+  isTemplateList?: string; // "true" | "false"のいずれか、または両方を指定可能
   deletedFlg?: "true" | "false";
-  deletedFlgList?: string;
+  deletedFlgList?: string; // "true" | "false"のいずれか、または両方を指定可能
   isFavourites?: "true" | "false";
-  isFavouritesList?: string;
+  isFavouritesList?: string; // "true" | "false"のいずれか、または両方を指定可能
   difficultyList?: string;
   playStatus?: PlayStatus;
-  playStatusList?: string;
+  playStatusList?: PlayStatus[];
+  // ユーザーのお気に入り・クリア済み
+  checkUserId?: string; // 指定されたユーザーのレスポンスにisCleared,isFavoritedを追加
+  clearedByUserId?: string; // 指定されたユーザーがクリアしたダンジョンのみを抽出
+  favouritedByUserId?: string; // 指定されたユーザーがお気に入りにしたダンジョンのみを抽出
 }
 
 /**
  * APIレスポンス
  */
 export interface DungeonResponse extends DungeonBase {
+  isCleared?: boolean;
+  clearedVersion?: number;
+  isFavorited?: boolean;
   totalPlayCount: number;
   createdAt?: string; // ISO 8601 文字列
   updatedAt?: string;
@@ -149,6 +156,7 @@ export interface UpdateDungeonRequest {
   status?: DungeonStatus;
   deletedFlg?: boolean;
   tagIds?: number[];
+  version?: number;
 }
 
 /**
