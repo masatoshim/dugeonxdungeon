@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useSWRConfig } from "swr";
 import { useRouter } from "next/navigation";
@@ -7,8 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { DUNGEON_DEFAULT, TILE_CONFIG, EntityData, TileConfigKey, TILE_CATEGORIES } from "@/types";
-import { TileIconForm, EditorHeader, TilePalette } from "@/app/dungeons/_components";
+import { EditorHeader, TilePalette } from "@/app/dungeons/_components";
 import { useCreateDungeon, useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
+import { useTileImages } from "@/app/dungeons/_hook/useTileImages";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({
@@ -86,6 +87,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       );
   });
 
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { images, isLoaded } = useTileImages();
+  const TILE_SIZE = 32;
+
   const [selectedTile, setSelectedTile] = useState("W");
   const [entities, setEntities] = useState<EntityData[]>(initialData?.mapData?.entities || []);
   const [linkingState, setLinkingState] = useState<LinkingState>({
@@ -96,6 +101,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   });
 
   const currentTileConfig = useMemo(() => TILE_CONFIG[selectedTile as TileConfigKey], [selectedTile]);
+
+  /**
+   * 画面操作
+   */
 
   // ダンジョンサイズ変更
   const updateTilesSize = (newRows: number, newCols: number) => {
@@ -194,6 +203,96 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     [rows, cols, selectedTile, currentTileConfig, linkingState, tiles],
   );
 
+  // 描画ロジック
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !isLoaded) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const dx = c * TILE_SIZE;
+        const dy = r * TILE_SIZE;
+        const tileId = tiles[r][c];
+        const img = images[tileId];
+        const config = TILE_CONFIG[tileId as TileConfigKey];
+
+        // 床などの基本タイルを描画
+        if (img && config) {
+          // frame情報（0, 1, 2...）から画像内のX座標を計算する
+          // 例: 32px幅のタイルが横に並んでいる場合
+          const frameIndex = config.frame || 0;
+          const sx = frameIndex * TILE_SIZE;
+          const sy = 0; // 縦にも並んでいるなら (Math.floor(frameIndex / 横の数) * TILE_SIZE)
+
+          ctx.drawImage(
+            img,
+            sx,
+            sy,
+            TILE_SIZE,
+            TILE_SIZE, // ソース：frame位置に基づいて切り取り
+            dx,
+            dy,
+            TILE_SIZE,
+            TILE_SIZE, // デスティネーション：Canvas上の配置位置
+          );
+        }
+
+        // エンティティ（鍵や扉）が重なっている場合
+        const entity = entities.find((e) => e.x === c && e.y === r);
+        if (entity && typeof tileId === "string" && images[tileId]) {
+          ctx.drawImage(images[tileId], dx, dy, TILE_SIZE, TILE_SIZE);
+        }
+
+        // セット設置中のハイライト
+        const entityAtPos = entities.find((e) => e.x === c && e.y === r);
+        if (entityAtPos?.id === linkingState.firstEntityId) {
+          ctx.strokeStyle = "#f59e0b"; // amber-500
+          ctx.lineWidth = 2;
+          ctx.strokeRect(dx + 2, dy + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+          ctx.fillStyle = "rgba(245, 158, 11, 0.2)";
+          ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
+        }
+
+        // グリッド線の描画 (薄く)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(dx, dy, TILE_SIZE, TILE_SIZE);
+      }
+    }
+  }, [tiles, entities, rows, cols, isLoaded, images, linkingState.firstEntityId]);
+
+  // state更新時に再描画
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  // --- クリック座標計算 ---
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const c = Math.floor(x / TILE_SIZE);
+    const r = Math.floor(y / TILE_SIZE);
+
+    if (r >= 0 && r < rows && c >= 0 && c < cols) {
+      handleCellClick(r, c);
+    }
+  };
+
+  /**
+   *
+   * @param data
+   * @param isRedirectingToTest
+   * @returns
+   */
   // 保存・削除
   const onSubmit = async (data: DungeonFormData, isRedirectingToTest: boolean) => {
     if (linkingState.active) return toast.error("パーツのペアを完成させてください");
@@ -341,33 +440,23 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </aside>
 
             <main className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 min-h-[600px] flex">
-              <div
-                className="inline-grid gap-0 shadow-2xl ring-4 ring-black bg-gray-800 m-auto"
-                style={{ gridTemplateColumns: `repeat(${cols}, 32px)` }}
-              >
-                {tiles.map((row, r) =>
-                  row.map((cell, c) => {
-                    const entityAtPos = entities.find((e) => e.x === c && e.y === r);
-                    const isPendingFirst = entityAtPos?.id === linkingState.firstEntityId;
-                    return (
-                      <div
-                        key={`${r}-${c}`}
-                        onMouseDown={() => handleCellClick(r, c)}
-                        onMouseEnter={(e) => e.buttons === 1 && handleCellClick(r, c)}
-                        className={`w-8 h-8 border-[0.1px] border-white/5 relative transition-colors hover:bg-white/10 cursor-crosshair
-                          ${isPendingFirst ? "ring-2 ring-inset ring-amber-500 bg-amber-500/20" : ""}
-                        `}
-                      >
-                        <TileIconForm tileId={cell} size={32} />
-                        {entityAtPos && (
-                          <div className="absolute inset-0 pointer-events-none">
-                            <TileIconForm tileId={entityAtPos.properties?.tileId || ""} size={32} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }),
+              <div className="m-auto relative shadow-2xl ring-4 ring-black">
+                {!isLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-amber-500">
+                    Loading Assets...
+                  </div>
                 )}
+                <canvas
+                  ref={canvasRef}
+                  width={cols * TILE_SIZE}
+                  height={rows * TILE_SIZE}
+                  onMouseDown={handleMouseDown}
+                  // ドラッグ描画対応
+                  onMouseMove={(e) => {
+                    if (e.buttons === 1) handleMouseDown(e);
+                  }}
+                  className="bg-gray-800 cursor-crosshair block"
+                />
               </div>
             </main>
           </div>
