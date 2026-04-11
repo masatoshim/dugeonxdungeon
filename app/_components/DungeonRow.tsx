@@ -50,9 +50,11 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighl
   const isLoading = isUpdating || isDeleting;
 
   const toggleStatus = async () => {
-    const nextStatus = dungeon.status === "PUBLISHED" ? "PRIVATE" : "PUBLISHED";
-    await update({ status: nextStatus, publishedAt: nextStatus === "PUBLISHED" ? new Date().toISOString() : null });
-    toast.success(`ステータスをに変更しました`);
+    const isPublishing = dungeon.status !== "PUBLISHED";
+    const nextStatus = isPublishing ? "PUBLISHED" : "PRIVATE";
+
+    await update({ status: nextStatus, publishedAt: isPublishing ? new Date().toISOString() : null });
+    toast.success(`ステータスを${isPublishing ? "公開中" : "非公開"}に変更しました`);
 
     cleanPath();
     mutate();

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 
+const DUNGEON_MAX_SIZE = 999;
+const DUNGEON_MIN_SIZE = 4;
+
 interface EditorSizeInputProps {
   label: string; // "R" や "C" など識別用
   initialValue: number;
@@ -17,11 +20,11 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
   const handleBlur = () => {
     let val = parseInt(tempValue);
 
-    // 空文字、NaN、1未満は 4 に戻す（ダンジョンサイズの最小値）
-    if (isNaN(val) || val < 1) val = 4;
+    // 空文字、NaN、1未満はダンジョンサイズの最小値を設定
+    if (isNaN(val) || val < 1) val = DUNGEON_MIN_SIZE;
 
     // ダンジョンサイズの最大値を超えないよう設定
-    if (val > 99) val = 99;
+    if (val > DUNGEON_MAX_SIZE) val = DUNGEON_MAX_SIZE;
 
     setTempValue(val.toString());
     onConfirm(val); // 確定した数値のみを親に返す
