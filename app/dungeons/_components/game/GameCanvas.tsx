@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as Phaser from "phaser";
 import { MainScene } from "@/game-core/scenes/MainScene";
-import { MapData } from "@/types";
+import { GAME_EVENTS, MapData } from "@/types";
 
 interface GameCanvasProps {
   mapData: MapData;
@@ -14,6 +14,7 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
   const containerRef = useRef<HTMLDivElement>(null);
   const phaserRef = useRef<Phaser.Game | null>(null);
 
+  // コールバック参照の保持
   const onClearRef = useRef(onClear);
   const onGameOverRef = useRef(onGameOver);
 
@@ -23,21 +24,20 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
   }, [onClear, onGameOver]);
 
   useEffect(() => {
+    // 既存のインスタンスがあれば破棄
+    if (phaserRef.current) {
+      phaserRef.current.destroy(true);
+      phaserRef.current = null;
+    }
+
+    // DOMコンテナの中身を完全にクリア
+    if (containerRef.current) {
+      containerRef.current.innerHTML = "";
+    }
+
     if (!containerRef.current) return;
-    if (phaserRef.current) return; // 二重生成防止
 
-    // イベントリスナー：Phaserからの通知を受け取る
-    const handleGameClearEvent = (e: any) => {
-      onClearRef.current?.(e.detail.score);
-    };
-
-    const handleGameOverEvent = () => {
-      onGameOverRef.current?.();
-    };
-
-    window.addEventListener("game-clear", handleGameClearEvent);
-    window.addEventListener("game-over", handleGameOverEvent);
-
+    // Phaser の設定
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       width: 800,
@@ -50,6 +50,19 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
     };
 
     const game = new Phaser.Game(config);
+
+    // Phaserのイベントリスナー登録
+    game.events.on(GAME_EVENTS.GAME_CLEAR, (data: { score: number }) => {
+      onClearRef.current?.(data.score);
+    });
+    game.events.on(GAME_EVENTS.GAME_OVER, () => {
+      onGameOverRef.current?.();
+    });
+    game.events.on(GAME_EVENTS.TIME_OVER, () => {
+      onGameOverRef.current?.();
+    });
+
+    // Sceneの開始
     game.scene.add("MainScene", MainScene);
     game.scene.start("MainScene", {
       mapData: mapData,
@@ -58,16 +71,17 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
 
     phaserRef.current = game;
 
-    // クリーンアップ処理
+    // クリーンアップ
     return () => {
-      window.removeEventListener("game-clear", handleGameClearEvent);
-      window.removeEventListener("game-over", handleGameOverEvent);
       if (phaserRef.current) {
+        phaserRef.current.events.off(GAME_EVENTS.GAME_CLEAR);
+        phaserRef.current.events.off(GAME_EVENTS.GAME_OVER);
+        phaserRef.current.events.off(GAME_EVENTS.TIME_OVER);
         phaserRef.current.destroy(true);
         phaserRef.current = null;
       }
     };
-  }, []);
+  }, [mapData, timeLimit]);
 
   return <div ref={containerRef} className="border-4 border-gray-700 rounded-lg overflow-hidden bg-black" />;
 }

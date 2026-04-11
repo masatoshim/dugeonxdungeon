@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { ASSETS, MapData, WeaponData, GimmickConnection } from "@/types";
+import { GAME_EVENTS, ASSETS, MapData, WeaponData, GimmickConnection } from "@/types";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";
@@ -129,7 +129,7 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.player,
       this.enemies,
-      () => this.triggerGameOver("GAME OVER", "game-over"),
+      () => this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
       undefined,
       this,
     );
@@ -319,7 +319,8 @@ export class MainScene extends Phaser.Scene {
 
     this.cameras.main.shake(500, 0.01);
 
-    window.dispatchEvent(new CustomEvent(notificationType));
+    // todo: 必要であればscoreを渡す
+    this.game.events.emit(notificationType);
 
     // ゲーム画面上のテキスト表示
     const { width, height } = this.scale;
@@ -357,7 +358,7 @@ export class MainScene extends Phaser.Scene {
         this.timeLeft--;
         window.dispatchEvent(new CustomEvent("update-time", { detail: this.timeLeft }));
         if (this.timeLeft <= 0) {
-          this.triggerGameOver("TIME UP!", "time-over");
+          this.triggerGameOver("TIME UP!", GAME_EVENTS.TIME_OVER);
         }
       },
       loop: true,
@@ -420,11 +421,9 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.zoomTo(1.2, 1000, "Power2");
     // クリア演出の実行
     this.showClearUI();
-    window.dispatchEvent(
-      new CustomEvent("game-clear", {
-        detail: { score: this.timeLeft },
-      }),
-    );
+    // todo: スコア計算未対応
+    let score = 0;
+    this.game.events.emit(GAME_EVENTS.GAME_CLEAR, { score });
   }
 
   private showClearUI() {
