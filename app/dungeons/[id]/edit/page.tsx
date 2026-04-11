@@ -13,6 +13,8 @@ export default function EditPage() {
   const params = useParams();
   const dungeonId = params.id as string;
 
+  const isAdmin = session?.user.role === "ADMIN";
+
   // ダンジョンデータのフェッチ
   const { dungeon, isLoading, error } = useGetDungeon(dungeonId);
 
@@ -25,7 +27,6 @@ export default function EditPage() {
     if (dungeon && session?.user) {
       // 管理者でない、かつ作成者でもない場合はリダイレクト
       const isOwner = dungeon.userId === session.user.id;
-      const isAdmin = session.user.role === "ADMIN";
 
       if (!isOwner && !isAdmin) {
         toast.error("このダンジョンを編集する権限がありません");
@@ -51,9 +52,7 @@ export default function EditPage() {
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-bold text-red-500">データが見つかりません</h2>
           <button
-            onClick={() =>
-              router.push(session?.user.role === "ADMIN" ? "/admin/dashboard/dungeons" : "/dashboard/dungeons")
-            }
+            onClick={() => router.push(isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons")}
             className="px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
           >
             一覧へ戻る
@@ -64,5 +63,5 @@ export default function EditPage() {
   }
 
   // ログイン済み ＆ データ取得済みならエディタを表示
-  return <DungeonEditor initialData={dungeon} isAdmin={session?.user?.role === "ADMIN"} />;
+  return <DungeonEditor initialData={dungeon} isAdmin={isAdmin} />;
 }

@@ -62,7 +62,7 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighl
     if (!confirm("このダンジョンを削除してもよろしいですか？")) return;
     try {
       if (isAdminMode) {
-        remove();
+        await remove();
       } else {
         await update({
           status: "DELETED",
