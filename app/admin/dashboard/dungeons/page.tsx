@@ -11,7 +11,6 @@ import { DungeonsIndexResponse, DungeonFilter } from "@/types";
 
 export default function AdminDungeonsPage() {
   return (
-    // todo: Suspenseを使用しているページは全面見直し。コンポーネントを分けずに１ファイルにまとめる
     <Suspense fallback={<div className="text-white">Loading...</div>}>
       <DungeonsPageContent />
     </Suspense>
