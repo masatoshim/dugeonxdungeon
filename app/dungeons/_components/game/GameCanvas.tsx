@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import * as Phaser from "phaser";
 import { MainScene } from "@/game-core/scenes/MainScene";
