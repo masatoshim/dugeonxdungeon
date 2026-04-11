@@ -42,7 +42,7 @@ export default function TestPlayPage() {
   const handlePublishSetting = async (shouldPublish: boolean) => {
     try {
       const status = shouldPublish ? "PUBLISHED" : "PRIVATE";
-      await update({ status });
+      await update({ status, publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null });
 
       toast.success(shouldPublish ? "ダンジョンを公開しました！" : "非公開として保存しました。");
 

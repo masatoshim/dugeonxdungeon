@@ -157,6 +157,7 @@ export interface UpdateDungeonRequest {
   deletedFlg?: boolean;
   tagIds?: number[];
   version?: number;
+  publishedAt?: string | null;
 }
 
 /**

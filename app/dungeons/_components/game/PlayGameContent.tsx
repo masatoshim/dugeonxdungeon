@@ -1,11 +1,12 @@
 import dynamic from "next/dynamic";
 import { MapData } from "@/types";
+///import { GameUI } from "./GameUI";
 
 // Canvas操作を含むコンポーネントをロード
-const GameCanvas = dynamic(() => import("@/app/dungeons/_components/GameCanvas"), {
+const GameCanvas = dynamic(() => import("@/app/dungeons/_components/game/GameCanvas"), {
   ssr: false,
 });
-const GameUI = dynamic(() => import("@/app/dungeons/_components/GameUI"), {
+const GameUI = dynamic(() => import("@/app/dungeons/_components/game/GameUI"), {
   ssr: false,
 });
 

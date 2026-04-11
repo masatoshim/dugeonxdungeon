@@ -2,15 +2,15 @@
 
 import { Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { DungeonCard } from "@/app/_components/dungeons/DungeonCard";
+import { DungeonCard } from "@/app/_components/DungeonCard";
 import { useGetDungeons } from "@/app/_hooks";
 import { toast } from "sonner";
 
 export default function DungeonsPage() {
   const { data: session } = useSession();
 
-  // 公開済みダンジョン一覧を取得（SWRやReact Queryを想定）
-  const { dungeons, isLoading, error } = useGetDungeons();
+  // 公開済みダンジョン一覧を取得
+  const { dungeons, isLoading, error } = useGetDungeons({ status: "PUBLISHED" });
 
   const handleFavoriteToggle = (dungeonId: string) => {
     if (!session) {
