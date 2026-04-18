@@ -1,18 +1,12 @@
 import { Crown, User } from "lucide-react";
-
-interface RankingEntry {
-  user: { nickName: string; image?: string };
-  score: number;
-  clearTime: number;
-  rank: number;
-}
+import { DungeonRankingEntry, MyDungeonRecord } from "@/types";
 
 interface Props {
-  rankings: RankingEntry[];
-  myRecord?: RankingEntry | null;
+  rankings: DungeonRankingEntry[];
+  myRecord?: MyDungeonRecord | null;
 }
 
-export default function DungeonRankingPanel({ rankings, myRecord }: Props) {
+export function DungeonRankingPanel({ rankings, myRecord }: Props) {
   const top3 = rankings.slice(0, 3);
   const rest = rankings.slice(3, 10);
 
@@ -40,7 +34,7 @@ export default function DungeonRankingPanel({ rankings, myRecord }: Props) {
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-bold text-lg text-white">{entry.user.nickName}</span>
                   <span className="text-blue-400 font-mono font-bold">
-                    {entry.score.toLocaleString()} <span className="text-[10px] text-slate-500">pt</span>
+                    {entry.playScore.toLocaleString()} <span className="text-[10px] text-slate-500">pt</span>
                   </span>
                 </div>
                 <div className="text-right text-xs text-slate-400 font-mono">
@@ -65,7 +59,7 @@ export default function DungeonRankingPanel({ rankings, myRecord }: Props) {
                 </div>
                 <span className="text-sm text-slate-300 font-medium">{entry.user.nickName}</span>
               </div>
-              <span className="text-xs font-mono text-slate-400">{entry.score.toLocaleString()} pt</span>
+              <span className="text-xs font-mono text-slate-400">{entry.playScore.toLocaleString()} pt</span>
             </div>
           ))}
 
@@ -80,7 +74,7 @@ export default function DungeonRankingPanel({ rankings, myRecord }: Props) {
                   <span className="text-sm font-bold text-blue-200">{myRecord.rank}位</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-mono text-blue-300">{myRecord.score.toLocaleString()} pt</div>
+                  <div className="text-xs font-mono text-blue-300">{myRecord.playScore.toLocaleString()} pt</div>
                   <div className="text-[10px] text-slate-500 font-mono">{myRecord.clearTime}s</div>
                 </div>
               </div>

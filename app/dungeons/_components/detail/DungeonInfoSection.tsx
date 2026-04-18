@@ -2,12 +2,12 @@ import { Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
 import { DungeonResponse, DungeonsIndexResponse } from "@/types";
 
 interface DungeonInfoProps {
-  dungeon: DungeonResponse; // 実際には定義した型を使用
+  dungeon: DungeonResponse;
   isCleared: boolean;
 }
 
 export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
-  // スタッツ項目を配列化してループで表示（保守性のため）
+  // スタッツ項目を配列化してループで表示
   const stats = [
     { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
     { icon: Clock, label: "制限時間", value: `${dungeon.timeLimit}sec` },
@@ -18,7 +18,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
 
   return (
     <div className="text-white space-y-6">
-      {/* 1. ユーザー情報 & お気に入り・攻略状況 */}
+      {/* ユーザー情報 & お気に入り・攻略状況 */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400">
@@ -43,7 +43,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         </div>
       </div>
 
-      {/* 2. タイトル & 難易度 */}
+      {/* タイトル & 難易度 */}
       <div>
         <div className="text-slate-500 font-mono text-sm mb-1">{dungeon.code}</div>
         <h2 className="text-4xl font-black tracking-tight mb-2 uppercase italic">{dungeon.name}</h2>
@@ -59,7 +59,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         </div>
       </div>
 
-      {/* 3. スタッツグリッド */}
+      {/* スタッツグリッド */}
       <div className="flex flex-wrap gap-3">
         {stats.map((stat, i) => (
           <div
@@ -73,7 +73,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         ))}
       </div>
 
-      {/* 4. タグ */}
+      {/* タグ */}
       <div className="flex flex-wrap gap-2">
         {dungeon.tags?.map((tag: string) => (
           <span key={tag} className="bg-white text-slate-900 text-[10px] font-black px-2 py-0.5 rounded italic">
@@ -82,12 +82,12 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         ))}
       </div>
 
-      {/* 5. 説明文 */}
+      {/* 説明文 */}
       <p className="text-slate-300 leading-relaxed text-sm bg-slate-900/30 p-4 rounded-xl border border-slate-800">
         {dungeon.description || "このダンジョンに説明はありません。"}
       </p>
 
-      {/* 6. プレイボタン */}
+      {/* プレイボタン */}
       <div className="flex justify-end pt-4">
         <button className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
           ダンジョンで遊ぶ

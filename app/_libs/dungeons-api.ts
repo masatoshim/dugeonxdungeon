@@ -4,6 +4,7 @@ import {
   DungeonsIndexResponse,
   CreateDungeonRequest,
   UpdateDungeonRequest,
+  DungeonRankingsResponse,
 } from "@/types";
 
 // ダンジョンを登録する関数
@@ -53,4 +54,11 @@ export const updateDungeon = async (id: string, data: UpdateDungeonRequest): Pro
 export const deleteDungeon = async (id: string): Promise<void> => {
   const res = await fetch(`/api/dungeons/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`削除に失敗しました: ${res.status}`);
+};
+
+// ダンジョンごとのユーザーランキングを取得する関数
+export const getDungeonRankings = async (id: string): Promise<DungeonRankingsResponse> => {
+  const res = await fetch(`/api/dungeons/${id}/rankings`);
+  if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
+  return await res.json();
 };

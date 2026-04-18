@@ -4,6 +4,7 @@ export * from "./useDeleteDungeon";
 export * from "./useGetDungeon";
 export * from "./useGetDungeons";
 export * from "./useUpdateDungeon";
+export * from "./useGetDungeonRankings";
 // ユーザー用フック
 export * from "./useCreateUser";
 export * from "./useDeleteUser";
