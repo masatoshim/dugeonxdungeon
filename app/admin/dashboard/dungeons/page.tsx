@@ -24,7 +24,6 @@ function DungeonsPageContent() {
 
   // 各パラメータを取得（DungeonFilterBar の updateQuery とキーを合わせる）
   const isAdminMode = (searchParams.get("view") || "admin") === "admin";
-  console.info("isAdmin:", isAdminMode);
   const currentUserId = searchParams.get("userId");
   const currentStatusList = searchParams.get("statusList") || "all";
   const currentSort = searchParams.get("sort") || "createdAt";

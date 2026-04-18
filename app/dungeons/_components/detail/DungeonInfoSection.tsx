@@ -1,5 +1,6 @@
 import { Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
 import { DungeonResponse, DungeonsIndexResponse } from "@/types";
+import { useRouter, useParams } from "next/navigation";
 
 interface DungeonInfoProps {
   dungeon: DungeonResponse;
@@ -7,6 +8,7 @@ interface DungeonInfoProps {
 }
 
 export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
+  const router = useRouter();
   // スタッツ項目を配列化してループで表示
   const stats = [
     { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
@@ -89,7 +91,14 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
 
       {/* プレイボタン */}
       <div className="flex justify-end pt-4">
-        <button className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            // router.push(`/dungeons/${dungeon.id}/play`);
+            window.location.assign(`/dungeons/${dungeon.id}/play`);
+          }}
+          className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+        >
           ダンジョンで遊ぶ
           <Maximize size={18} />
         </button>

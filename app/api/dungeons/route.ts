@@ -241,7 +241,6 @@ export async function GET(request: Request) {
       // 一般ユーザーは常に自分自身が対象
       effectiveCheckUserId = sessionUserId;
     }
-    console.info("andConditions:", andConditions);
     // DB実行 (合計件数とデータ取得)
     const [totalCount, dungeonsRaw] = await Promise.all([
       prisma.dungeon.count({ where: { AND: andConditions } }),
