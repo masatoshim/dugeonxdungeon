@@ -109,6 +109,7 @@ model Dungeon {
   updatedBy          String
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  averageClearTime   Int                 @default(0)  // クリア時の処理で都度計算して保存
   // --- リレーション設定 ---
   dungeonTags        DungeonTag[]
   favouritedBy       FavouritesDungeon[]

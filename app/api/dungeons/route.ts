@@ -39,21 +39,22 @@ export async function GET(request: Request) {
       : statusParam
         ? [statusParam as DungeonStatus]
         : [];
-    const targetUserId = searchParams.get("userId");
     if (isAdmin) {
       // 管理者は指定があれば絞り込み、なければ全件
       if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
     } else {
       // 一般・未ログインユーザー
+      const targetUserId = searchParams.get("userId");
       if (targetUserId) {
+        andConditions.push({ userId: targetUserId });
         if (targetUserId === sessionUserId) {
           if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
         } else {
           // 他人のID指定なら「公開中」のみ
-          andConditions.push({ status: "PUBLISHED", userId: targetUserId });
+          andConditions.push({ status: "PUBLISHED" });
         }
       } else {
-        // ID指定なしの一覧画面
+        // ユーザーID指定なしの一覧画面
         if (statusList.length > 0) {
           // パラメータで指定がある場合
           // ただし自分のもの以外は PUBLISHED 以外見せないガードが必要
@@ -240,7 +241,7 @@ export async function GET(request: Request) {
       // 一般ユーザーは常に自分自身が対象
       effectiveCheckUserId = sessionUserId;
     }
-
+    console.info("andConditions:", andConditions);
     // DB実行 (合計件数とデータ取得)
     const [totalCount, dungeonsRaw] = await Promise.all([
       prisma.dungeon.count({ where: { AND: andConditions } }),

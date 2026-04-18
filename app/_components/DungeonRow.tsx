@@ -16,16 +16,23 @@ const STATUS_CONFIG: Record<DungeonStatus, { label: string; className: string }>
   PUBLISHED: { label: "公開中", className: "bg-[#2ab3a3]/20 text-[#2ab3a3]" },
 };
 
+const BUTTON_CONFIG: Record<DungeonStatus, { text: string; disabled: boolean; className: string }> = {
+  DRAFT: { text: "公開不可", disabled: true, className: "bg-gray-800 text-gray-500 cursor-not-allowed" },
+  DELETED: { text: "公開不可", disabled: true, className: "bg-gray-800 text-gray-500 cursor-not-allowed" },
+  PRIVATE: { text: "公開する", disabled: false, className: "bg-[#4a6cf7] hover:bg-[#3b5bdb] text-white" },
+  PUBLISHED: { text: "非公開にする", disabled: false, className: "bg-[#4a6cf7] hover:bg-[#3b5bdb] text-white" },
+};
+
 interface DungeonRowProps {
   dungeon: DungeonResponse;
   mutate: KeyedMutator<DungeonsIndexResponse>;
-  showUserInfo?: boolean;
   isAdminMode?: boolean;
   isHighlighted?: boolean;
 }
 
-export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighlighted }: DungeonRowProps) {
+export function DungeonRow({ dungeon, mutate, isAdminMode, isHighlighted }: DungeonRowProps) {
   const config = STATUS_CONFIG[dungeon.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PUBLISHED;
+  const btn = BUTTON_CONFIG[dungeon.status];
   const router = useRouter();
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null); // スクロール用の参照
@@ -116,7 +123,7 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighl
       </span>
 
       {/* ユーザー情報 */}
-      {showUserInfo && (
+      {!isAdminMode && (
         <div className="flex items-center gap-3 w-48 shrink-0 border-l border-gray-700 pl-4">
           <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
             {dungeon.nickName?.[0] || "U"}
@@ -143,7 +150,7 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighl
 
       {/* 操作ボタン群 */}
       <div className="flex items-center gap-2 shrink-0">
-        {showUserInfo ? (
+        {!isAdminMode ? (
           <button
             onClick={() => router.push(`/admin/dashboard/dungeons/user/${dungeon.id}`)}
             className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm"
@@ -153,15 +160,11 @@ export function DungeonRow({ dungeon, mutate, showUserInfo, isAdminMode, isHighl
         ) : (
           <>
             <button
-              disabled={isLoading || dungeon.status === "DRAFT"}
-              onClick={() => toggleStatus()}
-              className={`w-28 py-1.5 rounded text-sm font-bold transition-colors ${
-                dungeon.status === "DRAFT"
-                  ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                  : "bg-[#4a6cf7] hover:bg-[#3b5bdb] text-white"
-              }`}
+              disabled={isLoading || btn.disabled}
+              onClick={toggleStatus}
+              className={`w-28 py-1.5 rounded text-sm font-bold transition-colors ${btn.className}`}
             >
-              {dungeon.status === "DRAFT" ? "公開不可" : dungeon.status === "PRIVATE" ? "公開する" : "非公開にする"}
+              {btn.text}
             </button>
             <button
               onClick={() => router.push(`/dungeons/${dungeon.id}/edit`)}

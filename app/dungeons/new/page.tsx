@@ -7,6 +7,7 @@ import { DungeonEditor } from "@/app/dungeons/_components";
 
 export default function NewPage() {
   const { data: session, status } = useSession();
+  const isAdmin = session?.user.role === "ADMIN";
   const router = useRouter();
   const [showAlert, setShowAlert] = useState(false);
 
@@ -52,5 +53,5 @@ export default function NewPage() {
   }
 
   // ログイン済みならエディタを表示
-  return <DungeonEditor isAdmin={false} />;
+  return <DungeonEditor isAdmin={isAdmin} />;
 }

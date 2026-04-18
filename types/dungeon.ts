@@ -115,7 +115,12 @@ export interface DungeonResponse extends DungeonBase {
   isCleared?: boolean;
   clearedVersion?: number;
   isFavorited?: boolean;
+  favouritesCount: number;
+  clearPlayCount: number;
+  failurePlayCount: number;
+  interruptPlayCount: number;
   totalPlayCount: number;
+  averageClearTime?: number;
   createdAt?: string; // ISO 8601 文字列
   updatedAt?: string;
 }
@@ -153,6 +158,7 @@ export interface UpdateDungeonRequest {
   mapSize?: number;
   timeLimit?: number;
   difficulty?: number;
+  averageClearTime?: number;
   status?: DungeonStatus;
   deletedFlg?: boolean;
   tagIds?: number[];
@@ -179,4 +185,33 @@ export interface DungeonsIndexResponse {
     limit: number;
     hasNext: boolean;
   };
+}
+
+/**
+ * ダンジョンランキングのリクエスト
+ */
+// ユーザーの最小限の情報
+export interface RankingUser {
+  nickName: string;
+  iconImageKey: string | null;
+}
+
+export interface DungeonRankingEntry {
+  rank: number;
+  user: RankingUser;
+  playScore: number;
+  clearTime: number | null;
+}
+
+// 自分の記録
+export interface MyDungeonRecord {
+  rank: number;
+  playScore: number;
+  clearTime: number | null;
+}
+
+// API全体のレスポンス型
+export interface DungeonRankingsResponse {
+  rankings: DungeonRankingEntry[];
+  myRecord: MyDungeonRecord | null;
 }
