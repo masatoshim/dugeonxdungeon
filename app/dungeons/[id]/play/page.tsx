@@ -75,16 +75,16 @@ export default function GamePlayPage() {
 
             <div className="space-y-3">
               <button
-                onClick={() => setGameKey((k) => k + 1)} // リトライ
+                onClick={() => setGameKey((k) => k + 1)}
                 className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl transition-all"
               >
-                RECORD UPDATE (RETRY)
+                もう一回挑戦する
               </button>
               <button
-                onClick={() => router.push("/dungeons")} // 一覧へ
+                onClick={() => router.push("/dungeons")}
                 className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all"
               >
-                BACK TO LIST
+                一覧画面に戻る
               </button>
             </div>
           </div>

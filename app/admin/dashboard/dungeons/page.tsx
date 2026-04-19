@@ -62,7 +62,8 @@ function DungeonsPageContent() {
             key={dungeon.id}
             dungeon={dungeon}
             mutate={mutate}
-            isAdminMode={isAdminMode}
+            isAdmin={true}
+            isAdminTab={isAdminMode}
             isHighlighted={highlightId === dungeon.id}
           />
         ))}

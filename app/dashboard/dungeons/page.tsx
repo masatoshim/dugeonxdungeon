@@ -40,7 +40,13 @@ function DungeonsPageContent() {
 
       <div className="bg-[#161b2e] rounded-2xl p-8 border border-gray-800 space-y-4">
         {dungeons?.map((dungeon) => (
-          <DungeonRow key={dungeon.id} dungeon={dungeon} mutate={mutate} isHighlighted={highlightId === dungeon.id} />
+          <DungeonRow
+            key={dungeon.id}
+            dungeon={dungeon}
+            mutate={mutate}
+            isAdmin={false}
+            isHighlighted={highlightId === dungeon.id}
+          />
         ))}
         {/* ダンジョン追加ボタン (10個未満の場合) */}
         {(dungeons?.length || 0) < 10 && (

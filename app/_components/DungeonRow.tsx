@@ -26,11 +26,12 @@ const BUTTON_CONFIG: Record<DungeonStatus, { text: string; disabled: boolean; cl
 interface DungeonRowProps {
   dungeon: DungeonResponse;
   mutate: KeyedMutator<DungeonsIndexResponse>;
-  isAdminMode?: boolean;
+  isAdmin: boolean;
+  isAdminTab?: boolean;
   isHighlighted?: boolean;
 }
 
-export function DungeonRow({ dungeon, mutate, isAdminMode, isHighlighted }: DungeonRowProps) {
+export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted }: DungeonRowProps) {
   const config = STATUS_CONFIG[dungeon.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PUBLISHED;
   const btn = BUTTON_CONFIG[dungeon.status];
   const router = useRouter();
@@ -70,7 +71,7 @@ export function DungeonRow({ dungeon, mutate, isAdminMode, isHighlighted }: Dung
   const handleDelete = async () => {
     if (!confirm("このダンジョンを削除してもよろしいですか？")) return;
     try {
-      if (isAdminMode) {
+      if (isAdmin) {
         await remove();
       } else {
         await update({
@@ -93,6 +94,8 @@ export function DungeonRow({ dungeon, mutate, isAdminMode, isHighlighted }: Dung
       router.replace(window.location.pathname, { scroll: false });
     }
   };
+
+  console.info("isAdminMode:", isAdminTab);
 
   return (
     <div
@@ -123,7 +126,7 @@ export function DungeonRow({ dungeon, mutate, isAdminMode, isHighlighted }: Dung
       </span>
 
       {/* ユーザー情報 */}
-      {!isAdminMode && (
+      {isAdmin && !isAdminTab && (
         <div className="flex items-center gap-3 w-48 shrink-0 border-l border-gray-700 pl-4">
           <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
             {dungeon.nickName?.[0] || "U"}
@@ -150,7 +153,7 @@ export function DungeonRow({ dungeon, mutate, isAdminMode, isHighlighted }: Dung
 
       {/* 操作ボタン群 */}
       <div className="flex items-center gap-2 shrink-0">
-        {!isAdminMode ? (
+        {isAdmin && !isAdminTab ? (
           <button
             onClick={() => router.push(`/admin/dashboard/dungeons/user/${dungeon.id}`)}
             className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm"

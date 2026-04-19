@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-const DUNGEON_MAX_SIZE = 999;
-const DUNGEON_MIN_SIZE = 4;
+const MAX_SIZE = 999;
+const MIN_SIZE = 4;
 
 interface EditorSizeInputProps {
   label: string; // "R" や "C" など識別用
@@ -17,17 +17,22 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
     setTempValue(initialValue.toString());
   }, [initialValue]);
 
+  // 値を範囲内に収めるユーティリティ
+  const clampValue = (val: string | number) => {
+    const num = parseInt(val.toString(), 10);
+    if (isNaN(num)) return MIN_SIZE;
+    return Math.min(Math.max(num, MIN_SIZE), MAX_SIZE);
+  };
+
+  // 確定処理
+  const commitValue = (val: string) => {
+    const finalValue = clampValue(val);
+    setTempValue(finalValue.toString());
+    onConfirm(finalValue); // 親に即反映
+  };
+
   const handleBlur = () => {
-    let val = parseInt(tempValue);
-
-    // 空文字、NaN、1未満はダンジョンサイズの最小値を設定
-    if (isNaN(val) || val < 1) val = DUNGEON_MIN_SIZE;
-
-    // ダンジョンサイズの最大値を超えないよう設定
-    if (val > DUNGEON_MAX_SIZE) val = DUNGEON_MAX_SIZE;
-
-    setTempValue(val.toString());
-    onConfirm(val); // 確定した数値のみを親に返す
+    commitValue(tempValue);
   };
 
   return (
@@ -36,12 +41,27 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
       <input
         type="number"
         value={tempValue}
-        onChange={(e) => setTempValue(e.target.value)}
-        // フォーカスが外れるか、Enterキー押下で確定
+        onChange={(e) => {
+          const newValue = e.target.value;
+          setTempValue(newValue);
+          // スピンボタン（矢印ボタン）による操作の場合
+          const isSpinButton = (e.nativeEvent as any).inputType === undefined;
+          if (isSpinButton) {
+            commitValue(newValue);
+          }
+        }}
+        onKeyDown={(e) => {
+          // 上下矢印キーが押された場合はその場で確定処理へ
+          if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            setTimeout(() => commitValue((e.target as HTMLInputElement).value), 0);
+          } else if (e.key === "Enter") {
+            handleBlur();
+          }
+        }}
         onBlur={handleBlur}
-        onKeyDown={(e) => e.key === "Enter" && handleBlur()}
-        className="w-8 bg-transparent text-center text-xs focus:outline-none appearance-none"
-        min="1"
+        className="w-10 bg-transparent text-center text-xs focus:outline-none appearance-none"
+        min={MIN_SIZE}
+        max={MAX_SIZE}
       />
     </div>
   );

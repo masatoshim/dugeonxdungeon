@@ -20,7 +20,7 @@ type Props = {
   isAdmin: boolean;
   isSaving: boolean;
   isDeleting: boolean;
-  onConfigChange: (key: string, value: string | number) => void;
+  onConfigChange: (key: string, value: string | number, shouldDirty: boolean) => void;
   onSizeChange: (r: number, c: number) => void;
   onSave: () => void; // 下書き保存実行
   onTestPlay: () => void; // テストプレイ画面へ遷移
@@ -65,7 +65,7 @@ export const EditorHeader = ({
             <input
               type="text"
               value={config.name}
-              onChange={(e) => onConfigChange("name", e.target.value)}
+              onChange={(e) => onConfigChange("name", e.target.value, false)}
               className={`bg-gray-800 border ${errors.name ? "border-red-500" : "border-gray-700"} rounded px-3 py-1.5 text-sm outline-none w-64 focus:ring-1 ring-amber-500`}
             />
           </div>
@@ -74,7 +74,7 @@ export const EditorHeader = ({
             <input
               type="number"
               value={config.timeLimit}
-              onChange={(e) => onConfigChange("timeLimit", parseInt(e.target.value) || 0)}
+              onChange={(e) => onConfigChange("timeLimit", parseInt(e.target.value) || 0, true)}
               className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm w-24 outline-none focus:ring-1 ring-amber-500"
             />
           </div>
@@ -83,7 +83,7 @@ export const EditorHeader = ({
             <input
               type="text"
               value={config.description}
-              onChange={(e) => onConfigChange("description", e.target.value)}
+              onChange={(e) => onConfigChange("description", e.target.value, false)}
               className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm outline-none focus:ring-1 ring-amber-500"
             />
           </div>

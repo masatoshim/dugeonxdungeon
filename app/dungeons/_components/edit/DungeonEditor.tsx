@@ -77,7 +77,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     setCols,
   } = useDungeonEditorLogic(initialData);
 
-  // 保存・削除
+  // 保存
   const onSubmit = useCallback(
     async (data: DungeonFormData, isRedirectingToTest: boolean) => {
       if (linkingState.active) return toast.error("パーツのペアを完成させてください");
@@ -199,7 +199,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             isAdmin={isAdmin}
             isSaving={isCreating || isUpdating}
             isDeleting={isDeleting}
-            onConfigChange={(k, v) => setValue(k as any, v, { shouldDirty: true, shouldValidate: true })}
+            onConfigChange={(k, v, b) => setValue(k as any, v, { shouldDirty: b, shouldValidate: true })}
             onSizeChange={(r, c) => {
               setRows(r);
               setCols(c);
