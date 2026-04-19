@@ -7,6 +7,7 @@ export interface DungeonBase {
   id: string;
   name: string;
   code: string;
+  version: number;
   userId: string;
   description: string | null;
   mapData: any;
@@ -121,6 +122,7 @@ export interface DungeonResponse extends DungeonBase {
   interruptPlayCount: number;
   totalPlayCount: number;
   averageClearTime?: number;
+
   createdAt?: string; // ISO 8601 文字列
   updatedAt?: string;
 }
@@ -188,7 +190,7 @@ export interface DungeonsIndexResponse {
 }
 
 /**
- * ダンジョンランキングのリクエスト
+ * ダンジョンランキングのレスポンス
  */
 // ユーザーの最小限の情報
 export interface RankingUser {
@@ -214,4 +216,27 @@ export interface MyDungeonRecord {
 export interface DungeonRankingsResponse {
   rankings: DungeonRankingEntry[];
   myRecord: MyDungeonRecord | null;
+}
+
+/**
+ * ダンジョン履歴のリクエスト
+ */
+export interface CreatePlayHistoryRequest {
+  playTime: number; // 実際のプレイ時間(sec)
+  playScore: number; // 獲得スコア
+  playStatus: PlayStatus;
+  version?: number; // ゲームのバージョン管理用（任意）
+}
+
+/**
+ * ダンジョン履歴のレスポンス
+ */
+export interface PlayHistoryResponse {
+  id: string;
+  userId: string;
+  dungeonId: string;
+  playTime: number;
+  playScore: number;
+  playStatus: PlayStatus;
+  createdAt: string; // ISOString
 }

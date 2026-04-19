@@ -319,8 +319,9 @@ export class MainScene extends Phaser.Scene {
 
     this.cameras.main.shake(500, 0.01);
 
-    // todo: 必要であればscoreを渡す
-    this.game.events.emit(notificationType);
+    // todo: ゲームオーバー、タイムアウト時はいったんscoreは0とする
+    const score = 0;
+    this.game.events.emit(notificationType, { score, timeLeft: this.timeLeft });
 
     // ゲーム画面上のテキスト表示
     const { width, height } = this.scale;
@@ -419,43 +420,9 @@ export class MainScene extends Phaser.Scene {
     this.player.setTint(0x00ff00);
     // カメラを少しズーム
     this.cameras.main.zoomTo(1.2, 1000, "Power2");
-    // クリア演出の実行
-    this.showClearUI();
-    // todo: スコア計算未対応
-    let score = 0;
-    this.game.events.emit(GAME_EVENTS.GAME_CLEAR, { score });
-  }
-
-  private showClearUI() {
-    const { width, height } = this.scale;
-    // Todo: 画像に差し替える
-    const container = this.add.container(width / 2, height / 2).setScrollFactor(0);
-    // テキスト（将来の画像）
-    const msg = this.add
-      .text(0, -50, "STAGE CLEAR!", {
-        fontSize: "64px",
-        color: "#ffff00",
-        stroke: "#000000",
-        strokeThickness: 6,
-      })
-      .setOrigin(0.5);
-
-    const score = this.add
-      .text(0, 20, `TIME BONUS: ${this.timeLeft}`, {
-        fontSize: "32px",
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
-
-    container.add([msg, score]);
-    container.setScale(0);
-    this.tweens.add({
-      targets: container,
-      scale: 1,
-      duration: 800,
-      ease: "Back.easeOut",
-      delay: 200,
-    });
+    // todo: スコア計算未対応　敵を撃破、障害物破壊など
+    let score = 12345;
+    this.game.events.emit(GAME_EVENTS.GAME_CLEAR, { score, timeLeft: this.timeLeft });
   }
 
   private checkGoalCondition() {

@@ -8,6 +8,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
+    if (!userId) {
+      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
+    }
     const { id: dungeonId } = await params;
 
     // 各ユーザーの最高スコアを取得 (一人1枠)

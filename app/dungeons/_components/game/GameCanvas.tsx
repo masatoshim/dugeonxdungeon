@@ -6,8 +6,8 @@ import { GAME_EVENTS, MapData } from "@/types";
 interface GameCanvasProps {
   mapData: MapData;
   timeLimit: number;
-  onClear?: (score: number) => void;
-  onGameOver?: () => void;
+  onClear?: (score: number, timeLeft: number) => void;
+  onGameOver?: (score: number, timeLeft: number) => void;
 }
 
 export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: GameCanvasProps) {
@@ -52,14 +52,14 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
     const game = new Phaser.Game(config);
 
     // Phaserのイベントリスナー登録
-    game.events.on(GAME_EVENTS.GAME_CLEAR, (data: { score: number }) => {
-      onClearRef.current?.(data.score);
+    game.events.on(GAME_EVENTS.GAME_CLEAR, (data: { score: number; timeLeft: number }) => {
+      onClearRef.current?.(data.score, data.timeLeft);
     });
-    game.events.on(GAME_EVENTS.GAME_OVER, () => {
-      onGameOverRef.current?.();
+    game.events.on(GAME_EVENTS.GAME_OVER, (data: { score: number; timeLeft: number }) => {
+      onGameOverRef.current?.(data.score, data.timeLeft);
     });
-    game.events.on(GAME_EVENTS.TIME_OVER, () => {
-      onGameOverRef.current?.();
+    game.events.on(GAME_EVENTS.TIME_OVER, (data: { score: number; timeLeft: number }) => {
+      onGameOverRef.current?.(data.score, data.timeLeft);
     });
 
     // Sceneの開始
@@ -80,6 +80,7 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
         phaserRef.current.destroy(true);
         phaserRef.current = null;
       }
+      game.destroy(true);
     };
   }, [mapData, timeLimit]);
 

@@ -5,6 +5,8 @@ import {
   CreateDungeonRequest,
   UpdateDungeonRequest,
   DungeonRankingsResponse,
+  CreatePlayHistoryRequest,
+  PlayHistoryResponse,
 } from "@/types";
 
 // ダンジョンを登録する関数
@@ -60,5 +62,16 @@ export const deleteDungeon = async (id: string): Promise<void> => {
 export const getDungeonRankings = async (id: string): Promise<DungeonRankingsResponse> => {
   const res = await fetch(`/api/dungeons/${id}/rankings`);
   if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
+  return await res.json();
+};
+
+// プレイ履歴を登録する関数
+export const createPlayHistory = async (id: string, data: CreatePlayHistoryRequest): Promise<PlayHistoryResponse> => {
+  const res = await fetch(`/api/dungeons/${id}/play-history`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("登録に失敗しました");
   return await res.json();
 };

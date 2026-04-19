@@ -95,8 +95,6 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
     }
   };
 
-  console.info("isAdminMode:", isAdminTab);
-
   return (
     <div
       ref={rowRef}

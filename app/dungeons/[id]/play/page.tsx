@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { PlayGameContent } from "@/app/dungeons/_components";
-import { useGetDungeon } from "@/app/_hooks";
+import { useGetDungeon, useCreatePlayHistory } from "@/app/_hooks";
 import { toast } from "sonner";
 import { MapData } from "@/types";
 
 export default function GamePlayPage() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isClear, setIsClear] = useState(false);
+  const [clearScore, setClearScore] = useState<number>(0);
   const [clearTime, setClearTime] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
 
@@ -19,6 +20,7 @@ export default function GamePlayPage() {
   const dungeonId = params.id as string;
 
   const { dungeon, isLoading } = useGetDungeon(dungeonId);
+  const { create, isCreating } = useCreatePlayHistory(dungeonId);
 
   if (isLoading || !dungeonId) {
     return (
@@ -37,16 +39,16 @@ export default function GamePlayPage() {
     entities: [],
     settings: { isDark: false, ambientLight: 1.0 },
   };
-  const handleClear = async (time: number) => {
+  const handleClear = async (score: number, timeLeft: number) => {
+    const playTime = dungeon?.timeLimit ?? 0 - timeLeft;
+    const playScore = score + playTime;
+
     setIsClear(true);
-    setClearTime(time);
+    setClearTime(playTime);
+    setClearScore(playScore);
 
     try {
-      // todo: ここでプレイログ・ランキング更新APIを叩く
-      await fetch(`/api/dungeons/${dungeonId}/rankings`, {
-        method: "POST",
-        body: JSON.stringify({ time }),
-      });
+      await create({ playScore, playTime, playStatus: "CLEAR", version: dungeon?.version });
       toast.success("記録がランキングに登録されました！");
     } catch (e) {
       toast.error("記録の保存に失敗しました。");
@@ -61,7 +63,7 @@ export default function GamePlayPage() {
         key={gameKey}
         dungeon={dungeon}
         parsedMapData={parsedMapData}
-        onClear={(time) => handleClear(time)}
+        onClear={(score, timeLeft) => handleClear(score, timeLeft)}
         onGameOver={() => setIsGameOver(true)}
       />
 
@@ -72,10 +74,13 @@ export default function GamePlayPage() {
           <div className="bg-slate-900 border-2 border-cyan-500 p-10 rounded-3xl text-center max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.2)]">
             <h2 className="text-6xl font-black text-cyan-400 mb-2 italic tracking-tighter">FINISH!</h2>
             <p className="text-slate-400 mb-6 font-mono text-lg">TIME: {clearTime}s</p>
+            <p className="text-slate-400 mb-6 font-mono text-lg">SCORE: {clearScore}</p>
 
             <div className="space-y-3">
               <button
-                onClick={() => setGameKey((k) => k + 1)}
+                onClick={() => {
+                  (setGameKey((k) => k + 1), setIsClear(false));
+                }}
                 className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl transition-all"
               >
                 もう一回挑戦する

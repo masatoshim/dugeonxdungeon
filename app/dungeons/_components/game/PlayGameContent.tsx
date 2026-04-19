@@ -17,7 +17,7 @@ interface PlayGameContentProps {
     description?: string | null;
   };
   parsedMapData: MapData;
-  onClear: (score: number) => void;
+  onClear: (score: number, timeLeft: number) => void;
   onGameOver: () => void;
 }
 
