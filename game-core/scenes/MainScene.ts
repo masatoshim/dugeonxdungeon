@@ -5,10 +5,11 @@ import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";
 
 export class MainScene extends Phaser.Scene {
+  private startTime: number = 0;
+  private timeLimit: number = 0;
+  private timeLeft: number = 0;
   // データ管理
   private tiles!: string[][];
-  private timeLeft: number = 0;
-  private timerEvent?: Phaser.Time.TimerEvent;
   private tileSize: number = 32;
 
   // エンティティ・マネージャー
@@ -36,6 +37,7 @@ export class MainScene extends Phaser.Scene {
   init(data: { mapData: MapData; timeLimit: number }) {
     this.mapData = data.mapData;
     this.tiles = data.mapData.tiles;
+    this.timeLimit = data.timeLimit;
     this.timeLeft = data.timeLimit ?? 60;
     this.levelBuilder = new LevelBuilder(this);
     this.isGameOver = false;
@@ -265,7 +267,24 @@ export class MainScene extends Phaser.Scene {
 
   update() {
     // ゲーム終了時は何もしない
-    if (this.isGameOver || (this.timerEvent && this.timerEvent.paused)) return;
+    if (this.isGameOver) return;
+
+    // プレイ時間を小数点3桁で計測
+    const now = performance.now();
+    const elapsedMs = now - this.startTime;
+    const currentLeft = Math.max(0, this.timeLimit - elapsedMs / 1000);
+    if (this.timeLeft !== currentLeft) {
+      this.timeLeft = currentLeft;
+      window.dispatchEvent(
+        new CustomEvent("update-time", {
+          detail: parseFloat(this.timeLeft.toFixed(3)),
+        }),
+      );
+    }
+    // タイムアップ判定
+    if (this.timeLeft <= 0) {
+      this.triggerGameOver("TIME UP!", GAME_EVENTS.TIME_OVER);
+    }
 
     if (this.player) {
       this.player.update();
@@ -306,11 +325,6 @@ export class MainScene extends Phaser.Scene {
 
     // 物理演算を停止
     this.physics.pause();
-
-    // タイマーを停止
-    if (this.timerEvent) {
-      this.timerEvent.paused = true;
-    }
 
     // プレイヤーの操作と入力を完全に遮断
     this.player.active = false;
@@ -354,17 +368,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   private startCountdown() {
-    this.timerEvent = this.time.addEvent({
-      delay: 1000,
-      callback: () => {
-        this.timeLeft--;
-        window.dispatchEvent(new CustomEvent("update-time", { detail: this.timeLeft }));
-        if (this.timeLeft <= 0) {
-          this.triggerGameOver("TIME UP!", GAME_EVENTS.TIME_OVER);
-        }
-      },
-      loop: true,
-    });
+    this.startTime = performance.now();
   }
 
   /**
@@ -415,8 +419,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   private handleGoal() {
-    if (this.timerEvent?.paused) return;
-    this.timerEvent!.paused = true;
+    if (this.isGameOver) return;
+    this.isGameOver = true;
     this.physics.pause();
     this.player.setTint(0x00ff00);
     // カメラを少しズーム
@@ -427,7 +431,6 @@ export class MainScene extends Phaser.Scene {
   }
 
   private checkGoalCondition() {
-    if (this.timerEvent?.paused) return;
     const goals = this.goalGroup.getChildren() as Phaser.GameObjects.Sprite[];
     for (const goal of goals) {
       const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
