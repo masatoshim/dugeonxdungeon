@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Heart, CheckSquare } from "lucide-react";
 import { DungeonResponse } from "@/types";
+import { useCreateFavoriteDungeon } from "@/app/_hooks";
 import Link from "next/link";
 
 interface DungeonCardProps {
@@ -13,6 +14,8 @@ interface DungeonCardProps {
 
 export function DungeonCard({ dungeon, isCleared = false, onFavoriteToggle }: DungeonCardProps) {
   const [isFavorited, setIsFavorited] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
+  const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
 
   // 難易度
   const renderDifficulty = (difficulty: number) => {
@@ -27,10 +30,20 @@ export function DungeonCard({ dungeon, isCleared = false, onFavoriteToggle }: Du
     );
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsFavorited(!isFavorited);
-    onFavoriteToggle?.(dungeon.id);
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Link の遷移を防止
+    e.stopPropagation(); // バブリングを防止
+
+    if (isCreating) return;
+    try {
+      const result = await create(dungeon.id);
+
+      setFavoritesCount(result.count);
+      setIsFavorited(!isFavorited);
+      onFavoriteToggle?.(dungeon.id);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -49,7 +62,7 @@ export function DungeonCard({ dungeon, isCleared = false, onFavoriteToggle }: Du
               }`}
             >
               <Heart className={`w-4 h-4 ${isFavorited ? "fill-current" : ""}`} />
-              <span className="font-medium">1,234</span>
+              <span className="font-medium">{favoritesCount}</span>
             </button>
 
             {/* クリア済みチェック */}

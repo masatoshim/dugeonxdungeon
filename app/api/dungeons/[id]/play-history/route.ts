@@ -15,6 +15,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id: dungeonId } = await params;
     const { playTime, playScore, playStatus, version }: CreatePlayHistoryRequest = await req.json();
+    const isClear = playStatus === PlayStatus.CLEAR;
 
     const result = await prisma.$transaction(async (tx) => {
       // プレイ履歴の作成
@@ -33,6 +34,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await tx.dungeon.update({
         where: { id: dungeonId },
         data: {
+          updatedBy: userId,
           clearPlayCount: {
             increment: playStatus === PlayStatus.CLEAR ? 1 : 0,
           },
@@ -50,6 +52,46 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           },
         },
       });
+
+      if (isClear) {
+        const currentBest = await tx.userDungeonBest.findUnique({
+          where: { userId_dungeonId: { userId, dungeonId } },
+        });
+
+        const previousBestScore = currentBest?.bestScore ?? 0;
+        const isNewRecord = playScore > previousBestScore;
+        const scoreDiff = isNewRecord ? playScore - previousBestScore : 0;
+
+        if (isNewRecord) {
+          await tx.userDungeonBest.upsert({
+            where: { userId_dungeonId: { userId, dungeonId } },
+            update: { bestScore: playScore, bestTime: playTime },
+            create: { userId, dungeonId, bestScore: playScore, bestTime: playTime },
+          });
+        }
+
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            updatedBy: userId,
+            clearPlayCount: { increment: 1 },
+            playDungeonCount: { increment: currentBest ? 0 : 1 }, // 初回クリアのみ加算
+            totalPlayTime: { increment: playTime },
+            totalPlayScore: { increment: scoreDiff }, // ベスト更新分のみ加算
+          },
+        });
+      } else {
+        // クリア失敗時のユーザー統計更新
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            updatedBy: userId,
+            failurePlayCount: { increment: playStatus === PlayStatus.FAILURE ? 1 : 0 },
+            interruptPlayCount: { increment: playStatus === PlayStatus.INTERRUPT ? 1 : 0 },
+            totalPlayTime: { increment: playTime },
+          },
+        });
+      }
 
       return history;
     });

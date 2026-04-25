@@ -30,6 +30,7 @@ export default function GamePlayPage() {
 
       const fixedTimeLeft = timeLeft;
       const playTime = Math.max(0, (dungeon?.timeLimit ?? 0) - fixedTimeLeft);
+      const clearTime = parseFloat(playTime.toFixed(3));
       const playScore = status === PlayStatus.CLEAR ? score + Math.round(fixedTimeLeft * 100) : score;
 
       if (status === PlayStatus.CLEAR) {
@@ -38,13 +39,13 @@ export default function GamePlayPage() {
         setIsGameOver(true);
       }
 
-      setClearTime(parseFloat(playTime.toFixed(3)));
+      setClearTime(clearTime);
       setClearScore(playScore);
 
       // プレイ記録の登録
       await create({
         playScore,
-        playTime,
+        playTime: clearTime,
         playStatus: status,
         version: dungeon?.version,
       });

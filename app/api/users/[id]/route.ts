@@ -49,7 +49,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             },
           },
         },
-        favouriteDungeons: {
+        favoriteDungeons: {
           include: {
             dungeon: {
               select: { code: true, status: true },
@@ -70,7 +70,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       nickName: user.nickName,
       iconImageKey: user.iconImageKey,
       // 統計情報
-      ranking: user.ranking,
       totalPlayScore: user.totalPlayScore,
       totalPlayTime: user.totalPlayTime,
       totalPlayCount: user.clearPlayCount + user.failurePlayCount + user.interruptPlayCount,
@@ -91,7 +90,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         .map((h) => {
           return { dungeonCode: h.dungeon.code, userId: h.user.id, createdAt: h.createdAt.toISOString() };
         }),
-      favouriteDungeons: user.favouriteDungeons
+      favoriteDungeons: user.favoriteDungeons
         .filter((f) => hasPrivateAccess || f.dungeon.status === "PUBLISHED")
         .map((f) => {
           return { dungeonCode: f.dungeon.code };

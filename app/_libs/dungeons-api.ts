@@ -7,6 +7,7 @@ import {
   DungeonRankingsResponse,
   CreatePlayHistoryRequest,
   PlayHistoryResponse,
+  CreateFavoriteDungeonResponse,
 } from "@/types";
 
 // ダンジョンを登録する関数
@@ -71,6 +72,16 @@ export const createPlayHistory = async (id: string, data: CreatePlayHistoryReque
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("登録に失敗しました");
+  return await res.json();
+};
+
+// プレイ履歴を登録する関数
+export const createFavoriteDungeon = async (id: string): Promise<CreateFavoriteDungeonResponse> => {
+  const res = await fetch(`/api/dungeons/${id}/favorite`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) throw new Error("登録に失敗しました");
   return await res.json();

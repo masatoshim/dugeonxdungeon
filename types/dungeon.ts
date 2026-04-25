@@ -75,9 +75,9 @@ export interface DungeonFilter {
   totalPlayScore?: number;
   totalPlayScoreFrom?: number;
   totalPlayScoreTo?: number;
-  favouritesCount?: number;
-  favouritesCountFrom?: number;
-  favouritesCountTo?: number;
+  favoritesCount?: number;
+  favoritesCountFrom?: number;
+  favoritesCountTo?: number;
   totalPlayCount?: number;
   totalPlayCountFrom?: number;
   totalPlayCountTo?: number;
@@ -98,15 +98,15 @@ export interface DungeonFilter {
   isTemplateList?: string; // "true" | "false"のいずれか、または両方を指定可能
   deletedFlg?: "true" | "false";
   deletedFlgList?: string; // "true" | "false"のいずれか、または両方を指定可能
-  isFavourites?: "true" | "false";
-  isFavouritesList?: string; // "true" | "false"のいずれか、または両方を指定可能
+  isFavorites?: "true" | "false";
+  isFavoritesList?: string; // "true" | "false"のいずれか、または両方を指定可能
   difficultyList?: string;
   playStatus?: PlayStatus;
   playStatusList?: PlayStatus[];
   // ユーザーのお気に入り・クリア済み
   checkUserId?: string; // 指定されたユーザーのレスポンスにisCleared,isFavoritedを追加
   clearedByUserId?: string; // 指定されたユーザーがクリアしたダンジョンのみを抽出
-  favouritedByUserId?: string; // 指定されたユーザーがお気に入りにしたダンジョンのみを抽出
+  favoritedByUserId?: string; // 指定されたユーザーがお気に入りにしたダンジョンのみを抽出
 }
 
 /**
@@ -116,7 +116,7 @@ export interface DungeonResponse extends DungeonBase {
   isCleared?: boolean;
   clearedVersion?: number;
   isFavorited?: boolean;
-  favouritesCount: number;
+  favoritesCount: number;
   clearPlayCount: number;
   failurePlayCount: number;
   interruptPlayCount: number;
@@ -239,4 +239,12 @@ export interface PlayHistoryResponse {
   playScore: number;
   playStatus: PlayStatus;
   createdAt: string; // ISOString
+}
+
+/**
+ * お気に入りダンジョンのレスポンス
+ */
+export interface CreateFavoriteDungeonResponse {
+  isFavorited: boolean;
+  count: number;
 }

@@ -85,7 +85,6 @@ export interface UserResponse extends UserBase {
   createdAt?: string | null;
   updatedAt?: string | null;
   // 統計情報
-  ranking: number | null;
   totalPlayScore: number;
   totalPlayTime: number;
   totalPlayCount: number;
@@ -97,7 +96,7 @@ export interface UserResponse extends UserBase {
   dungeonCount?: number;
   dungeons?: { dungeonCode?: string }[] | null;
   playHistories?: { dungeonCode?: string; userId: string; createdAt?: string }[] | null;
-  favouriteDungeons?: { dungeonCode?: string }[] | null;
+  favoriteDungeons?: { dungeonCode?: string }[] | null;
 }
 
 /**

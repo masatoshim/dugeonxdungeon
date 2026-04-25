@@ -31,7 +31,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         <div className="flex gap-2">
           <div className="bg-pink-500/20 text-pink-400 border border-pink-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
             <span>❤️ お気に入り</span>
-            <span className="bg-white/20 px-2 rounded ml-1">{dungeon.favouritesCount || 0}</span>
+            <span className="bg-white/20 px-2 rounded ml-1">{dungeon.favoritesCount || 0}</span>
           </div>
           <div
             className={`px-3 py-1 rounded-full text-xs font-bold ${

@@ -71,7 +71,6 @@ export async function GET(request: Request) {
     // 数値項目の実行
     (
       [
-        "ranking",
         "clearPlayCount",
         "failurePlayCount",
         "interruptPlayCount",
@@ -118,10 +117,10 @@ export async function GET(request: Request) {
         },
       });
     }
-    if (searchParams.get("favouriteDungeonCodeList")) {
+    if (searchParams.get("favoriteDungeonCodeList")) {
       andConditions.push({
-        favouriteDungeons: {
-          some: { dungeon: { code: { in: searchParams.get("favouriteDungeonCodeList")!.split(",") } } },
+        favoriteDungeons: {
+          some: { dungeon: { code: { in: searchParams.get("favoriteDungeonCodeList")!.split(",") } } },
         },
       });
     }
@@ -150,7 +149,7 @@ export async function GET(request: Request) {
               },
             },
           },
-          favouriteDungeons: {
+          favoriteDungeons: {
             select: {
               dungeon: {
                 select: { code: true, status: true },
@@ -180,7 +179,7 @@ export async function GET(request: Request) {
           .map((h) => {
             return { dungeonCode: h.dungeon.code, userId: h.user.id, createdAt: h.createdAt.toISOString() };
           }),
-        favouriteDungeons: u.favouriteDungeons
+        favoriteDungeons: u.favoriteDungeons
           .filter((f) => hasPrivateAccess || f.dungeon.status === "PUBLISHED")
           .map((f) => {
             return { dungeonCode: f.dungeon.code };

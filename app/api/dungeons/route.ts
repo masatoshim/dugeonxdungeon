@@ -134,7 +134,7 @@ export async function GET(request: Request) {
         "interruptPlayCount",
         "totalPlayTime",
         "totalPlayScore",
-        "favouritesCount",
+        "favoritesCount",
       ] as const
     ).forEach((field) => addRangeFilter(field, "number"));
     // 日付項目の実行
@@ -202,25 +202,25 @@ export async function GET(request: Request) {
     }
 
     // お気に入りによる絞り込みロジック
-    if (sessionUserId && searchParams.get("isFavouritesList")) {
-      const isFavouritesParam = searchParams.get("isFavouritesList")?.split(",") || [];
-      const includeFavourites = isFavouritesParam.includes("true");
-      const includeNotFavourites = isFavouritesParam.includes("false");
+    if (sessionUserId && searchParams.get("isFavoritesList")) {
+      const isFavoritesParam = searchParams.get("isFavoritesList")?.split(",") || [];
+      const includeFavorites = isFavoritesParam.includes("true");
+      const includeNotFavorites = isFavoritesParam.includes("false");
       // true と false の両方が指定されている、または指定がない場合は絞り込み不要
-      if (includeFavourites !== includeNotFavourites) {
-        if (includeFavourites) {
+      if (includeFavorites !== includeNotFavorites) {
+        if (includeFavorites) {
           // お気に入り登録しているものだけを表示
           andConditions.push({
-            favouritedBy: {
+            favoritedBy: {
               some: {
                 userId: sessionUserId,
               },
             },
           });
-        } else if (includeNotFavourites) {
+        } else if (includeNotFavorites) {
           // お気に入り登録していないものだけを表示
           andConditions.push({
-            favouritedBy: {
+            favoritedBy: {
               none: {
                 userId: sessionUserId,
               },
@@ -261,7 +261,7 @@ export async function GET(request: Request) {
               }
             : false,
           // ログイン中ユーザーの「お気に入り」があるか
-          favouritedBy: effectiveCheckUserId
+          favoritedBy: effectiveCheckUserId
             ? {
                 where: { userId: effectiveCheckUserId },
                 take: 1,
@@ -277,7 +277,7 @@ export async function GET(request: Request) {
 
     // 後処理 (totalPlayCountの計算と平坦化)
     let dungeons: DungeonResponse[] = dungeonsRaw.map((d) => {
-      const { user, playHistories, favouritedBy, dungeonTags, ...rest } = d;
+      const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
       const hasPrivateAccess = isAdmin || sessionUserId === d.userId;
       return {
         ...rest,
@@ -285,7 +285,7 @@ export async function GET(request: Request) {
         tags: d.dungeonTags.map((dt) => dt.tag.name),
         isCleared: (playHistories?.length ?? 0) > 0,
         clearedVersion: playHistories?.[0]?.version,
-        isFavorited: (favouritedBy?.length ?? 0) > 0,
+        isFavorited: (favoritedBy?.length ?? 0) > 0,
         dungeonTags: undefined,
         nickName: user.nickName,
         // 管理者のみ、または本人のみ取得可能にする項目

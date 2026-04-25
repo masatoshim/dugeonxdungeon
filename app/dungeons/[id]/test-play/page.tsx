@@ -13,6 +13,7 @@ export default function TestPlayPage() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isClear, setIsClear] = useState(false); // クリア状態を追加
   const [gameKey, setGameKey] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
 
   const router = useRouter();
   const params = useParams();
@@ -61,8 +62,15 @@ export default function TestPlayPage() {
           key={gameKey}
           dungeon={dungeon}
           parsedMapData={parsedMapData}
-          onClear={() => setIsClear(true)}
-          onGameOver={() => setIsGameOver(true)}
+          isFinished={isFinished}
+          onClear={() => {
+            setIsClear(true);
+            setIsFinished(true);
+          }}
+          onGameOver={() => {
+            setIsGameOver(true);
+            setIsFinished(true);
+          }}
         />
       </Suspense>
 
