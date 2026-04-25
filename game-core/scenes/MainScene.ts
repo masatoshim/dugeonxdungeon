@@ -38,6 +38,7 @@ export class MainScene extends Phaser.Scene {
     this.tiles = data.mapData.tiles;
     this.timeLeft = data.timeLimit ?? 60;
     this.levelBuilder = new LevelBuilder(this);
+    this.isGameOver = false;
   }
 
   preload() {

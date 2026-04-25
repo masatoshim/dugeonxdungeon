@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { PlayGameContent } from "@/app/dungeons/_components";
 import { useGetDungeon, useCreatePlayHistory } from "@/app/_hooks";
 import { toast } from "sonner";
 import { MapData } from "@/types";
+import { PlayStatus } from "@prisma/client";
 
 export default function GamePlayPage() {
   const [isGameOver, setIsGameOver] = useState(false);
@@ -14,6 +15,7 @@ export default function GamePlayPage() {
   const [clearScore, setClearScore] = useState<number>(0);
   const [clearTime, setClearTime] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
 
   const router = useRouter();
   const params = useParams();
@@ -21,6 +23,34 @@ export default function GamePlayPage() {
 
   const { dungeon, isLoading } = useGetDungeon(dungeonId);
   const { create, isCreating } = useCreatePlayHistory(dungeonId);
+  const handleGameEnd = useCallback(
+    async (status: PlayStatus, score: number, timeLeft: number) => {
+      if (isFinished) return;
+      setIsFinished(true);
+
+      const fixedTimeLeft = timeLeft;
+      const playTime = Math.max(0, (dungeon?.timeLimit ?? 0) - fixedTimeLeft);
+      const playScore = status === PlayStatus.CLEAR ? score + Math.round(fixedTimeLeft * 100) : score;
+
+      if (status === PlayStatus.CLEAR) {
+        setIsClear(true);
+      } else {
+        setIsGameOver(true);
+      }
+
+      setClearTime(parseFloat(playTime.toFixed(3)));
+      setClearScore(playScore);
+
+      // プレイ記録の登録
+      await create({
+        playScore,
+        playTime,
+        playStatus: status,
+        version: dungeon?.version,
+      });
+    },
+    [isFinished, dungeon, create],
+  );
 
   if (isLoading || !dungeonId) {
     return (
@@ -39,21 +69,6 @@ export default function GamePlayPage() {
     entities: [],
     settings: { isDark: false, ambientLight: 1.0 },
   };
-  const handleClear = async (score: number, timeLeft: number) => {
-    const playTime = dungeon?.timeLimit ?? 0 - timeLeft;
-    const playScore = score + playTime;
-
-    setIsClear(true);
-    setClearTime(playTime);
-    setClearScore(playScore);
-
-    try {
-      await create({ playScore, playTime, playStatus: "CLEAR", version: dungeon?.version });
-      toast.success("記録がランキングに登録されました！");
-    } catch (e) {
-      toast.error("記録の保存に失敗しました。");
-    }
-  };
 
   if (isLoading || !dungeon) return <div className="text-white">Loading...</div>;
 
@@ -63,25 +78,37 @@ export default function GamePlayPage() {
         key={gameKey}
         dungeon={dungeon}
         parsedMapData={parsedMapData}
-        onClear={(score, timeLeft) => handleClear(score, timeLeft)}
-        onGameOver={() => setIsGameOver(true)}
+        isFinished={isFinished}
+        onClear={(score, timeLeft) => handleGameEnd(PlayStatus.CLEAR, score, timeLeft)}
+        onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
       />
 
       {/* クリアリザルト UI */}
-
-      {isClear && (
+      {(isClear || isGameOver) && (
         <div className="absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-cyan-500 p-10 rounded-3xl text-center max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.2)]">
-            <h2 className="text-6xl font-black text-cyan-400 mb-2 italic tracking-tighter">FINISH!</h2>
-            <p className="text-slate-400 mb-6 font-mono text-lg">TIME: {clearTime}s</p>
+          <div
+            className={`bg-slate-900 border-2 ${isClear ? "border-cyan-500" : "border-red-500"} p-10 rounded-3xl text-center max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.2)]`}
+          >
+            <h2
+              className={`text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mb-2 italic tracking-tighter`}
+            >
+              {isClear ? "FINISH!" : "GAME OVER"}
+            </h2>
+
+            <p className="text-slate-400 mb-6 font-mono text-lg">
+              {isClear ? `TIME: ${clearTime}s` : "また挑戦してください"}
+            </p>
             <p className="text-slate-400 mb-6 font-mono text-lg">SCORE: {clearScore}</p>
 
             <div className="space-y-3">
               <button
                 onClick={() => {
-                  (setGameKey((k) => k + 1), setIsClear(false));
+                  setIsFinished(false);
+                  setIsClear(false);
+                  setIsGameOver(false);
+                  setGameKey((k) => k + 1);
                 }}
-                className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl transition-all"
+                className={`w-full py-4 ${isClear ? "bg-cyan-500" : "bg-red-500"} hover:opacity-90 text-slate-950 font-black rounded-xl transition-all`}
               >
                 もう一回挑戦する
               </button>
@@ -95,8 +122,6 @@ export default function GamePlayPage() {
           </div>
         </div>
       )}
-
-      {/* ゲームオーバー UI も同様に実装 */}
     </div>
   );
 }
