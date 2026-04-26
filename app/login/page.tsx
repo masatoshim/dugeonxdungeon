@@ -22,6 +22,7 @@ function LoginForm() {
   // URLパラメータの取得
   const verified = searchParams.get("verified");
   const initialEmail = searchParams.get("email") || "";
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
@@ -115,7 +116,6 @@ function LoginForm() {
 
         <button
           onClick={() => {
-            const callbackUrl = searchParams.get("callbackUrl") || "/";
             signIn("google", { callbackUrl });
           }}
           className="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
@@ -126,7 +126,10 @@ function LoginForm() {
 
         <div className="mt-8 text-center text-sm">
           <p className="text-gray-600">アカウントをお持ちでない方</p>
-          <Link href="/signup" className="mt-2 inline-block text-blue-600 hover:underline font-medium">
+          <Link
+            href={`/signup${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
+            className="mt-2 inline-block text-blue-600 hover:underline font-medium"
+          >
             新規登録はこちら
           </Link>
         </div>

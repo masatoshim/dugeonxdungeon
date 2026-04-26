@@ -31,6 +31,7 @@ export default function SignupPage() {
 
 function SignupForm() {
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/"; // todo: リダイレクトでない場合、dashboardに遷移するよう変更する
   const authError = searchParams.get("error");
 
   useEffect(() => {
@@ -68,8 +69,10 @@ function SignupForm() {
       });
 
       if (res.status === 201) {
+        // 登録成功後の遷移先にもcallbackUrlを含める→認証メール確認後に戻ってこれるようにするため
+        const verifyUrl = `/signup/verify-request?email=${encodeURIComponent(data.email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
         // 登録成功、確認待ち画面へ
-        router.push(`/signup/verify-request?email=${encodeURIComponent(data.email)}`);
+        router.push(verifyUrl);
       } else {
         const errorData = await res.json();
         toast.error(errorData.message || errorData.error || "登録に失敗しました");
@@ -81,9 +84,9 @@ function SignupForm() {
     }
   };
 
-  // Googleによる登録・ログイン処理
+  // Google認証による登録・ログイン処理
   const handleGoogleSignup = () => {
-    signIn("google", { callbackUrl: "/" }); // todo: dashboardに遷移するよう変更する
+    signIn("google", { callbackUrl });
   };
 
   return (
@@ -131,7 +134,14 @@ function SignupForm() {
 
       <div style={{ marginTop: "20px", textAlign: "center" }}>
         <p>既にアカウントをお持ちですか？</p>
-        <button onClick={() => router.push("/login")}>ログイン画面へ</button>
+        <button
+          onClick={() => {
+            // ログイン画面に戻る際もcallbackUrlを維持
+            router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+          }}
+        >
+          ログイン画面へ
+        </button>
       </div>
     </div>
   );

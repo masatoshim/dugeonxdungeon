@@ -83,7 +83,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    newUser: "/", // 新規ユーザー時の遷移先
+    // newUser: "/", // 新規ユーザー時の遷移先
     error: "/signup", // エラーが発生した時に新規登録画面（またはログイン画面）へ飛ばす
   },
   callbacks: {
