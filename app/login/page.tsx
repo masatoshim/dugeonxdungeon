@@ -43,7 +43,8 @@ function LoginForm() {
     const result = await signIn("credentials", {
       email,
       password,
-      redirect: false,
+      redirect: true,
+      callbackUrl: searchParams.get("callbackUrl") || "/dungeons",
     });
 
     if (result?.error) {
@@ -113,7 +114,10 @@ function LoginForm() {
         </div>
 
         <button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={() => {
+            const callbackUrl = searchParams.get("callbackUrl") || "/";
+            signIn("google", { callbackUrl });
+          }}
           className="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <img className="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />

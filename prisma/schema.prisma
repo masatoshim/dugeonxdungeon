@@ -36,7 +36,7 @@ model User {
   sessions           Session[]
   // --- リレーション設定 ---
   dungeons           Dungeon[]
-  favoriteDungeons  FavoritesDungeon[]
+  favoriteDungeons   FavoritesDungeon[]
   playHistories      PlayHistory[]
   userDungeonBests   UserDungeonBest[]
 
@@ -115,7 +115,7 @@ model Dungeon {
   averageClearTime   Int                 @default(0)  // クリア時の処理で都度計算して保存
   // --- リレーション設定 ---
   dungeonTags        DungeonTag[]
-  favoritedBy       FavoritesDungeon[]
+  favoritedBy        FavoritesDungeon[]
   playHistories      PlayHistory[]
   userDungeonBests   UserDungeonBest[]
 }
@@ -170,6 +170,7 @@ model FavoritesDungeon {
   @@index([dungeonId])
 }
 
+// ユーザー×ダンジョンの組み合わせで最高スコアのみを保持する中間テーブル
 model UserDungeonBest {
   id         String   @id @default(uuid())
   userId     String
@@ -183,6 +184,19 @@ model UserDungeonBest {
 
   @@unique([userId, dungeonId]) // ユーザー×ダンジョンで1レコードに限定
   @@index([userId])
+}
+
+// 未ログイン時のクリアデータ一時保存用
+model PendingClear {
+  id         String     @id @default(uuid())
+  dungeonId  String
+  version    Int        @default(1)
+  playTime   Float      @default(0)
+  playScore  Int        @default(0)
+  expiresAt  DateTime // 有効期限
+  createdAt  DateTime @default(now())
+
+  @@index([id])
 }
 
 enum Role {

@@ -1,4 +1,4 @@
-import { DungeonStatus, PlayStatus } from "@prisma/client";
+import { DungeonStatus, PlayStatus, FavoritesDungeon } from "@prisma/client";
 
 /**
  * ダンジョン取得の共通プロパティ
@@ -242,9 +242,27 @@ export interface PlayHistoryResponse {
 }
 
 /**
+ * お気に入りダンジョン取得のレスポンス
+ */
+export interface FavoriteStatusResponse {
+  isFavorited: boolean;
+  favoriteData: FavoritesDungeon | null;
+}
+
+/**
  * お気に入りダンジョンのレスポンス
  */
 export interface CreateFavoriteDungeonResponse {
   isFavorited: boolean;
   count: number;
+}
+
+/**
+ * クリアデータ一時保存のリクエスト
+ */
+export interface PendingClearRequest {
+  dungeonId: string;
+  version: number;
+  playTime: number;
+  playScore: number;
 }

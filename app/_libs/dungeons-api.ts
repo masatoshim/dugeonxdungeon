@@ -8,6 +8,8 @@ import {
   CreatePlayHistoryRequest,
   PlayHistoryResponse,
   CreateFavoriteDungeonResponse,
+  FavoriteStatusResponse,
+  PendingClearRequest,
 } from "@/types";
 
 // ダンジョンを登録する関数
@@ -77,6 +79,14 @@ export const createPlayHistory = async (id: string, data: CreatePlayHistoryReque
   return await res.json();
 };
 
+// お気に入りダンジョンを取得する関数
+export const getFavoriteDungeon = async (id: string, userId?: string): Promise<FavoriteStatusResponse> => {
+  const url = userId ? `/api/dungeons/${id}/favorite?userId=${userId}` : `/api/dungeons/${id}/favorite`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
+  return await res.json();
+};
+
 // プレイ履歴を登録する関数
 export const createFavoriteDungeon = async (id: string): Promise<CreateFavoriteDungeonResponse> => {
   const res = await fetch(`/api/dungeons/${id}/favorite`, {
@@ -84,5 +94,30 @@ export const createFavoriteDungeon = async (id: string): Promise<CreateFavoriteD
     headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) throw new Error("登録に失敗しました");
+  return await res.json();
+};
+
+// 未ログイン時のクリアデータを一時保存する関数
+export const createPendingClear = async (data: PendingClearRequest): Promise<{ pendingId: string }> => {
+  const res = await fetch("/api/clear/pending", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("スコアの一時保存に失敗しました");
+  return await res.json();
+};
+
+// ログイン後、一時保存されたデータを正式登録する関数
+export const confirmClear = async (pendingId: string): Promise<PlayHistoryResponse> => {
+  const res = await fetch("/api/clear/confirm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pendingId }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || "正式登録に失敗しました");
+  }
   return await res.json();
 };

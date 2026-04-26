@@ -1,10 +1,12 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Heart, CheckSquare } from "lucide-react";
 import { DungeonResponse } from "@/types";
-import { useCreateFavoriteDungeon } from "@/app/_hooks";
+import { useGetFavoriteDungeon, useCreateFavoriteDungeon } from "@/app/_hooks";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface DungeonCardProps {
   dungeon: DungeonResponse;
@@ -13,7 +15,8 @@ interface DungeonCardProps {
 }
 
 export function DungeonCard({ dungeon, isCleared = false, onFavoriteToggle }: DungeonCardProps) {
-  const [isFavorited, setIsFavorited] = useState(false);
+  const { status } = useSession();
+  const { isFavorited, mutate } = useGetFavoriteDungeon(dungeon.id);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
 
@@ -34,12 +37,17 @@ export function DungeonCard({ dungeon, isCleared = false, onFavoriteToggle }: Du
     e.preventDefault(); // Link の遷移を防止
     e.stopPropagation(); // バブリングを防止
 
+    if (status !== "authenticated") {
+      toast.error("お気に入り登録にはログインが必要です");
+      return;
+    }
+
     if (isCreating) return;
     try {
       const result = await create(dungeon.id);
 
       setFavoritesCount(result.count);
-      setIsFavorited(!isFavorited);
+      mutate();
       onFavoriteToggle?.(dungeon.id);
     } catch (err) {
       console.error(err);
