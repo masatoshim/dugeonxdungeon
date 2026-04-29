@@ -14,12 +14,11 @@ model User {
   iconImageKey       String?
   role               Role                @default(USER)
   // --- ゲーム統計情報 ---
-  ranking            Int?                @default(0)
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
   interruptPlayCount Int                 @default(0)
   playDungeonCount   Int                 @default(0)
-  totalPlayTime      Int                 @default(0)
+  totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
   // --- ステータスフラグ ---
   isActive           Boolean             @default(true)
@@ -37,8 +36,12 @@ model User {
   sessions           Session[]
   // --- リレーション設定 ---
   dungeons           Dungeon[]
-  favouriteDungeons  FavouritesDungeon[]
+  favoriteDungeons   FavoritesDungeon[]
   playHistories      PlayHistory[]
+  userDungeonBests   UserDungeonBest[]
+
+  @@index([totalPlayScore(sort: Desc)])
+  @@index([isActive, deletedFlg])
 }
 
 model Account {
@@ -99,9 +102,9 @@ model Dungeon {
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
   interruptPlayCount Int                 @default(0)
-  totalPlayTime      Int                 @default(0)
+  totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
-  favouritesCount    Int                 @default(0)
+  favoritesCount    Int                 @default(0)
   // --- 監査・追跡情報 ---
   version            Int                 @default(1)
   deletedFlg         Boolean             @default(false)
@@ -109,10 +112,12 @@ model Dungeon {
   updatedBy          String
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  averageClearTime   Int                 @default(0)  // クリア時の処理で都度計算して保存
   // --- リレーション設定 ---
   dungeonTags        DungeonTag[]
-  favouritedBy       FavouritesDungeon[]
+  favoritedBy        FavoritesDungeon[]
   playHistories      PlayHistory[]
+  userDungeonBests   UserDungeonBest[]
 }
 
 model Tag {
@@ -138,7 +143,8 @@ model PlayHistory {
   id         String     @id @default(uuid())
   userId     String
   dungeonId  String
-  playTime   Int        @default(0)
+  version    Int        @default(1)
+  playTime   Float      @default(0)
   playScore  Int        @default(0)
   playStatus PlayStatus
   createdAt  DateTime   @default(now())
@@ -151,7 +157,7 @@ model PlayHistory {
   @@index([createdAt])
 }
 
-model FavouritesDungeon {
+model FavoritesDungeon {
   id        String   @id @default(uuid())
   userId    String
   dungeonId String
@@ -162,6 +168,35 @@ model FavouritesDungeon {
   @@unique([userId, dungeonId])
   @@index([userId])
   @@index([dungeonId])
+}
+
+// ユーザー×ダンジョンの組み合わせで最高スコアのみを保持する中間テーブル
+model UserDungeonBest {
+  id         String   @id @default(uuid())
+  userId     String
+  dungeonId  String
+  bestScore  Int      @default(0)
+  bestTime   Float    @default(0)
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id])
+  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
+
+  @@unique([userId, dungeonId]) // ユーザー×ダンジョンで1レコードに限定
+  @@index([userId])
+}
+
+// 未ログイン時のクリアデータ一時保存用
+model PendingClear {
+  id         String     @id @default(uuid())
+  dungeonId  String
+  version    Int        @default(1)
+  playTime   Float      @default(0)
+  playScore  Int        @default(0)
+  expiresAt  DateTime // 有効期限
+  createdAt  DateTime @default(now())
+
+  @@index([id])
 }
 
 enum Role {

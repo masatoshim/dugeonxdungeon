@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 export const useGetDungeons = (filter?: DungeonFilter) => {
   const { data: _, status } = useSession();
   const { data, error, isLoading, mutate } = useSWR<DungeonsIndexResponse>(
-    status === "authenticated" ? ["/api/dungeons", filter] : null,
+    // 未ログインユーザーでも取得可能
+    status !== "loading" ? ["/api/dungeons", filter] : null,
     ([_, f]: [string, DungeonFilter]) => fetchDungeons(f),
   );
 

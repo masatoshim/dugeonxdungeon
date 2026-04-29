@@ -1,6 +1,6 @@
 import "./globals.css";
-import { NextAuthProvider } from "@/app/_components/NextAuthProvider";
-import Header from "@/app/_components/Header";
+import { NextAuthProvider } from "@/app/(pages)/_components/NextAuthProvider";
+import Header from "@/app/(pages)/_components/Header";
 import { Toaster } from "sonner";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

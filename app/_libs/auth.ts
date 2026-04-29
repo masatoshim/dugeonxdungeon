@@ -83,7 +83,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    newUser: "/", // 新規ユーザー時の遷移先
+    // newUser: "/", // 新規ユーザー時の遷移先
     error: "/signup", // エラーが発生した時に新規登録画面（またはログイン画面）へ飛ばす
   },
   callbacks: {
@@ -132,6 +132,11 @@ export const authOptions: NextAuthOptions = {
         session.user.nickName = token.nickName as string;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
   // Google初回登録時の userName 生成ロジック

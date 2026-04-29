@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 export const useGetDungeon = (id?: string) => {
   const { data: _, status } = useSession();
   const { data, error, isLoading, mutate } = useSWR<DungeonResponse>(
-    status === "authenticated" ? ["/api/dungeons", id] : null,
+    // 未ログインユーザーでも取得可能
+    id ? ["/api/dungeons", id] : null,
     ([_, id]: [string, string]) => getDungeon(id),
   );
 

@@ -1,4 +1,4 @@
-import { DungeonStatus, PlayStatus } from "@prisma/client";
+import { DungeonStatus, PlayStatus, FavoritesDungeon } from "@prisma/client";
 
 /**
  * ダンジョン取得の共通プロパティ
@@ -7,6 +7,7 @@ export interface DungeonBase {
   id: string;
   name: string;
   code: string;
+  version: number;
   userId: string;
   description: string | null;
   mapData: any;
@@ -74,9 +75,9 @@ export interface DungeonFilter {
   totalPlayScore?: number;
   totalPlayScoreFrom?: number;
   totalPlayScoreTo?: number;
-  favouritesCount?: number;
-  favouritesCountFrom?: number;
-  favouritesCountTo?: number;
+  favoritesCount?: number;
+  favoritesCountFrom?: number;
+  favoritesCountTo?: number;
   totalPlayCount?: number;
   totalPlayCountFrom?: number;
   totalPlayCountTo?: number;
@@ -94,21 +95,34 @@ export interface DungeonFilter {
   status?: DungeonStatus;
   statusList?: string;
   isTemplate?: "true" | "false";
-  isTemplateList?: string;
+  isTemplateList?: string; // "true" | "false"のいずれか、または両方を指定可能
   deletedFlg?: "true" | "false";
-  deletedFlgList?: string;
-  isFavourites?: "true" | "false";
-  isFavouritesList?: string;
+  deletedFlgList?: string; // "true" | "false"のいずれか、または両方を指定可能
+  isFavorites?: "true" | "false";
+  isFavoritesList?: string; // "true" | "false"のいずれか、または両方を指定可能
   difficultyList?: string;
   playStatus?: PlayStatus;
-  playStatusList?: string;
+  playStatusList?: PlayStatus[];
+  // ユーザーのお気に入り・クリア済み
+  checkUserId?: string; // 指定されたユーザーのレスポンスにisCleared,isFavoritedを追加
+  clearedByUserId?: string; // 指定されたユーザーがクリアしたダンジョンのみを抽出
+  favoritedByUserId?: string; // 指定されたユーザーがお気に入りにしたダンジョンのみを抽出
 }
 
 /**
  * APIレスポンス
  */
 export interface DungeonResponse extends DungeonBase {
+  isCleared?: boolean;
+  clearedVersion?: number;
+  isFavorited?: boolean;
+  favoritesCount: number;
+  clearPlayCount: number;
+  failurePlayCount: number;
+  interruptPlayCount: number;
   totalPlayCount: number;
+  averageClearTime?: number;
+
   createdAt?: string; // ISO 8601 文字列
   updatedAt?: string;
 }
@@ -146,10 +160,12 @@ export interface UpdateDungeonRequest {
   mapSize?: number;
   timeLimit?: number;
   difficulty?: number;
+  averageClearTime?: number;
   status?: DungeonStatus;
-  updatedBy: string;
   deletedFlg?: boolean;
   tagIds?: number[];
+  version?: number;
+  publishedAt?: string | null;
 }
 
 /**
@@ -171,4 +187,82 @@ export interface DungeonsIndexResponse {
     limit: number;
     hasNext: boolean;
   };
+}
+
+/**
+ * ダンジョンランキングのレスポンス
+ */
+// ユーザーの最小限の情報
+export interface RankingUser {
+  nickName: string;
+  iconImageKey: string | null;
+}
+
+export interface DungeonRankingEntry {
+  rank: number;
+  user: RankingUser;
+  playScore: number;
+  clearTime: number | null;
+}
+
+// 自分の記録
+export interface MyDungeonRecord {
+  rank: number;
+  playScore: number;
+  clearTime: number | null;
+}
+
+// API全体のレスポンス型
+export interface DungeonRankingsResponse {
+  rankings: DungeonRankingEntry[];
+  myRecord: MyDungeonRecord | null;
+}
+
+/**
+ * ダンジョン履歴のリクエスト
+ */
+export interface CreatePlayHistoryRequest {
+  playTime: number; // 実際のプレイ時間(sec)
+  playScore: number; // 獲得スコア
+  playStatus: PlayStatus;
+  version?: number; // ゲームのバージョン管理用（任意）
+}
+
+/**
+ * ダンジョン履歴のレスポンス
+ */
+export interface PlayHistoryResponse {
+  id: string;
+  userId: string;
+  dungeonId: string;
+  playTime: number;
+  playScore: number;
+  playStatus: PlayStatus;
+  createdAt: string; // ISOString
+}
+
+/**
+ * お気に入りダンジョン取得のレスポンス
+ */
+export interface FavoriteStatusResponse {
+  isFavorited: boolean;
+  favoriteData: FavoritesDungeon | null;
+}
+
+/**
+ * お気に入りダンジョンのレスポンス
+ */
+export interface FavoriteDungeonResponse {
+  isFavorited: boolean;
+  count: number;
+}
+
+/**
+ * クリアデータ一時保存のリクエスト
+ */
+export interface PendingClearRequest {
+  dungeonId: string;
+  version: number;
+  playTime: number;
+  playScore: number;
 }

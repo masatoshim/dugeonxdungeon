@@ -4,6 +4,13 @@ import type Phaser from "phaser";
 
 export type Dungeon = NonNullable<Awaited<ReturnType<typeof prisma.dungeon.findUnique>>>;
 
+// イベント通知
+export const GAME_EVENTS = {
+  GAME_CLEAR: "game-clear",
+  GAME_OVER: "game-over",
+  TIME_OVER: "time-over",
+};
+
 // ダンジョン設定のデフォルト値・制限値
 export const DUNGEON_DEFAULT = {
   ROWS: 10,
