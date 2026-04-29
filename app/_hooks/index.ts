@@ -7,6 +7,7 @@ export * from "./useUpdateDungeon";
 export * from "./useGetDungeonRankings";
 export * from "./useCreatePlayHistory";
 export * from "./useCreateFavoriteDungeon";
+export * from "./useDeleteFavoriteDungeon";
 export * from "./useGetFavoriteDungeon";
 export * from "./useCreatePendingClear";
 export * from "./useConfirmClear";

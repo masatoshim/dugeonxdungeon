@@ -7,7 +7,7 @@ import {
   DungeonRankingsResponse,
   CreatePlayHistoryRequest,
   PlayHistoryResponse,
-  CreateFavoriteDungeonResponse,
+  FavoriteDungeonResponse,
   FavoriteStatusResponse,
   PendingClearRequest,
 } from "@/types";
@@ -87,13 +87,23 @@ export const getFavoriteDungeon = async (id: string, userId?: string): Promise<F
   return await res.json();
 };
 
-// プレイ履歴を登録する関数
-export const createFavoriteDungeon = async (id: string): Promise<CreateFavoriteDungeonResponse> => {
-  const res = await fetch(`/api/dungeons/${id}/favorite`, {
+// お気に入りダンジョンを登録する関数
+export const createFavoriteDungeon = async (id: string): Promise<FavoriteDungeonResponse> => {
+  const res = await fetch(`/api/dungeons/${id}/favorite/favorite`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) throw new Error("登録に失敗しました");
+  return await res.json();
+};
+
+// お気に入りダンジョンを削除する関数
+export const deleteFavoriteDungeon = async (id: string): Promise<FavoriteDungeonResponse> => {
+  const res = await fetch(`/api/dungeons/${id}/favorite/deleteFavorite`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error("削除に失敗しました");
   return await res.json();
 };
 

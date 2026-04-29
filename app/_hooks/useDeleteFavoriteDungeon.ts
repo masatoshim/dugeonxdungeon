@@ -1,15 +1,15 @@
 import useSWRMutation from "swr/mutation";
-import { createFavoriteDungeon } from "@/app/_libs/dungeons-api";
+import { deleteFavoriteDungeon } from "@/app/_libs/dungeons-api";
 import { FavoriteDungeonResponse } from "@/types";
 import { toast } from "sonner";
 
-export const useCreateFavoriteDungeon = (id: string) => {
+export const useDeleteFavoriteDungeon = (id: string) => {
   const { trigger, isMutating, error } = useSWRMutation<FavoriteDungeonResponse, Error, string[], string>(
-    [`/api/dungeons/${id}/favorite/favorite`, id],
-    ([url, dungeonId]) => createFavoriteDungeon(dungeonId),
+    [`/api/dungeons/${id}/favorite/deleteFavorite`, id],
+    ([url, dungeonId]) => deleteFavoriteDungeon(dungeonId),
     {
       onSuccess: (data) => {
-        toast.success("お気に入りに追加しました");
+        toast.success("お気に入りを削除しました");
       },
       onError: (err) => {
         toast.error(`処理に失敗しました: ${err.message}`);
@@ -18,8 +18,8 @@ export const useCreateFavoriteDungeon = (id: string) => {
   );
 
   return {
-    create: trigger,
-    isCreating: isMutating,
-    createError: error?.message ?? "",
+    remove: trigger,
+    isDeleting: isMutating,
+    deleteError: error?.message ?? "",
   };
 };

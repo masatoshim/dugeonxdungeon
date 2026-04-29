@@ -252,7 +252,7 @@ export interface FavoriteStatusResponse {
 /**
  * お気に入りダンジョンのレスポンス
  */
-export interface CreateFavoriteDungeonResponse {
+export interface FavoriteDungeonResponse {
   isFavorited: boolean;
   count: number;
 }
