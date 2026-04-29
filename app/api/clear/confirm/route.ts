@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       });
 
       // 使用済みの一時データを削除
-      await tx.pendingClear.delete({
+      await tx.pendingClear.deleteMany({
         where: { id: pendingId },
       });
 

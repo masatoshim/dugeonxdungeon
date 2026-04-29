@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { PlayGameContent } from "@/app/dungeons/_components";
@@ -18,6 +18,7 @@ export default function GamePlayPage() {
   const [clearTime, setClearTime] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const isProcessing = useRef(false); // ２重起動防止用
 
   const router = useRouter();
   const params = useParams();
@@ -30,11 +31,15 @@ export default function GamePlayPage() {
 
   // ログイン画面からのリダイレクト時に発火
   useEffect(() => {
+    // ２重起動防止
+    const pendingId = localStorage.getItem("pending_clear_id");
+    if (!pendingId || isProcessing.current) return;
+    isProcessing.current = true;
+
     const initPendingClear = async () => {
       // ログイン済み かつ ローカルストレージにIDがあるかチェック
-      const pendingId = localStorage.getItem("pending_clear_id");
-
-      if (status === "authenticated" && pendingId) {
+      if (status === "authenticated") {
+        isProcessing.current = true;
         // クリア時の状態をセット
         setIsFinished(true);
         setIsClear(true);

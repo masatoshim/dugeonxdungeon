@@ -44,16 +44,18 @@ function LoginForm() {
     const result = await signIn("credentials", {
       email,
       password,
-      redirect: true,
-      callbackUrl: searchParams.get("callbackUrl") || "/dungeons",
+      redirect: false,
+      callbackUrl: callbackUrl,
     });
+
+    console.log("result:", result);
 
     if (result?.error) {
       toast.error("ログインに失敗しました。メールアドレスまたはパスワードを確認してください。");
       setIsSubmitting(false);
     } else {
       toast.success("ログインしました！");
-      router.push("/");
+      router.push(result?.url || callbackUrl);
       router.refresh();
     }
   };
