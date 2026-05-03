@@ -2,7 +2,7 @@
 
 import { ChevronDown, ArrowUpDown } from "lucide-react";
 
-export type SortOption = "createdAt" | "mapSize" | "difficulty" | "timeLimit";
+export type SortOption = "favoritedAt" | "lastPlayed" | "createdAt" | "mapSize" | "difficulty" | "timeLimit";
 export type SortOrder = "asc" | "desc";
 
 interface SortDropdownProps {
@@ -10,31 +10,43 @@ interface SortDropdownProps {
   onSortChange: (sort: SortOption) => void;
   currentOrder: SortOrder;
   onOrderToggle: () => void;
+  showFavoritedAt?: boolean;
+  showLastPlayed?: boolean;
 }
 
-export function SortDropdown({ currentSort, onSortChange, currentOrder, onOrderToggle }: SortDropdownProps) {
-  const options: { value: SortOption; label: string }[] = [
-    { value: "createdAt", label: "最新" },
+export function SortDropdown({
+  currentSort,
+  onSortChange,
+  currentOrder,
+  onOrderToggle,
+  showFavoritedAt = false,
+  showLastPlayed = false,
+}: SortDropdownProps) {
+  const baseOptions = [
+    { value: "createdAt", label: "最新（作成日）" },
     { value: "mapSize", label: "ダンジョンサイズ" },
     { value: "difficulty", label: "ダンジョン難しさ" },
     { value: "timeLimit", label: "制限時間" },
   ];
 
+  // お気に入りページから遷移時
+  let options = showFavoritedAt ? [{ value: "favoritedAt", label: "追加した順" }, ...baseOptions] : baseOptions;
+  // 履歴ページから遷移時
+  options = showLastPlayed ? [{ value: "lastPlayed", label: "最近遊んだ順" }, ...options] : options;
+
   return (
     <div className="flex items-center gap-1.5">
-      {/* ソート順切り替えボタン */}
       <button
         onClick={onOrderToggle}
         className={`p-1.5 rounded-md transition-colors hover:bg-slate-800 ${
           currentOrder === "asc" ? "text-blue-400" : "text-slate-400"
         }`}
-        title={currentOrder === "asc" ? "昇順" : "降順"}
       >
         <ArrowUpDown
           className={`w-4.5 h-4.5 transition-transform duration-300 ${currentOrder === "desc" ? "rotate-180" : ""}`}
         />
       </button>
-      {/* ドロップダウン部分 */}
+
       <div className="relative inline-block">
         <select
           value={currentSort}

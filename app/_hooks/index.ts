@@ -11,7 +11,8 @@ export * from "./useDeleteFavoriteDungeon";
 export * from "./useGetFavoriteDungeon";
 export * from "./useCreatePendingClear";
 export * from "./useConfirmClear";
-export * from "./useGetPlayHistory";
+export * from "./useGetPlayHistoryByUser";
+export * from "./useGetFavoriteDungeonByUser";
 // ユーザー用フック
 export * from "./useCreateUser";
 export * from "./useDeleteUser";

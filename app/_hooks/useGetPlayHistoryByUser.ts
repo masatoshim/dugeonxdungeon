@@ -1,13 +1,13 @@
 import useSWR from "swr";
 import { DungeonsIndexResponse, PaginationFilter } from "@/types";
-import { getPlayHistory } from "@/app/_libs/dungeons-api";
+import { getPlayHistoryByUser } from "@/app/_libs/dungeons-api";
 import { useSession } from "next-auth/react";
 
-export const useGetPlayHistory = (filter?: PaginationFilter) => {
+export const usegetPlayHistoryByUser = (filter?: PaginationFilter) => {
   const { data: _, status } = useSession();
   const { data, error, isLoading, mutate } = useSWR<DungeonsIndexResponse>(
-    status === "authenticated" ? ["/api/dungeons/history", filter] : null,
-    ([_, f]: [string, PaginationFilter]) => getPlayHistory(f),
+    status === "authenticated" ? ["/api/dungeons/play-history", filter] : null,
+    ([_, f]: [string, PaginationFilter]) => getPlayHistoryByUser(f),
   );
 
   return {

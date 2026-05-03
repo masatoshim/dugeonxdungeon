@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/DungeonCardList";
 import { SortDropdown, SortOption, SortOrder } from "@/app/(pages)/_components/SortDropdown";
-import { useGetPlayHistory } from "@/app/_hooks";
+import { usegetPlayHistoryByUser } from "@/app/_hooks";
 
 export default function HistoryPage() {
-  const [sort, setSort] = useState<SortOption>("createdAt");
+  const [sort, setSort] = useState<SortOption>("lastPlayed");
   const [order, setOrder] = useState<SortOrder>("desc");
 
   const toggleOrder = () => {
@@ -14,7 +14,7 @@ export default function HistoryPage() {
   };
 
   // 最近遊んだダンジョンの一覧を取得
-  const { dungeons, isLoading, error } = useGetPlayHistory({
+  const { dungeons, isLoading, error } = usegetPlayHistoryByUser({
     sort: sort,
     order: order,
   });
@@ -28,7 +28,13 @@ export default function HistoryPage() {
         {/* ソート */}
         <div className="flex flex-col items-end gap-2">
           <div className="hidden md:block">
-            <SortDropdown currentSort={sort} onSortChange={setSort} currentOrder={order} onOrderToggle={toggleOrder} />
+            <SortDropdown
+              currentSort={sort}
+              onSortChange={setSort}
+              currentOrder={order}
+              onOrderToggle={toggleOrder}
+              showLastPlayed={true}
+            />
           </div>
 
           {/* トータル数 */}

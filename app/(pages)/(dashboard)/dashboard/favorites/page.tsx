@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/DungeonCardList";
 import { SortDropdown, SortOption, SortOrder } from "@/app/(pages)/_components/SortDropdown";
-import { useGetDungeons } from "@/app/_hooks";
+import { useGetFavoriteDungeonByUser } from "@/app/_hooks";
 
 export default function FavoritesPage() {
-  const [sort, setSort] = useState<SortOption>("createdAt");
+  const [sort, setSort] = useState<SortOption>("favoritedAt");
   const [order, setOrder] = useState<SortOrder>("desc");
 
   const toggleOrder = () => {
@@ -14,9 +14,7 @@ export default function FavoritesPage() {
   };
 
   // お気に入りダンジョン一覧を取得
-  const { dungeons, isLoading, error } = useGetDungeons({
-    status: "PUBLISHED",
-    isFavoritesList: "true",
+  const { dungeons, isLoading, error } = useGetFavoriteDungeonByUser({
     sort: sort,
     order: order,
   });
@@ -30,7 +28,13 @@ export default function FavoritesPage() {
         {/* ソート */}
         <div className="flex flex-col items-end gap-2">
           <div className="hidden md:block">
-            <SortDropdown currentSort={sort} onSortChange={setSort} currentOrder={order} onOrderToggle={toggleOrder} />
+            <SortDropdown
+              currentSort={sort}
+              onSortChange={setSort}
+              currentOrder={order}
+              onOrderToggle={toggleOrder}
+              showFavoritedAt={true}
+            />
           </div>
 
           {/* トータル数 */}
