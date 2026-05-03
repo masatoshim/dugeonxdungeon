@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { DungeonCardList } from "@/app/(pages)/_components/DungeonCardList";
+import { useState, Suspense } from "react";
+import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { SortDropdown, SortOption, SortOrder } from "@/app/(pages)/_components/SortDropdown";
 import { usegetPlayHistoryByUser } from "@/app/_hooks";
+import { useSearchParams } from "next/navigation";
+import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
+import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 
 export default function HistoryPage() {
+  return (
+    <Suspense fallback={<div className="text-white">Loading...</div>}>
+      <HistoryPageContent />
+    </Suspense>
+  );
+}
+
+function HistoryPageContent() {
+  const searchParams = useSearchParams();
+  const dungeonId = searchParams.get("dungeonId");
   const [sort, setSort] = useState<SortOption>("lastPlayed");
   const [order, setOrder] = useState<SortOrder>("desc");
 
@@ -44,7 +57,15 @@ export default function HistoryPage() {
         </div>
       </header>
 
+      {/* 履歴一覧 */}
       <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+
+      {/* ダンジョン詳細モーダル表示 */}
+      {dungeonId && (
+        <DungeonDetailModal>
+          <DungeonDetailContent id={dungeonId} />
+        </DungeonDetailModal>
+      )}
     </div>
   );
 }

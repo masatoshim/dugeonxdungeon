@@ -7,6 +7,7 @@ import { DungeonResponse, FavoriteDungeonResponse } from "@/types";
 import { useGetFavoriteDungeon, useCreateFavoriteDungeon, useDeleteFavoriteDungeon } from "@/app/_hooks";
 import Link from "next/link";
 import { toast } from "sonner";
+import { usePathname } from "next/navigation";
 
 interface DungeonCardProps {
   dungeon: DungeonResponse;
@@ -19,6 +20,11 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
+
+  const pathname = usePathname();
+  // 現在のパスが /favorites や /history なら、その下に ID をつける
+  // /dungeons (一覧) なら /dungeons/[id] にする
+  const detailHref = pathname.includes(dungeon.id) ? pathname : `${pathname.replace(/\/$/, "")}/${dungeon.id}`;
 
   // 難易度
   const renderDifficulty = (difficulty: number) => {
@@ -58,7 +64,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   };
 
   return (
-    <Link href={`/dungeons/${dungeon.id}`} scroll={false}>
+    <Link href={`?dungeonId=${dungeon.id}`} scroll={false}>
       <div className="group relative max-w-[320px] bg-[#1a233a] border border-slate-700 rounded-lg p-2.5 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all hover:-translate-y-1 cursor-pointer">
         {/* ヘッダー */}
         <div className="flex justify-between items-start mb-1.5">

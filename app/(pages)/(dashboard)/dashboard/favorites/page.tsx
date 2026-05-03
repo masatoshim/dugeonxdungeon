@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { DungeonCardList } from "@/app/(pages)/_components/DungeonCardList";
+import { useState, Suspense } from "react";
+import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { SortDropdown, SortOption, SortOrder } from "@/app/(pages)/_components/SortDropdown";
 import { useGetFavoriteDungeonByUser } from "@/app/_hooks";
+import { useSearchParams } from "next/navigation";
+import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
+import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 
 export default function FavoritesPage() {
+  return (
+    <Suspense fallback={<div className="text-white">Loading...</div>}>
+      <FavoritesPageContent />
+    </Suspense>
+  );
+}
+
+function FavoritesPageContent() {
+  const searchParams = useSearchParams();
+  const dungeonId = searchParams.get("dungeonId");
   const [sort, setSort] = useState<SortOption>("favoritedAt");
   const [order, setOrder] = useState<SortOrder>("desc");
 
@@ -44,7 +57,15 @@ export default function FavoritesPage() {
         </div>
       </header>
 
+      {/* お気に入り一覧 */}
       <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+
+      {/* ダンジョン詳細モーダル表示 */}
+      {dungeonId && (
+        <DungeonDetailModal>
+          <DungeonDetailContent id={dungeonId} />
+        </DungeonDetailModal>
+      )}
     </div>
   );
 }
