@@ -286,7 +286,6 @@ export async function GET(request: Request) {
         isCleared: (playHistories?.length ?? 0) > 0,
         clearedVersion: playHistories?.[0]?.version,
         isFavorited: (favoritedBy?.length ?? 0) > 0,
-        dungeonTags: undefined,
         nickName: user.nickName,
         // 管理者のみ、または本人のみ取得可能にする項目
         userName: hasPrivateAccess ? user.userName : undefined,

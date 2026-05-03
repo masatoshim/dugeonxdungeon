@@ -107,6 +107,14 @@ export const deleteFavoriteDungeon = async (id: string): Promise<FavoriteDungeon
   return await res.json();
 };
 
+// ユーザーごとのプレイ履歴を取得する関数
+export const getPlayHistory = async (params?: DungeonFilter): Promise<DungeonsIndexResponse> => {
+  const query = params ? new URLSearchParams(params as any).toString() : "";
+  const res = await fetch(`/api/dungeons/history${query ? `?${query}` : ""}`);
+  if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
+  return await res.json();
+};
+
 // 未ログイン時のクリアデータを一時保存する関数
 export const createPendingClear = async (data: PendingClearRequest): Promise<{ pendingId: string }> => {
   const res = await fetch("/api/clear/pending", {
