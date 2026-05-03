@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { HeaderUserMenu } from "./HeaderUserMenu";
 
 export default function Header() {
   const sessionContext = useSession();
@@ -44,16 +45,15 @@ export default function Header() {
       {status === "loading" ? (
         <span>Loading...</span>
       ) : session ? (
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {/* ニックネームを表示（session.userにnickNameがある場合） */}
-          <span>{session.user?.nickName || session.user?.name} さん</span>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            style={{ padding: "0.3rem 0.8rem", cursor: "pointer" }}
-          >
-            ログアウト
-          </button>
-        </div>
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+            <HeaderUserMenu />
+            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+              {/* ニックネームを表示（session.userにnickNameがある場合） */}
+              <span>{session.user?.nickName || session.user?.name} さん</span>
+            </div>
+          </div>
+        </>
       ) : (
         <Link href="/login" style={{ textDecoration: "none", color: "#4f46e5", fontWeight: "bold" }}>
           ログイン

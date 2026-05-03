@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserCircle, LayoutGrid, Heart, History, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
-
-const navItems = [
-  { label: "プロフィール", href: "/dashboard/profile", icon: UserCircle },
-  { label: "マイダンジョン一覧", href: "/dashboard/dungeons", icon: LayoutGrid },
-  { label: "お気に入り", href: "/dashboard/favorites", icon: Heart },
-  { label: "履歴", href: "/dashboard/history", icon: History },
-];
+import { LogOut } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { getNavItems } from "@/app/(pages)/_components/navigation";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
+  const navItems = getNavItems(session?.user?.role);
   const pathname = usePathname();
+
+  if (!session) return null;
 
   return (
     <div className="flex min-h-screen bg-[#0f111a]">

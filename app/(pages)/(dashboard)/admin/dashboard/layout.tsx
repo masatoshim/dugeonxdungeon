@@ -2,17 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, LayoutGrid, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
-
-// 画像に基づいたナビゲーション項目
-const navItems = [
-  { label: "ホーム", href: "/admin/dashboard/home", icon: Home },
-  { label: "ユーザー一覧", href: "/admin/dashboard/users", icon: Users },
-  { label: "ダンジョン一覧", href: "/admin/dashboard/dungeons", icon: LayoutGrid },
-];
+import { LogOut } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { getNavItems } from "@/app/(pages)/_components/navigation";
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
+  const navItems = getNavItems(session?.user?.role);
   const pathname = usePathname();
 
   return (
@@ -29,9 +25,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-all font-bold ${
-                  isActive
-                    ? "text-cyan-400 bg-[#242938]" // 画像の「ダンジョン一覧」の色に近いシアン系
-                    : "text-gray-400 hover:text-white hover:bg-[#242938]"
+                  isActive ? "text-cyan-400 bg-[#242938]" : "text-gray-400 hover:text-white hover:bg-[#242938]"
                 }`}
               >
                 <item.icon size={26} strokeWidth={isActive ? 2.5 : 2} />
