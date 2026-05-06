@@ -7,6 +7,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_
 }
 const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
+// ※↓未使用。useProfileIconに置き換え
 // サーバーサイドからSupabase Storageの署名付きURLを発行する
 export async function getSignedAvatarUrl(imageKey: string): Promise<string | null> {
   try {

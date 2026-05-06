@@ -1,10 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Heart, CheckSquare } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/types";
-import { useGetFavoriteDungeon, useCreateFavoriteDungeon, useDeleteFavoriteDungeon } from "@/app/_hooks";
+import {
+  useGetFavoriteDungeon,
+  useCreateFavoriteDungeon,
+  useDeleteFavoriteDungeon,
+  useProfileIcon,
+} from "@/app/_hooks";
 import Link from "next/link";
 import { toast } from "sonner";
 import { usePathname } from "next/navigation";
@@ -20,6 +26,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
+  const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
 
   const pathname = usePathname();
   // 現在のパスが /favorites や /history なら、その下に ID をつける
@@ -117,7 +124,18 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
         {/* フッター */}
         <div className="mt-2 pt-1.5 border-t border-slate-800/50 flex justify-end items-center gap-1.5">
           <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white overflow-hidden border border-slate-700">
-            <span className="text-[9px] font-bold leading-none">☺</span>
+            {iconUrl ? (
+              <Image
+                src={iconUrl}
+                alt="avatar"
+                width={16}
+                height={16}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <span className="text-[9px] font-bold leading-none">☺</span>
+            )}
           </div>
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">
             {dungeon.nickName || "USER_NAME"}

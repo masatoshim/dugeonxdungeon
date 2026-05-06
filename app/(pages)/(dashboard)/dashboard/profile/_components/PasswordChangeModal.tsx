@@ -80,7 +80,7 @@ export function PasswordChangeModal({ onClose }: { onClose: () => void }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs text-slate-400 mb-1 ml-1 font-mono">NEW_PASSWORD</label>
+            <label className="block text-xs text-slate-400 mb-1 ml-1 font-mono">新しいパスワード</label>
             <input
               type="password"
               required
@@ -91,7 +91,7 @@ export function PasswordChangeModal({ onClose }: { onClose: () => void }) {
             />
           </div>
           <div>
-            <label className="block text-xs text-slate-400 mb-1 ml-1 font-mono">CONFIRM_PASSWORD</label>
+            <label className="block text-xs text-slate-400 mb-1 ml-1 font-mono">新しいパスワード（確認）</label>
             <input
               type="password"
               required

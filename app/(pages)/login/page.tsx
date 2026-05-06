@@ -48,8 +48,6 @@ function LoginForm() {
       callbackUrl: callbackUrl,
     });
 
-    console.log("result:", result);
-
     if (result?.error) {
       toast.error("ログインに失敗しました。メールアドレスまたはパスワードを確認してください。");
       setIsSubmitting(false);

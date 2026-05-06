@@ -5,10 +5,9 @@ import { v4 as uuidv4 } from "uuid";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/_libs/supabase";
 import { Camera, Pencil, Link as LinkIcon, Loader2 } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
-import { useGetUser, useUpdateUser } from "@/app/_hooks";
-import { getSignedAvatarUrl, deleteOldImage } from "@/app/_libs/storage";
+import { useGetUser, useUpdateUser, useProfileIcon } from "@/app/_hooks";
+import { deleteOldImage } from "@/app/_libs/storage";
 import { PasswordChangeModal } from "./PasswordChangeModal";
 
 export function ProfileCard() {
@@ -19,9 +18,9 @@ export function ProfileCard() {
 
   const [isEditingNickName, setIsEditingNickName] = useState(false);
   const [nickName, setNickName] = useState("");
-  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const isNickNameChanged = user && nickName !== (user.nickName || user.userName);
+  const { iconUrl } = useProfileIcon(user?.iconImageKey);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
@@ -29,11 +28,6 @@ export function ProfileCard() {
   useEffect(() => {
     if (user) {
       setNickName(user.nickName || user.userName);
-
-      // iconImageKeyがある場合、署名付きURLを取得
-      if (user.iconImageKey) {
-        getSignedAvatarUrl(user.iconImageKey).then(setThumbnailImageUrl);
-      }
     }
   }, [user]);
 
@@ -65,8 +59,6 @@ export function ProfileCard() {
         await deleteOldImage(oldKey).catch((err) => console.error("削除失敗:", err));
       }
 
-      const newUrl = await getSignedAvatarUrl(data.path);
-      setThumbnailImageUrl(newUrl);
       mutate();
     } catch (error: any) {
       alert("エラーが発生しました: " + error.message);
@@ -95,9 +87,9 @@ export function ProfileCard() {
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#4fd1d1]/20 bg-slate-800  items-center justify-center relative">
               {isUploading ? (
                 <Loader2 className="animate-spin text-[#4fd1d1]" />
-              ) : thumbnailImageUrl ? (
+              ) : iconUrl ? (
                 <Image
-                  src={thumbnailImageUrl}
+                  src={iconUrl}
                   alt="avatar"
                   width={128}
                   height={128}

@@ -20,6 +20,7 @@ export interface DungeonBase {
   isTemplate: boolean;
   userName?: string;
   nickName: string | null;
+  userIconImageKey: string | null;
   tags: string[];
   createdBy?: string;
   updatedBy?: string;

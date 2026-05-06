@@ -28,7 +28,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const dungeon = await prisma.dungeon.findFirst({
       where: andConditions,
       include: {
-        user: { select: { userName: true, nickName: true } },
+        user: { select: { userName: true, nickName: true, iconImageKey: true } },
         dungeonTags: { include: { tag: true } },
       },
     });
@@ -49,6 +49,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       updatedAt: dungeon.updatedAt.toISOString(),
       userName: hasPrivateAccess ? dungeon.user.userName : undefined,
       nickName: dungeon.user.nickName,
+      userIconImageKey: dungeon.user.iconImageKey,
     };
 
     return NextResponse.json(response);
@@ -107,7 +108,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           : undefined,
       },
       include: {
-        user: { select: { userName: true, nickName: true } },
+        user: { select: { userName: true, nickName: true, iconImageKey: true } },
         dungeonTags: { include: { tag: true } },
       },
     });
@@ -116,6 +117,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ...updatedDungeon,
       tags: updatedDungeon.dungeonTags.map((dt) => dt.tag.name),
       nickName: updatedDungeon.user.nickName,
+      userIconImageKey: updatedDungeon.user.iconImageKey,
       userName: hasPrivateAccess ? updatedDungeon.user.userName : undefined,
     };
 

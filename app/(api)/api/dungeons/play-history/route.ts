@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         include: {
           dungeon: {
             include: {
-              user: { select: { nickName: true } },
+              user: { select: { nickName: true, iconImageKey: true } },
               dungeonTags: { include: { tag: true } },
               playHistories: {
                 where: { userId: sessionUserId, playStatus: "CLEAR" },
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
         skip: index,
         include: {
           dungeonTags: { include: { tag: true } },
-          user: { select: { nickName: true } },
+          user: { select: { nickName: true, iconImageKey: true } },
           // ログイン中ユーザーの「クリア実績」
           playHistories: {
             where: {
@@ -108,6 +108,7 @@ export async function GET(request: Request) {
       return {
         ...rest,
         nickName: user.nickName || "USER_NAME",
+        userIconImageKey: user.iconImageKey,
         totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         isCleared: (playHistories?.length ?? 0) > 0,
         clearedVersion: playHistories?.[0]?.version,
