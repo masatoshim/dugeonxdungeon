@@ -22,14 +22,14 @@ export function DungeonRankingPanel({ rankings, myRecord }: Props) {
         {/* 左側：Top 3 (リッチ表示) */}
         <div className="space-y-4">
           {top3.map((entry) => (
-            <DungeonRankingTop3Detail entry={entry} />
+            <DungeonRankingTop3Detail key={entry.rank} entry={entry} />
           ))}
         </div>
 
         {/* 右側：Top 4-10 (リスト表示) */}
         <div className="flex flex-col gap-2">
           {rest.map((entry) => (
-            <DungeonRankingTopRankDetail entry={entry} />
+            <DungeonRankingTopRankDetail key={entry.rank} entry={entry} />
           ))}
 
           {/* 自分の順位 (MyRankBadge をパネル内に統合) */}

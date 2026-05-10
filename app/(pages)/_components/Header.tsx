@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 
@@ -10,55 +10,53 @@ export default function Header() {
   const status = sessionContext?.status;
 
   return (
-    <header
-      style={{
-        padding: "1rem 2rem",
-        borderBottom: "1px solid #ccc",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-        {/* todo: ロゴ画像に切り替える */}
-        <Link href="/" style={{ fontWeight: "bold", fontSize: "1.2rem", textDecoration: "none", color: "inherit" }}>
-          DUNGEON×DUNGEON
+    <header className="px-8 py-4 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
+      <div className="flex items-center gap-8">
+        {/* ロゴエリア */}
+        <Link
+          href="/"
+          className="font-black text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors"
+        >
+          DUNGEON<span className="text-[#4fd1d1]">×</span>DUNGEON
         </Link>
 
         {/* ナビゲーションリンク */}
-        <nav style={{ display: "flex", gap: "1.5rem" }}>
-          <Link href="/dungeons" style={{ textDecoration: "none", color: "#333" }}>
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/dungeons" className="text-sm font-medium hover:text-[#4fd1d1] transition-colors">
             遊ぶ
           </Link>
           <Link
             href={session?.user.role === "ADMIN" ? "/admin/dashboard/dungeons" : "/dashboard/dungeons"}
-            style={{ textDecoration: "none", color: "#333" }}
+            className="text-sm font-medium hover:text-[#4fd1d1] transition-colors"
           >
             創る
           </Link>
-          <Link href="/ranking" style={{ textDecoration: "none", color: "#333" }}>
+          <Link href="/ranking" className="text-sm font-medium hover:text-[#4fd1d1] transition-colors">
             競う
           </Link>
         </nav>
       </div>
 
-      {status === "loading" ? (
-        <span>Loading...</span>
-      ) : session ? (
-        <>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+      <div className="flex items-center gap-4">
+        {status === "loading" ? (
+          <span className="text-xs text-slate-500 font-mono animate-pulse">LOADING...</span>
+        ) : session ? (
+          <div className="flex items-center gap-3">
+            {/* ユーザー名 */}
+            <span className="hidden sm:inline text-sm font-medium text-slate-300">
+              {session.user?.nickName || session.user?.name} <span className="text-xs text-slate-500">さん</span>
+            </span>
             <HeaderUserMenu />
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              {/* ニックネームを表示（session.userにnickNameがある場合） */}
-              <span>{session.user?.nickName || session.user?.name} さん</span>
-            </div>
           </div>
-        </>
-      ) : (
-        <Link href="/login" style={{ textDecoration: "none", color: "#4f46e5", fontWeight: "bold" }}>
-          ログイン
-        </Link>
-      )}
+        ) : (
+          <Link
+            href="/login"
+            className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all"
+          >
+            ログイン
+          </Link>
+        )}
+      </div>
     </header>
   );
 }

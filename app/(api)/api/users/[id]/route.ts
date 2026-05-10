@@ -64,9 +64,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ message: "ユーザーが見つかりません" }, { status: 404 });
     }
 
+    // 2. 順位（rank）の算出
+    // 自分より totalPlayScore が高いユーザーの数 + 1 が現在の順位
+    const rank =
+      (await prisma.user.count({
+        where: {
+          totalPlayScore: {
+            gt: user.totalPlayScore, // greater than (より大きい)
+          },
+          isActive: true,
+          deletedFlg: false,
+        },
+      })) + 1;
+
     const hasPrivateAccess = isAdmin || session?.user?.id === user.id;
     const response: UserResponse = {
       id: user.id,
+      rank: rank,
       userName: user.userName,
       nickName: user.nickName,
       iconImageKey: user.iconImageKey,

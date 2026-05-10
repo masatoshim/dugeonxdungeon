@@ -9,13 +9,16 @@ import Image from "next/image";
 import { useGetUser, useUpdateUser, useProfileIcon } from "@/app/_hooks";
 import { deleteOldImage } from "@/app/_libs/storage";
 import { PasswordChangeModal } from "./PasswordChangeModal";
+import { UserResponse } from "@/types";
 
-export function ProfileCard() {
-  const { data: session, update: updateSession } = useSession();
-  const userId = session?.user?.id;
-  const { user, mutate } = useGetUser(userId);
-  const { update } = useUpdateUser(userId!);
+interface ProfileCardProps {
+  user: UserResponse;
+  mutate: () => void;
+  update: (data: Partial<UserResponse>) => Promise<UserResponse>;
+}
 
+export function ProfileCard({ user, mutate, update }: ProfileCardProps) {
+  const { update: updateSession } = useSession();
   const [isEditingNickName, setIsEditingNickName] = useState(false);
   const [nickName, setNickName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -30,8 +33,6 @@ export function ProfileCard() {
       setNickName(user.nickName || user.userName);
     }
   }, [user]);
-
-  if (!session || !user) return null;
 
   const isGoogleUser = user.isGoogleUser;
 
@@ -81,7 +82,7 @@ export function ProfileCard() {
 
   return (
     <>
-      <div className="bg-[#1a1d2b] border border-slate-700 rounded-2xl p-8 w-full max-w-md shadow-xl min-h-[580px] flex flex-col relative">
+      <div className="bg-[#1a1d2b] border border-slate-700 rounded-2xl p-8 shadow-xl min-h-[580px] flex flex-col relative">
         <div className="flex flex-col items-center mb-8">
           <div className="relative group">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#4fd1d1]/20 bg-slate-800  items-center justify-center relative">

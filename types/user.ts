@@ -85,6 +85,7 @@ export interface UserResponse extends UserBase {
   createdAt?: string | null;
   updatedAt?: string | null;
   // 統計情報
+  rank?: number;
   totalPlayScore: number;
   totalPlayTime: number;
   totalPlayCount: number;

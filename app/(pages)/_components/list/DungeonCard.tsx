@@ -28,11 +28,6 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
   const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
 
-  const pathname = usePathname();
-  // 現在のパスが /favorites や /history なら、その下に ID をつける
-  // /dungeons (一覧) なら /dungeons/[id] にする
-  const detailHref = pathname.includes(dungeon.id) ? pathname : `${pathname.replace(/\/$/, "")}/${dungeon.id}`;
-
   // 難易度
   const renderDifficulty = (difficulty: number) => {
     return (

@@ -4,6 +4,7 @@ import { DungeonRankingEntry } from "@/types";
 import { useProfileIcon } from "@/app/_hooks";
 
 interface Props {
+  key: number;
   entry: DungeonRankingEntry;
 }
 
