@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -53,9 +53,29 @@ function LoginForm() {
       setIsSubmitting(false);
     } else {
       toast.success("ログインしました！");
-      router.push(result?.url || callbackUrl);
+
+      // 最新のセッション情報を取得してロールを確認
+      const session = await getSession();
+
+      // デフォルトの遷移先（callbackUrlが "/" や指定なしの場合）
+      if (callbackUrl === "/" || !callbackUrl) {
+        if (session?.user?.role === "ADMIN") {
+          router.push("/admin/dashboard/dungeons");
+        } else {
+          router.push("/dashboard/profile");
+        }
+      } else {
+        router.push(callbackUrl);
+      }
+
       router.refresh();
     }
+  };
+
+  const handleGoogleSubmit = () => {
+    // 中間ページへ飛ばす。元のcallbackUrlがある場合はクエリパラメータで引き継ぐ
+    const dest = `/login/callback?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    signIn("google", { callbackUrl: dest });
   };
 
   return (
@@ -115,9 +135,7 @@ function LoginForm() {
         </div>
 
         <button
-          onClick={() => {
-            signIn("google", { callbackUrl });
-          }}
+          onClick={handleGoogleSubmit}
           className="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <img className="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />

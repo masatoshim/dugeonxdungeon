@@ -35,7 +35,7 @@ export default function SignupPage() {
 
 function SignupForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/"; // todo: リダイレクトでない場合、dashboardに遷移するよう変更する
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/profile";
   const authError = searchParams.get("error");
 
   useEffect(() => {
