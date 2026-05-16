@@ -37,7 +37,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             id: true,
             code: true,
             status: true,
+            updatedAt: true,
           },
+          orderBy: {
+            updatedAt: "desc",
+          },
+          take: 100,
         },
         playHistories: {
           select: {
@@ -49,6 +54,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
               select: { id: true },
             },
           },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 100,
         },
         favoriteDungeons: {
           select: {
@@ -56,6 +65,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
               select: { code: true, status: true },
             },
           },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 100,
         },
       },
     });
