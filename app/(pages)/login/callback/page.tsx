@@ -22,7 +22,7 @@ export default function LoginCallbackPage() {
       // ロール判定ロジック
       if (callbackUrl === "/" || callbackUrl === "" || callbackUrl.includes("/login/callback")) {
         if (session.user.role === "ADMIN") {
-          router.push("/admin/dashboard/profile");
+          router.push("/admin/dashboard/home");
         } else {
           router.push("/dashboard/profile");
         }

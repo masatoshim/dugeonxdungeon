@@ -10,7 +10,7 @@ import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDe
 
 export default function FavoritesPage() {
   return (
-    <Suspense fallback={<div className="text-white">Loading...</div>}>
+    <Suspense fallback={<div className="text-white font-mono animate-pulse">Loading...</div>}>
       <FavoritesPageContent />
     </Suspense>
   );
@@ -33,11 +33,13 @@ function FavoritesPageContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white p-8">
+    <div className="w-full h-auto text-white">
+      {/* ヘッダー */}
       <header className="max-w-7xl mx-auto mb-8 flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-200">お気に入りダンジョン</h1>
         </div>
+
         {/* ソート */}
         <div className="flex flex-col items-end gap-2">
           <div className="hidden md:block">
@@ -58,7 +60,9 @@ function FavoritesPageContent() {
       </header>
 
       {/* お気に入り一覧 */}
-      <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+      <div className="max-w-7xl mx-auto">
+        <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+      </div>
 
       {/* ダンジョン詳細モーダル表示 */}
       {dungeonId && (

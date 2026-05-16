@@ -60,7 +60,7 @@ function LoginForm() {
       // デフォルトの遷移先（callbackUrlが "/" や指定なしの場合）
       if (callbackUrl === "/" || !callbackUrl) {
         if (session?.user?.role === "ADMIN") {
-          router.push("/admin/dashboard/dungeons");
+          router.push("/admin/dashboard/home");
         } else {
           router.push("/dashboard/profile");
         }
