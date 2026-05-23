@@ -85,6 +85,7 @@ export interface UserResponse extends UserBase {
   createdAt?: string | null;
   updatedAt?: string | null;
   // 統計情報
+  rank?: number;
   totalPlayScore: number;
   totalPlayTime: number;
   totalPlayCount: number;
@@ -97,6 +98,7 @@ export interface UserResponse extends UserBase {
   dungeons?: { dungeonCode?: string }[] | null;
   playHistories?: { dungeonCode?: string; userId: string; createdAt?: string }[] | null;
   favoriteDungeons?: { dungeonCode?: string }[] | null;
+  isGoogleUser?: boolean;
 }
 
 /**
@@ -117,11 +119,12 @@ export interface CreateUserRequest {
 /**
  * 更新リクエスト
  */
-// todo: passwordを更新する場合にどうするか要検討
 export interface UpdateUserRequest {
   nickName?: string | null;
   iconImageKey?: string | null;
-  // 管理者のみ、または本人のみ取得可能にする項目
+  // 本人のみ更新可能にする項目
+  password?: string;
+  // 管理者のみ、または本人のみ更新可能にする項目
   email?: string | null;
   isActive?: boolean;
   deletedFlg?: boolean;

@@ -20,6 +20,7 @@ export interface DungeonBase {
   isTemplate: boolean;
   userName?: string;
   nickName: string | null;
+  userIconImageKey: string | null;
   tags: string[];
   createdBy?: string;
   updatedBy?: string;
@@ -28,12 +29,15 @@ export interface DungeonBase {
 /**
  * 検索項目
  */
-export interface DungeonFilter {
+export interface PaginationFilter {
   // 共通（ページネーション）
   limit?: number;
   index?: number;
   sort?: string;
   order?: "asc" | "desc";
+}
+
+export interface DungeonFilter extends PaginationFilter {
   // ユーザーID
   userId?: string;
   createdBy?: string;

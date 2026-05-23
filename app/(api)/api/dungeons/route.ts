@@ -247,7 +247,7 @@ export async function GET(request: Request) {
       prisma.dungeon.findMany({
         where: { AND: andConditions },
         include: {
-          user: { select: { userName: true, nickName: true } },
+          user: { select: { userName: true, nickName: true, iconImageKey: true } },
           dungeonTags: { include: { tag: true } },
           // ログイン中ユーザーの「クリア実績」があるか（Ver問わず1件あればOK）
           playHistories: effectiveCheckUserId
@@ -286,8 +286,8 @@ export async function GET(request: Request) {
         isCleared: (playHistories?.length ?? 0) > 0,
         clearedVersion: playHistories?.[0]?.version,
         isFavorited: (favoritedBy?.length ?? 0) > 0,
-        dungeonTags: undefined,
         nickName: user.nickName,
+        userIconImageKey: user.iconImageKey,
         // 管理者のみ、または本人のみ取得可能にする項目
         userName: hasPrivateAccess ? user.userName : undefined,
         createdBy: hasPrivateAccess ? d.createdBy : undefined,

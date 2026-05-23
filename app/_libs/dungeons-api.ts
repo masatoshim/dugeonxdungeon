@@ -87,6 +87,14 @@ export const getFavoriteDungeon = async (id: string, userId?: string): Promise<F
   return await res.json();
 };
 
+// ユーザーごとのお気に入りダンジョンを取得する関数
+export const getFavoriteDungeonByUser = async (params?: DungeonFilter): Promise<DungeonsIndexResponse> => {
+  const query = params ? new URLSearchParams(params as any).toString() : "";
+  const res = await fetch(`/api/dungeons/favorite${query ? `?${query}` : ""}`);
+  if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
+  return await res.json();
+};
+
 // お気に入りダンジョンを登録する関数
 export const createFavoriteDungeon = async (id: string): Promise<FavoriteDungeonResponse> => {
   const res = await fetch(`/api/dungeons/${id}/favorite/favorite`, {
@@ -104,6 +112,14 @@ export const deleteFavoriteDungeon = async (id: string): Promise<FavoriteDungeon
     headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) throw new Error("削除に失敗しました");
+  return await res.json();
+};
+
+// ユーザーごとのプレイ履歴を取得する関数
+export const getPlayHistoryByUser = async (params?: DungeonFilter): Promise<DungeonsIndexResponse> => {
+  const query = params ? new URLSearchParams(params as any).toString() : "";
+  const res = await fetch(`/api/dungeons/play-history${query ? `?${query}` : ""}`);
+  if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
   return await res.json();
 };
 

@@ -1,6 +1,16 @@
-import { Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
-import { DungeonResponse, DungeonsIndexResponse } from "@/types";
-import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
+import { useState } from "react";
+import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
+import { DungeonResponse } from "@/types";
+import { useSession } from "next-auth/react";
+import {
+  useProfileIcon,
+  useGetFavoriteDungeon,
+  useCreateFavoriteDungeon,
+  useDeleteFavoriteDungeon,
+} from "@/app/_hooks";
+import { FavoriteDungeonResponse } from "@/types";
+import { toast } from "sonner";
 
 interface DungeonInfoProps {
   dungeon: DungeonResponse;
@@ -8,7 +18,38 @@ interface DungeonInfoProps {
 }
 
 export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
-  const router = useRouter();
+  const { status } = useSession();
+  const { isFavorited, mutate } = useGetFavoriteDungeon(dungeon.id);
+  const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
+  const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
+  const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
+  const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Link の遷移を防止
+    e.stopPropagation(); // バブリングを防止
+
+    if (status !== "authenticated") {
+      toast.error("お気に入り登録にはログインが必要です");
+      return;
+    }
+
+    if (isCreating || isDeleting) return;
+    try {
+      let result: FavoriteDungeonResponse;
+      if (isFavorited) {
+        result = await remove(dungeon.id);
+      } else {
+        result = await create(dungeon.id);
+      }
+      setFavoritesCount(result.count);
+      mutate();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // const router = useRouter();
   // スタッツ項目を配列化してループで表示
   const stats = [
     { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
@@ -23,16 +64,34 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
       {/* ユーザー情報 & お気に入り・攻略状況 */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400">
-            {dungeon.nickName?.[0] || "U"}
+          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400 overflow-hidden">
+            {iconUrl ? (
+              <Image
+                src={iconUrl}
+                alt="avatar"
+                width={30}
+                height={30}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <span className="text-[9px] font-bold leading-none">☺</span>
+            )}
           </div>
           <span className="font-bold text-slate-200">{dungeon.nickName}</span>
         </div>
         <div className="flex gap-2">
-          <div className="bg-pink-500/20 text-pink-400 border border-pink-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-            <span>❤️ お気に入り</span>
-            <span className="bg-white/20 px-2 rounded ml-1">{dungeon.favoritesCount || 0}</span>
-          </div>
+          <button
+            onClick={handleFavoriteClick}
+            className={`flex items-center gap-1 px-1.5 py-0 rounded-full text-[11px] transition-colors ${
+              isFavorited ? "bg-pink-500/20 text-pink-500" : "bg-slate-800 text-slate-400 hover:text-pink-400"
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isFavorited ? "fill-current" : ""}`} />
+            <span>お気に入り</span>
+            <span className="bg-white/20 px-2 rounded ml-1">{favoritesCount}</span>
+          </button>
+
           <div
             className={`px-3 py-1 rounded-full text-xs font-bold ${
               isCleared

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { UserResponse, UpdateUserRequest, UpdateUserResponse } from "@/types";
 import { Prisma } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 /**
  * GET: ユーザー詳細取得
@@ -36,11 +37,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             id: true,
             code: true,
             status: true,
+            updatedAt: true,
           },
+          orderBy: {
+            updatedAt: "desc",
+          },
+          take: 100,
         },
         playHistories: {
-          select: { createdAt: true },
-          include: {
+          select: {
+            createdAt: true,
             dungeon: {
               select: { code: true, status: true },
             },
@@ -48,13 +54,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
               select: { id: true },
             },
           },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 100,
         },
         favoriteDungeons: {
-          include: {
+          select: {
             dungeon: {
               select: { code: true, status: true },
             },
           },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 100,
         },
       },
     });
@@ -63,9 +77,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ message: "ユーザーが見つかりません" }, { status: 404 });
     }
 
+    // 2. 順位（rank）の算出
+    // 自分より totalPlayScore が高いユーザーの数 + 1 が現在の順位
+    const rank =
+      (await prisma.user.count({
+        where: {
+          totalPlayScore: {
+            gt: user.totalPlayScore, // greater than (より大きい)
+          },
+          isActive: true,
+          deletedFlg: false,
+        },
+      })) + 1;
+
     const hasPrivateAccess = isAdmin || session?.user?.id === user.id;
     const response: UserResponse = {
       id: user.id,
+      rank: rank,
       userName: user.userName,
       nickName: user.nickName,
       iconImageKey: user.iconImageKey,
@@ -102,6 +130,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         lastLoginAt: user.lastLoginAt?.toISOString() ?? undefined,
         email: user.email,
         emailVerified: user.emailVerified?.toISOString() ?? undefined,
+        isGoogleUser: user.hashedPassword === null,
       }),
       // 管理者のみ取得可能にする項目
       ...(isAdmin && {
@@ -125,7 +154,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // 1. 認証チェック
+    // 認証チェック
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
@@ -145,11 +174,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     // 更新データの選別
     const updateData: any = {
-      nickName: body.nickName,
-      email: body.email,
-      iconImageKey: body.iconImageKey,
       updatedBy: currentUserId,
     };
+
+    if (body.nickName !== undefined) updateData.nickName = body.nickName;
+    if (body.email !== undefined) updateData.email = body.email;
+    if (body.iconImageKey !== undefined) updateData.iconImageKey = body.iconImageKey;
+
+    // 本人のみ更新を許可
+    if (isOwner && body.password && body.password.trim() !== "") {
+      if (body.password.length < 8) {
+        return NextResponse.json({ message: "パスワードは8文字以上必要です" }, { status: 400 });
+      }
+      // パスワードをハッシュ化して保存
+      updateData.hashedPassword = await bcrypt.hash(body.password, 10);
+    }
+
     // 管理者のみが更新可能なフィールドをマージ
     if (isAdmin) {
       if (body.isActive !== undefined) updateData.isActive = body.isActive;
