@@ -7,10 +7,16 @@ import { useGetUser, useUpdateUser, useGetDungeons } from "@/app/_hooks";
 import { ProfileCard } from "./_components/ProfileCard";
 import { UserStatsCard } from "./_components/UserStatsCard";
 import { DungeonSection } from "./_components/DungeonSection";
+import { useSearchParams } from "next/navigation";
+import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
+import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
+
+  const searchParams = useSearchParams();
+  const dungeonId = searchParams.get("dungeonId");
 
   // 基本ユーザーデータ
   const { user, mutate: mutateUser, isLoading: isUserLoading } = useGetUser(userId);
@@ -63,7 +69,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto px-6 pb-6 pt-0">
       <div className="flex flex-col lg:flex-row gap-6 items-start mb-10 w-full">
         {/* プロフィール詳細 */}
         <div className="w-full lg:w-[380px] shrink-0">
@@ -96,6 +102,13 @@ export default function ProfilePage() {
           isLoading={isHistLoading}
         />
       </div>
+
+      {/* ダンジョン詳細モーダル表示 */}
+      {dungeonId && (
+        <DungeonDetailModal>
+          <DungeonDetailContent id={dungeonId} />
+        </DungeonDetailModal>
+      )}
     </div>
   );
 }

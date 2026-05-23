@@ -1,9 +1,14 @@
+import Image from "next/image";
 import { useState } from "react";
 import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
 import { DungeonResponse } from "@/types";
-import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useGetFavoriteDungeon, useCreateFavoriteDungeon, useDeleteFavoriteDungeon } from "@/app/_hooks";
+import {
+  useProfileIcon,
+  useGetFavoriteDungeon,
+  useCreateFavoriteDungeon,
+  useDeleteFavoriteDungeon,
+} from "@/app/_hooks";
 import { FavoriteDungeonResponse } from "@/types";
 import { toast } from "sonner";
 
@@ -18,6 +23,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
+  const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Link の遷移を防止
@@ -58,8 +64,19 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
       {/* ユーザー情報 & お気に入り・攻略状況 */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400">
-            {dungeon.nickName?.[0] || "U"}
+          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400 overflow-hidden">
+            {iconUrl ? (
+              <Image
+                src={iconUrl}
+                alt="avatar"
+                width={30}
+                height={30}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <span className="text-[9px] font-bold leading-none">☺</span>
+            )}
           </div>
           <span className="font-bold text-slate-200">{dungeon.nickName}</span>
         </div>
