@@ -10,8 +10,17 @@ import { DungeonSection } from "./_components/DungeonSection";
 import { useSearchParams } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
+import { Suspense } from "react";
 
 export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="text-slate-400">Loading...</div>}>
+      <ProfilePageContent />
+    </Suspense>
+  );
+}
+
+function ProfilePageContent() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 

@@ -39,14 +39,14 @@ export async function GET(request: Request) {
       : statusParam
         ? [statusParam as DungeonStatus]
         : [];
+    const targetUserId = searchParams.get("userId");
     if (isAdmin) {
       // 管理者は指定があれば絞り込み、なければ全件
       if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
+      if (targetUserId) andConditions.push({ userId: targetUserId });
     } else {
       // 一般・未ログインユーザー
-      const targetUserId = searchParams.get("userId");
       if (targetUserId) {
-        andConditions.push({ userId: targetUserId });
         if (targetUserId === sessionUserId) {
           if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
         } else {
