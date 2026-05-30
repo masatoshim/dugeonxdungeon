@@ -2,11 +2,20 @@
 
 import { useState, Suspense } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
-import { SortDropdown, SortOption, SortOrder } from "@/app/(pages)/_components/SortDropdown";
+import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
 import { usegetPlayHistoryByUser } from "@/app/_hooks";
 import { useSearchParams } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
+
+// 履歴画面用のソート項目定義
+const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
+  { value: "lastPlayed", label: "最近遊んだ順" },
+  { value: "createdAt", label: "最新（作成日）" },
+  { value: "mapSize", label: "ダンジョンサイズ" },
+  { value: "difficulty", label: "ダンジョン難しさ" },
+  { value: "timeLimit", label: "制限時間" },
+];
 
 export default function HistoryPage() {
   return (
@@ -19,11 +28,11 @@ export default function HistoryPage() {
 function HistoryPageContent() {
   const searchParams = useSearchParams();
   const dungeonId = searchParams.get("dungeonId");
-  const [sort, setSort] = useState<SortOption>("lastPlayed");
-  const [order, setOrder] = useState<SortOrder>("desc");
+  const [sort, setSort] = useState<string>("favoritedAt");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
 
-  const toggleOrder = () => {
-    setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  const handleOrderToggle = (currentOrder: "asc" | "desc") => {
+    setOrder(currentOrder);
   };
 
   // 最近遊んだダンジョンの一覧を取得
@@ -43,12 +52,13 @@ function HistoryPageContent() {
         {/* ソート */}
         <div className="flex flex-col items-end gap-2">
           <div className="hidden md:block">
-            <SortDropdown
-              currentSort={sort}
-              onSortChange={setSort}
-              currentOrder={order}
-              onOrderToggle={toggleOrder}
-              showLastPlayed={true}
+            <SortSelect
+              sort={sort}
+              order={order}
+              options={DUNGEON_SORT_OPTIONS}
+              onSelect={(val) => setSort(val)}
+              onOrderToggle={handleOrderToggle}
+              placeholder="並び替え"
             />
           </div>
 

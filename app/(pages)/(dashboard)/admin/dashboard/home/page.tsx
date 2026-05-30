@@ -1,8 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
+import { useSession } from "next-auth/react";
 import { AdminStatsOverview } from "./_components/AdminStatsOverview";
 import { useGetUsers, useGetDungeons } from "@/app/_hooks";
+import { DungeonSection } from "@/app/(pages)/_components/list/DungeonSection";
+import { useSearchParams } from "next/navigation";
+import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
+import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 
 // 日付操作ヘルパー
 const getPastDateISO = (daysOffset: number, hoursOffset: number = 0): string => {
@@ -13,6 +18,19 @@ const getPastDateISO = (daysOffset: number, hoursOffset: number = 0): string => 
 };
 
 export default function AdminHomePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-slate-400">Loading Dashboard...</div>}>
+      <AdminHomeContent />
+    </Suspense>
+  );
+}
+
+function AdminHomeContent() {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const searchParams = useSearchParams();
+  const dungeonId = searchParams.get("dungeonId");
+
   const dates = useMemo(() => {
     return {
       h24: getPastDateISO(0, 24),
@@ -95,9 +113,73 @@ export default function AdminHomePage() {
     adminCount: adminDungeonTotal || 0,
   };
 
+  // 管理者のダンジョン
+  const adminParams = useMemo(
+    () => ({
+      isTemplate: "true" as const,
+      sort: "updatedAt" as const,
+      order: "desc" as const,
+      limit: 4,
+    }),
+    [userId],
+  );
+  const { dungeons: adminDungeons, isLoading: isDraftLoading } = useGetDungeons(adminParams);
+
+  // ユーザー新規作成ダンジョン
+  const userParams = useMemo(
+    () => ({
+      isTemplate: "false" as const,
+      sort: "updatedAt" as const,
+      order: "desc" as const,
+      limit: 4,
+    }),
+    [userId],
+  );
+  const { dungeons: userDungeons, isLoading: isFavLoading } = useGetDungeons(userParams);
+
+  // 人気ダンジョン
+  const favParams = useMemo(
+    () => ({
+      sort: "favoritesCount" as const,
+      order: "desc" as const,
+      limit: 4,
+    }),
+    [userId],
+  );
+  const { dungeons: favDungeons, isLoading: isHistLoading } = useGetDungeons(favParams);
+
   return (
     <div className="p-6 pt-0">
-      <AdminStatsOverview userStats={userStatsData} dungeonStats={dungeonStatsData} />
+      <div className="flex flex-col lg:flex-row gap-6 items-start mb-10 w-full">
+        <AdminStatsOverview userStats={userStatsData} dungeonStats={dungeonStatsData} />
+      </div>
+      {/* 各ダンジョンリスト */}
+      <div className="space-y-8">
+        <DungeonSection
+          title="管理者のダンジョン"
+          viewMoreLink="/admin/dashboard/dungeons?view=admin"
+          dungeons={adminDungeons}
+          isLoading={isDraftLoading}
+        />
+        <DungeonSection
+          title="ユーザー新規作成ダンジョン"
+          viewMoreLink="/admin/dashboard/dungeons?view=user&sort=createdAt"
+          dungeons={userDungeons}
+          isLoading={isFavLoading}
+        />
+        <DungeonSection
+          title="人気ダンジョン"
+          viewMoreLink="/admin/dashboard/dungeons?view=user&sort=favoritesCount"
+          dungeons={favDungeons}
+          isLoading={isHistLoading}
+        />
+      </div>
+      {/* ダンジョン詳細モーダル表示 */}
+      {dungeonId && (
+        <DungeonDetailModal>
+          <DungeonDetailContent id={dungeonId} />
+        </DungeonDetailModal>
+      )}
     </div>
   );
 }

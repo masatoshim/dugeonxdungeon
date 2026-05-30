@@ -1,7 +1,17 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { FilterTab, UserSearchSelect, FilterStatus, SortSelect } from ".";
+import { FilterTab, UserSearchSelect, FilterStatus } from ".";
+import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
+
+// ダンジョンのソート項目定義
+const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
+  { value: "favoritesCount", label: "人気順" },
+  { value: "createdAt", label: "最新（作成日）" },
+  { value: "mapSize", label: "ダンジョンサイズ" },
+  { value: "difficulty", label: "ダンジョン難しさ" },
+  { value: "timeLimit", label: "制限時間" },
+];
 
 export function DungeonFilterBar() {
   const router = useRouter();
@@ -12,7 +22,8 @@ export function DungeonFilterBar() {
   const currentUserId = searchParams.get("userId") || "";
   const currentStatusList = searchParams.get("statusList") || "";
   const currentSort = searchParams.get("sort") || "createdAt";
-  const currentOrder = searchParams.get("order") || "asc";
+  const orderParam = searchParams.get("order");
+  const currentOrder: "asc" | "desc" = orderParam === "desc" ? "desc" : "asc";
 
   const updateParams = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -59,8 +70,10 @@ export function DungeonFilterBar() {
         <SortSelect
           sort={currentSort}
           order={currentOrder}
+          options={DUNGEON_SORT_OPTIONS}
           onSelect={(val) => updateParams({ sort: val })}
           onOrderToggle={(val) => updateParams({ order: val })}
+          placeholder="並び替え"
         />
       </div>
     </div>

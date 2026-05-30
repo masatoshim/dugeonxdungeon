@@ -6,10 +6,10 @@ import { useMemo } from "react";
 import { useGetUser, useUpdateUser, useGetDungeons } from "@/app/_hooks";
 import { ProfileCard } from "./_components/ProfileCard";
 import { UserStatsCard } from "./_components/UserStatsCard";
-import { DungeonSection } from "./_components/DungeonSection";
 import { useSearchParams } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
+import { DungeonSection } from "@/app/(pages)/_components/list/DungeonSection";
 import { Suspense } from "react";
 
 export default function ProfilePage() {

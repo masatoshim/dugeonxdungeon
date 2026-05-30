@@ -49,9 +49,11 @@ export async function GET(request: Request) {
       if (targetUserId) {
         if (targetUserId === sessionUserId) {
           if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
+          andConditions.push({ userId: targetUserId });
         } else {
           // 他人のID指定なら「公開中」のみ
           andConditions.push({ status: "PUBLISHED" });
+          andConditions.push({ userId: targetUserId });
         }
       } else {
         // ユーザーID指定なしの一覧画面
