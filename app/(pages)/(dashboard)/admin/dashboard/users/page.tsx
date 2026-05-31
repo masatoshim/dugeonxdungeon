@@ -2,9 +2,9 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Suspense } from "react";
-import { UserListTable } from "./_components/UserListTable";
 import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
 import { useGetUsers } from "@/app/_hooks";
+import { UserRow } from "./_components/UserRow";
 
 // ユーザー一覧用のソート項目定義
 const USER_SORT_OPTIONS: SortOptionItem[] = [
@@ -64,11 +64,16 @@ function AdminUserListPageContent() {
             options={USER_SORT_OPTIONS}
             onSelect={(val) => updateQueryParams({ sort: val })}
             onOrderToggle={(val) => updateQueryParams({ order: val })}
-            placeholder="並び替え"
           />
         </div>
 
-        <UserListTable users={users} currentPage={currentPage} itemsPerPage={itemsPerPage} />
+        {users.map((user, index) => {
+          // ページ番号を考慮した絶対順位の計算
+          const displayRank = (currentPage - 1) * itemsPerPage + index + 1;
+          const rowBg = index % 2 === 0 ? "bg-[#121425]/70" : "bg-[#181c33]/70";
+
+          return <UserRow key={user.id} displayRank={displayRank} user={user} />;
+        })}
       </div>
     </div>
   );

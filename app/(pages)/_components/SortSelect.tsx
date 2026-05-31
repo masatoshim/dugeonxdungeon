@@ -15,10 +15,9 @@ interface SortSelectProps {
   options: SortOptionItem[];
   onSelect: (sort: string) => void;
   onOrderToggle: (order: "asc" | "desc") => void;
-  placeholder?: string;
 }
 
-export function SortSelect({ sort, order, options, onSelect, onOrderToggle, placeholder = "ソート" }: SortSelectProps) {
+export function SortSelect({ sort, order, options, onSelect, onOrderToggle }: SortSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +33,7 @@ export function SortSelect({ sort, order, options, onSelect, onOrderToggle, plac
   }, []);
 
   // 現在の選択ラベルを取得
-  const currentLabel = options.find((o) => o.value === sort)?.label || placeholder;
+  const currentLabel = options.find((o) => o.value === sort)?.label;
 
   // 昇順・降順アイコンクリック時の処理
   const handleIconClick = (e: React.MouseEvent) => {

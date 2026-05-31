@@ -58,7 +58,6 @@ function FavoritesPageContent() {
               options={DUNGEON_SORT_OPTIONS}
               onSelect={(val) => setSort(val)}
               onOrderToggle={handleOrderToggle}
-              placeholder="並び替え"
             />
           </div>
 

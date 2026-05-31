@@ -73,7 +73,6 @@ export function DungeonFilterBar() {
           options={DUNGEON_SORT_OPTIONS}
           onSelect={(val) => updateParams({ sort: val })}
           onOrderToggle={(val) => updateParams({ order: val })}
-          placeholder="並び替え"
         />
       </div>
     </div>
