@@ -10,11 +10,10 @@ import { useProfileIcon } from "@/app/_hooks";
 import Image from "next/image";
 
 interface UserRowProps {
-  displayRank: number;
   user: UserResponse;
 }
 
-export function UserRow({ displayRank, user }: UserRowProps) {
+export function UserRow({ user }: UserRowProps) {
   const router = useRouter();
   const { iconUrl } = useProfileIcon(user?.iconImageKey);
 
@@ -29,11 +28,9 @@ export function UserRow({ displayRank, user }: UserRowProps) {
   };
 
   return (
-    <div
-      className={`relative flex items-center gap-6 p-4 rounded-xl border transition-all duration-1000 animate-highlight border-[#4fd1d1] z-10 shadow-[0_0_15px_rgba(79,209,209,0.2)]`}
-    >
+    <div className={`relative flex items-center gap-3 p-2 rounded-xl border transition-all`}>
       {/* ユーザー情報 */}
-      <span className="py-4 px-6 text-center font-mono text-base font-black text-indigo-400">{displayRank}</span>
+      <span className="py-4 px-6 text-center font-mono text-base font-black text-indigo-400">{user.rank}</span>
 
       <span className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#4fd1d1]/20 bg-slate-800  items-center justify-center relative">
         {iconUrl ? (
@@ -48,7 +45,6 @@ export function UserRow({ displayRank, user }: UserRowProps) {
 
       <span className="py-4 px-6 text-right text-[#e2d4be] font-mono">{formatScore(user.totalPlayScore)}</span>
       <span className="py-4 px-6 text-right text-[#e2d4be] font-mono">{formatPlayTime(user.totalPlayTime)}</span>
-      <span className="py-4 px-6 text-center text-[#e2d4be] font-mono text-base">{user.dungeonCount}</span>
       {/* 操作ボタン群 */}
       <div className="flex items-center gap-2 shrink-0">
         <button

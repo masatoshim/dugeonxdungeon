@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
-import { useGetFavoriteDungeonByUser } from "@/app/_hooks";
+import { useGetFavoriteDungeons } from "@/app/_hooks";
 import { useSearchParams } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
@@ -36,7 +36,7 @@ function FavoritesPageContent() {
   };
 
   // お気に入りダンジョン一覧を取得
-  const { dungeons, isLoading, error } = useGetFavoriteDungeonByUser({
+  const { dungeons, isLoading, error } = useGetFavoriteDungeons({
     sort: sort,
     order: order,
   });

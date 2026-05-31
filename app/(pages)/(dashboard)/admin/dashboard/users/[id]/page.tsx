@@ -1,9 +1,16 @@
 "use client";
 
 import { PlayStatus } from "@prisma/client";
+import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
-import { useGetUser, useUpdateUser, useGetDungeons } from "@/app/_hooks";
+import {
+  useGetUser,
+  useUpdateUser,
+  useGetDungeons,
+  useGetFavoriteDungeons,
+  usegetPlayHistoryDungeons,
+} from "@/app/_hooks";
 import { ProfileCard } from "@/app/(pages)/(dashboard)/_components/ProfileCard";
 import { UserStatsCard } from "@/app/(pages)/(dashboard)/_components/UserStatsCard";
 import { useSearchParams } from "next/navigation";
@@ -21,8 +28,8 @@ export default function ProfilePage() {
 }
 
 function ProfilePageContent() {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
+  const params = useParams();
+  const userId = params.id as string;
 
   const searchParams = useSearchParams();
   const dungeonId = searchParams.get("dungeonId");
@@ -47,26 +54,26 @@ function ProfilePageContent() {
   // お気に入りダンジョン
   const favoriteParams = useMemo(
     () => ({
-      isFavoritesList: "true",
+      userId,
       sort: "updatedAt" as const,
       order: "desc" as const,
       limit: 4,
     }),
     [userId],
   );
-  const { dungeons: favDungeons, isLoading: isFavLoading } = useGetDungeons(favoriteParams);
+  const { dungeons: favDungeons, isLoading: isFavLoading } = useGetFavoriteDungeons(favoriteParams);
 
   // 最近遊んだダンジョン
   const historyParams = useMemo(
     () => ({
-      playStatusList: [PlayStatus.CLEAR, PlayStatus.FAILURE, PlayStatus.INTERRUPT],
+      userId,
       sort: "updatedAt" as const,
       order: "desc" as const,
       limit: 4,
     }),
     [userId],
   );
-  const { dungeons: histDungeons, isLoading: isHistLoading } = useGetDungeons(historyParams);
+  const { dungeons: histDungeons, isLoading: isHistLoading } = usegetPlayHistoryDungeons(historyParams);
 
   // ユーザー情報の初期読み込み中のみ、画面全体で待つ
   if (isUserLoading || !user) {

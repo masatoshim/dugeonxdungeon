@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
-import { usegetPlayHistoryByUser } from "@/app/_hooks";
+import { usegetPlayHistoryDungeons } from "@/app/_hooks";
 import { useSearchParams } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
@@ -28,7 +28,7 @@ export default function HistoryPage() {
 function HistoryPageContent() {
   const searchParams = useSearchParams();
   const dungeonId = searchParams.get("dungeonId");
-  const [sort, setSort] = useState<string>("favoritedAt");
+  const [sort, setSort] = useState<string>("lastPlayed");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
 
   const handleOrderToggle = (currentOrder: "asc" | "desc") => {
@@ -36,7 +36,7 @@ function HistoryPageContent() {
   };
 
   // 最近遊んだダンジョンの一覧を取得
-  const { dungeons, isLoading, error } = usegetPlayHistoryByUser({
+  const { dungeons, isLoading, error } = usegetPlayHistoryDungeons({
     sort: sort,
     order: order,
   });

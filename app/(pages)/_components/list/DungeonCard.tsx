@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Heart, CheckSquare } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/types";
 import {
-  useGetFavoriteDungeon,
+  useGetFavoriteDungeonStatus,
   useCreateFavoriteDungeon,
   useDeleteFavoriteDungeon,
   useProfileIcon,
@@ -23,7 +23,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   const { data: session, status } = useSession();
   const currentUserId = session?.user?.id;
 
-  const { isFavorited, mutate } = useGetFavoriteDungeon(dungeon.id);
+  const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const [isDraftStatus] = useState(dungeon.status === "DRAFT");
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);

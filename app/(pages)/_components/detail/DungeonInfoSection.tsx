@@ -5,7 +5,7 @@ import { DungeonResponse } from "@/types";
 import { useSession } from "next-auth/react";
 import {
   useProfileIcon,
-  useGetFavoriteDungeon,
+  useGetFavoriteDungeonStatus,
   useCreateFavoriteDungeon,
   useDeleteFavoriteDungeon,
 } from "@/app/_hooks";
@@ -19,7 +19,7 @@ interface DungeonInfoProps {
 
 export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
   const { status } = useSession();
-  const { isFavorited, mutate } = useGetFavoriteDungeon(dungeon.id);
+  const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);

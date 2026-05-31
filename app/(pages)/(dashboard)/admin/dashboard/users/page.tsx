@@ -8,9 +8,10 @@ import { UserRow } from "./_components/UserRow";
 
 // ユーザー一覧用のソート項目定義
 const USER_SORT_OPTIONS: SortOptionItem[] = [
+  { label: "ユーザーネーム", value: "userName" },
+  { label: "ニックネーム", value: "nickName" },
   { label: "トータルスコア", value: "totalPlayScore" },
   { label: "トータルプレイ時間", value: "totalPlayTime" },
-  { label: "構築ダンジョン数", value: "dungeonCount" },
 ];
 
 export default function AdminUserListPage() {
@@ -29,7 +30,7 @@ function AdminUserListPageContent() {
   // ─── クエリパラメータの取得 ───
   const currentSort = searchParams.get("sort") || "totalPlayScore";
   const orderParam = searchParams.get("order");
-  const currentOrder: "asc" | "desc" = orderParam === "desc" ? "asc" : "desc";
+  const currentOrder: "asc" | "desc" = orderParam === "asc" ? "asc" : "desc";
   const currentPage = Number(searchParams.get("page")) || 1;
   const itemsPerPage = 5; // 1ページあたりの表示件数
 
@@ -68,11 +69,7 @@ function AdminUserListPageContent() {
         </div>
 
         {users.map((user, index) => {
-          // ページ番号を考慮した絶対順位の計算
-          const displayRank = (currentPage - 1) * itemsPerPage + index + 1;
-          const rowBg = index % 2 === 0 ? "bg-[#121425]/70" : "bg-[#181c33]/70";
-
-          return <UserRow key={user.id} displayRank={displayRank} user={user} />;
+          return <UserRow key={user.id} user={user} />;
         })}
       </div>
     </div>
