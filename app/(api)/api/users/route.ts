@@ -125,6 +125,21 @@ export async function GET(request: Request) {
       });
     }
 
+    // ─── 【最適化】ウィンドウ関数を使って、全ユーザーの「トータルスコア絶対順位」を一発で計算 ───
+    interface UserRankRaw {
+      id: string;
+      global_rank: bigint;
+    }
+
+    // スコアの降順で、同スコアは同じ順位で全表の順位マップを作成
+    const rankMapRaw = await prisma.$queryRaw<UserRankRaw[]>`
+      SELECT id, RANK() OVER (ORDER BY "totalPlayScore" DESC) as global_rank
+      FROM "User"
+      WHERE "deletedFlg" = false AND "isActive" = true
+    `;
+    // Mapオブジェクトに変換
+    const rankMap = new Map<string, number>(rankMapRaw.map((item) => [item.id, Number(item.global_rank)]));
+
     // DB実行 (合計件数とデータ取得)
     const [totalCount, usersRaw] = await Promise.all([
       prisma.user.count({ where: { AND: andConditions } }),
@@ -167,8 +182,12 @@ export async function GET(request: Request) {
     const users: UserResponse[] = usersRaw.map((u) => {
       const { hashedPassword, ...rest } = u;
       const hasPrivateAccess = isAdmin || session?.user?.id === u.id;
+
+      const absoluteRank = rankMap.get(u.id) || 0;
+
       return {
         ...rest,
+        rank: absoluteRank,
         dungeons: u.dungeons
           .filter((d) => hasPrivateAccess || d.status === "PUBLISHED")
           .map((d) => {

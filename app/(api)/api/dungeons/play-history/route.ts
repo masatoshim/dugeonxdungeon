@@ -18,13 +18,14 @@ export async function GET(request: Request) {
   const index = Number(searchParams.get("index") || 0);
   const sortField = searchParams.get("sort") || "historyCreatedAt";
   const sortOrder = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const targetUserId = searchParams.get("userId") ?? sessionUserId;
 
   try {
     const whereCondition = {
       AND: [
         { status: DungeonStatus.PUBLISHED },
         { deletedFlg: false },
-        { playHistories: { some: { userId: sessionUserId } } },
+        { playHistories: { some: { userId: targetUserId } } },
       ],
     };
 
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
         .groupBy({
           by: ["dungeonId"],
           where: {
-            userId: sessionUserId,
+            userId: targetUserId,
             dungeon: { status: DungeonStatus.PUBLISHED, deletedFlg: false },
           },
         })
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
 
       const historyData = await prisma.playHistory.findMany({
         where: {
-          userId: sessionUserId,
+          userId: targetUserId,
           dungeon: { status: DungeonStatus.PUBLISHED, deletedFlg: false },
         },
         orderBy: { createdAt: sortOrder },
@@ -58,11 +59,11 @@ export async function GET(request: Request) {
               user: { select: { nickName: true, iconImageKey: true } },
               dungeonTags: { include: { tag: true } },
               playHistories: {
-                where: { userId: sessionUserId, playStatus: "CLEAR" },
+                where: { userId: targetUserId, playStatus: "CLEAR" },
                 take: 1,
               },
               favoritedBy: {
-                where: { userId: sessionUserId },
+                where: { userId: targetUserId },
                 take: 1,
               },
             },
@@ -86,7 +87,7 @@ export async function GET(request: Request) {
           // ログイン中ユーザーの「クリア実績」
           playHistories: {
             where: {
-              userId: sessionUserId,
+              userId: targetUserId,
               playStatus: "CLEAR",
             },
             take: 1,
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
           },
           // ログイン中ユーザーの「お気に入り」
           favoritedBy: {
-            where: { userId: sessionUserId },
+            where: { userId: targetUserId },
             take: 1,
             select: { userId: true },
           },

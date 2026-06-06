@@ -104,7 +104,7 @@ model Dungeon {
   interruptPlayCount Int                 @default(0)
   totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
-  favoritesCount    Int                 @default(0)
+  favoritesCount     Int                 @default(0)
   // --- 監査・追跡情報 ---
   version            Int                 @default(1)
   deletedFlg         Boolean             @default(false)

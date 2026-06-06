@@ -3,8 +3,16 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSession } from "next-auth/react";
+import { Suspense } from "react";
 
 export default function LoginCallbackPage() {
+  return (
+    <Suspense fallback={<div className="text-slate-400">Loading...</div>}>
+      <LoginCallbackPageContent />
+    </Suspense>
+  );
+}
+function LoginCallbackPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";

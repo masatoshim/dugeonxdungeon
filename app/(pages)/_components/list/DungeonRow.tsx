@@ -153,7 +153,7 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
       <div className="flex items-center gap-2 shrink-0">
         {isAdmin && !isAdminTab ? (
           <button
-            onClick={() => router.push(`/admin/dashboard/dungeons/user/${dungeon.id}`)}
+            onClick={() => router.push(`/dungeons/${dungeon.id}/edit?from=user-detail`)}
             className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm"
           >
             詳細

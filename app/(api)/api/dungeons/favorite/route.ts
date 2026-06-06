@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const index = Number(searchParams.get("index") || 0);
   const sortField = searchParams.get("sort") || "favoritedAt";
   const sortOrder = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const targetUserId = searchParams.get("userId") ?? sessionUserId;
 
   try {
     // 共通の抽出条件：公開済みかつ未削除のダンジョン
@@ -32,11 +33,11 @@ export async function GET(request: Request) {
     if (sortField === "favoritedAt") {
       // ソート順が 【お気に入りに追加した順】FavoritesDungeon主体で取得
       totalCount = await prisma.favoritesDungeon.count({
-        where: { userId: sessionUserId, dungeon: dungeonBaseWhere },
+        where: { userId: targetUserId, dungeon: dungeonBaseWhere },
       });
 
       const favorites = await prisma.favoritesDungeon.findMany({
-        where: { userId: sessionUserId, dungeon: dungeonBaseWhere },
+        where: { userId: targetUserId, dungeon: dungeonBaseWhere },
         orderBy: { createdAt: sortOrder },
         take: limit,
         skip: index,
@@ -46,11 +47,11 @@ export async function GET(request: Request) {
               user: { select: { nickName: true, iconImageKey: true } },
               dungeonTags: { include: { tag: true } },
               playHistories: {
-                where: { userId: sessionUserId, playStatus: "CLEAR" },
+                where: { userId: targetUserId, playStatus: "CLEAR" },
                 take: 1,
               },
               favoritedBy: {
-                where: { userId: sessionUserId },
+                where: { userId: targetUserId },
                 take: 1,
               },
             },
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
       // ソート順が「お気に入りに追加した順」以外の場合：Dungeon 主体で取得
       const whereCondition = {
         ...dungeonBaseWhere,
-        favoritedBy: { some: { userId: sessionUserId } },
+        favoritedBy: { some: { userId: targetUserId } },
       };
 
       totalCount = await prisma.dungeon.count({ where: whereCondition });
@@ -75,11 +76,11 @@ export async function GET(request: Request) {
           user: { select: { nickName: true, iconImageKey: true } },
           dungeonTags: { include: { tag: true } },
           playHistories: {
-            where: { userId: sessionUserId, playStatus: "CLEAR" },
+            where: { userId: targetUserId, playStatus: "CLEAR" },
             take: 1,
           },
           favoritedBy: {
-            where: { userId: sessionUserId },
+            where: { userId: targetUserId },
             take: 1,
           },
         },

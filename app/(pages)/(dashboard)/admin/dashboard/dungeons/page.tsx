@@ -7,7 +7,7 @@ import { useGetDungeons } from "@/app/_hooks";
 import { useSession } from "next-auth/react";
 import { DungeonRow } from "@/app/(pages)/_components/list/DungeonRow";
 import { DungeonFilterBar } from "./_components/DungeonFilterBar";
-import { DungeonsIndexResponse, DungeonFilter } from "@/types";
+import { DungeonFilter } from "@/types";
 
 export default function AdminDungeonsPage() {
   return (
@@ -43,7 +43,6 @@ function DungeonsPageContent() {
   if (isAdminMode) params.userId = session?.user?.id; // 管理者自身
   if (!isAdminMode && currentUserId) params.userId = currentUserId; // ユーザーを指定
   if (currentStatusList && currentStatusList !== "all") params.statusList = currentStatusList;
-
   const { dungeons, isLoading, mutate } = useGetDungeons(params);
 
   if (isLoading) return <div className="text-white">Loading...</div>;

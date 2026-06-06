@@ -30,11 +30,16 @@ export interface DungeonBase {
  * 検索項目
  */
 export interface PaginationFilter {
+  userId?: string;
   // 共通（ページネーション）
   limit?: number;
   index?: number;
   sort?: string;
   order?: "asc" | "desc";
+}
+
+export interface DungeonByUserFilter extends PaginationFilter {
+  userId?: string;
 }
 
 export interface DungeonFilter extends PaginationFilter {

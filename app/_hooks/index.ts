@@ -8,11 +8,11 @@ export * from "./useGetDungeonRankings";
 export * from "./useCreatePlayHistory";
 export * from "./useCreateFavoriteDungeon";
 export * from "./useDeleteFavoriteDungeon";
-export * from "./useGetFavoriteDungeon";
+export * from "./useGetFavoriteDungeonStatus";
 export * from "./useCreatePendingClear";
 export * from "./useConfirmClear";
-export * from "./useGetPlayHistoryByUser";
-export * from "./useGetFavoriteDungeonByUser";
+export * from "./useGetPlayHistoryDungeons";
+export * from "./useGetFavoriteDungeons";
 // ユーザー用フック
 export * from "./useCreateUser";
 export * from "./useDeleteUser";

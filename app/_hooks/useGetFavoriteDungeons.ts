@@ -1,13 +1,13 @@
 import useSWR from "swr";
-import { DungeonsIndexResponse, PaginationFilter } from "@/types";
+import { DungeonsIndexResponse, DungeonByUserFilter } from "@/types";
 import { getFavoriteDungeonByUser } from "@/app/_libs/dungeons-api";
 import { useSession } from "next-auth/react";
 
-export const useGetFavoriteDungeonByUser = (filter?: PaginationFilter) => {
+export const useGetFavoriteDungeons = (filter?: DungeonByUserFilter) => {
   const { data: _, status } = useSession();
   const { data, error, isLoading, mutate } = useSWR<DungeonsIndexResponse>(
     status === "authenticated" ? ["/api/dungeons/favorite", filter] : null,
-    ([_, f]: [string, PaginationFilter]) => getFavoriteDungeonByUser(f),
+    ([_, f]: [string, DungeonByUserFilter]) => getFavoriteDungeonByUser(f),
   );
 
   return {

@@ -39,19 +39,21 @@ export async function GET(request: Request) {
       : statusParam
         ? [statusParam as DungeonStatus]
         : [];
+    const targetUserId = searchParams.get("userId");
     if (isAdmin) {
       // 管理者は指定があれば絞り込み、なければ全件
       if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
+      if (targetUserId) andConditions.push({ userId: targetUserId });
     } else {
       // 一般・未ログインユーザー
-      const targetUserId = searchParams.get("userId");
       if (targetUserId) {
-        andConditions.push({ userId: targetUserId });
         if (targetUserId === sessionUserId) {
           if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
+          andConditions.push({ userId: targetUserId });
         } else {
           // 他人のID指定なら「公開中」のみ
           andConditions.push({ status: "PUBLISHED" });
+          andConditions.push({ userId: targetUserId });
         }
       } else {
         // ユーザーID指定なしの一覧画面
