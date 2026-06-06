@@ -17,9 +17,6 @@ export async function GET(request: Request) {
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
-    }
     const isAdmin = session?.user?.role === "ADMIN";
 
     // ページネーション・ソート設定

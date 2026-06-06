@@ -17,7 +17,7 @@ model User {
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
   interruptPlayCount Int                 @default(0)
-  playDungeonCount   Int                 @default(0)
+  playDungeonCount   Int                 @default(0) // 1ダンジョンにつき初回クリア時のみ加算
   totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
   // --- ステータスフラグ ---

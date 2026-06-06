@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 export const useGetUsers = (filter?: UserFilter) => {
   const { data: _, status } = useSession();
   const { data, error, isLoading, mutate } = useSWR<UsersIndexResponse>(
-    status === "authenticated" ? ["/api/users", filter] : null,
+    // 未ログインユーザーでも取得可能
+    status !== "loading" ? ["/api/users", filter] : null,
     ([_, f]: [string, UserFilter]) => fetchUsers(f),
   );
 
