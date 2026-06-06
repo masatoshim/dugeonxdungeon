@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import {
   useGetUser,
   useUpdateUser,
+  useDeleteUser,
   useGetDungeons,
   useGetFavoriteDungeons,
   usegetPlayHistoryDungeons,
@@ -37,6 +38,7 @@ function ProfilePageContent() {
   // 基本ユーザーデータ
   const { user, mutate: mutateUser, isLoading: isUserLoading } = useGetUser(userId);
   const { update } = useUpdateUser(userId!);
+  const { remove } = useDeleteUser(userId!);
 
   // 構築中ダンジョン (DRAFT)
   const draftParams = useMemo(
@@ -89,7 +91,7 @@ function ProfilePageContent() {
       <div className="flex flex-col lg:flex-row gap-6 items-start mb-10 w-full">
         {/* プロフィール詳細 */}
         <div className="w-full lg:w-[380px] shrink-0">
-          <ProfileCard user={user} mutate={mutateUser} update={update} />
+          <ProfileCard user={user} mutate={mutateUser} update={update} remove={remove} isAdminMode={true} />
         </div>
         {/* 統計情報 */}
         <div className="flex-1 min-w-0 w-full">
@@ -101,19 +103,19 @@ function ProfilePageContent() {
       <div className="space-y-8">
         <DungeonSection
           title="構築中のダンジョン"
-          viewMoreLink="/dashboard/dungeons"
+          viewMoreLink={`/admin/dashboard/dungeons/?view=user&userId=${user.id}&statusList=DRAFT`}
           dungeons={draftDungeons}
           isLoading={isDraftLoading}
         />
         <DungeonSection
           title="お気に入りダンジョン"
-          viewMoreLink="/dashboard/favorites"
+          viewMoreLink={`/admin/dashboard/users/${user.id}/favorites`}
           dungeons={favDungeons}
           isLoading={isFavLoading}
         />
         <DungeonSection
           title="最近遊んだダンジョン"
-          viewMoreLink="/dashboard/history"
+          viewMoreLink={`/admin/dashboard/users/${user.id}/history`}
           dungeons={histDungeons}
           isLoading={isHistLoading}
         />

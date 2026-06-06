@@ -1,7 +1,9 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useSWRConfig } from "swr";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +14,7 @@ import { EditorHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useCreateDungeon, useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
 import { useTileImages, useDungeonEditorLogic } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
+import { DungeonMetadataCard } from "./DungeonMetadataCard";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({
@@ -36,6 +39,14 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   if (!user) return toast.error("セッションが切断されました。再ログインしてください。");
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 管理者ダッシュボードのユーザーダンジョン「詳細ボタン」から遷移してきた場合
+  const fromSource = searchParams.get("from");
+  const isFromUserDetail = fromSource === "user-detail";
+  const initialPaletteOpen = isFromUserDetail ? false : true;
+  const initialMetadataOpen = isFromUserDetail ? true : false;
+
   const { mutate } = useSWRConfig(); // キャッシュ操作用
   const isEditMode = !!initialData?.id;
 
@@ -73,7 +84,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     handleCellClick,
     updateTilesSize,
     getEntityType,
-    setRows, // Headerの表示用などで必要な場合
+    setRows,
     setCols,
   } = useDungeonEditorLogic(initialData);
 
@@ -223,7 +234,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             }}
           />
 
-          <div className="flex gap-6 mt-6">
+          <div className="flex gap-6 mt-6 items-start">
+            {/* 左サイドバー */}
             <aside className="w-64 flex-shrink-0 space-y-4">
               <TilePalette
                 selectedTile={selectedTile}
@@ -233,7 +245,16 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                   }
                   setSelectedTile(id);
                 }}
+                defaultOpen={initialPaletteOpen}
               />
+
+              <DungeonMetadataCard
+                initialData={initialData}
+                isEditMode={isEditMode}
+                isAdmin={isAdmin}
+                defaultOpen={initialMetadataOpen}
+              />
+
               {linkingState.active && (
                 <div className="bg-amber-900/40 border border-amber-500 p-4 rounded-xl animate-pulse">
                   <p className="text-sm font-bold text-amber-400">Linking Mode</p>
@@ -242,7 +263,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               )}
             </aside>
 
-            <main className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 min-h-[600px] flex">
+            <main className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-[calc(100vh-160px)] min-h-[600px] flex">
               <DungeonCanvasView
                 tiles={tiles}
                 entities={entities}
