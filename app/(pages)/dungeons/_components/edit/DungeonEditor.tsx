@@ -10,11 +10,12 @@ import { z } from "zod";
 import { toast } from "sonner";
 
 import { DUNGEON_DEFAULT, TILE_CONFIG, TileConfigKey, TILE_CATEGORIES } from "@/types";
-import { EditorHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
+import { EditorInfoForm, EditorActionBar, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useGetUser, useCreateDungeon, useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
 import { useTileImages, useDungeonEditorLogic } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
 import { DungeonMetadataCard } from "./DungeonMetadataCard";
+import { DungeonResponse } from "@/types";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({
@@ -29,7 +30,7 @@ const dungeonSchema = z.object({
 type DungeonFormData = z.infer<typeof dungeonSchema>;
 
 interface DungeonEditorProps {
-  initialData?: any; // 編集時は既存データが入る
+  initialData?: DungeonResponse; // 編集時は既存データが入る
   isAdmin: boolean;
 }
 
@@ -77,6 +78,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   });
   const formValues = watch();
 
+  // ダンジョン名に処置気をセット
   useEffect(() => {
     // 新規作成モードかつ、APIからユーザー情報が取得できたタイミング
     if (!isEditMode && userInfo) {
@@ -116,34 +118,51 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       if (!flatTiles.some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.GOAL))
         return toast.error("ゴールを設置してください");
 
-      const { mapDataCheck, ...rest } = data; // 隠しフィールドを除外
-      const payload = {
-        ...rest,
-        ...(isEditMode && { version: initialData.version + 1 }),
-        code: isEditMode ? initialData.code : `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-        userId: isEditMode ? initialData.userId : user.id,
-        mapData: {
-          tiles: tiles.map((row) => row.map((c) => (c === ".." ? " " : c))),
-          entities,
-          width: cols,
-          height: rows,
-        },
-        mapSizeHeight: rows,
-        mapSizeWidth: cols,
-        mapSize: cols * rows,
-        difficulty: isEditMode ? initialData.difficulty : 3,
-        status: "DRAFT" as const, // 保存する際は常に編集中に更新
-        isTemplate: isAdmin || user.role === "ADMIN",
-        tagIds: [], // todo: tagセットのロジックは劣後
-        createdBy: isEditMode ? initialData.createdBy : user.id,
-        updatedBy: user.id,
-      };
-
       try {
         let savedDungeon: any;
         if (isEditMode) {
+          const { mapDataCheck, ...rest } = data; // 隠しフィールドを除外
+          const payload = {
+            ...rest,
+            versionMajor: (initialData.versionMajor ?? 0) + 1,
+            mapData: {
+              tiles: tiles.map((row) => row.map((c) => (c === ".." ? " " : c))),
+              entities,
+              width: cols,
+              height: rows,
+            },
+            mapSizeHeight: rows,
+            mapSizeWidth: cols,
+            mapSize: cols * rows,
+            difficulty: initialData.difficulty,
+            status: "DRAFT" as const, // 保存する際は常に編集中に更新
+            tagIds: [], // todo: tagセットのロジックは劣後
+            createdBy: isEditMode ? initialData.createdBy : user.id,
+            updatedBy: user.id,
+          };
           savedDungeon = await update(payload);
         } else {
+          const { mapDataCheck, ...rest } = data; // 隠しフィールドを除外
+          const payload = {
+            ...rest,
+            code: `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+            userId: user.id,
+            mapData: {
+              tiles: tiles.map((row) => row.map((c) => (c === ".." ? " " : c))),
+              entities,
+              width: cols,
+              height: rows,
+            },
+            mapSizeHeight: rows,
+            mapSizeWidth: cols,
+            mapSize: cols * rows,
+            difficulty: 3,
+            status: "DRAFT" as const,
+            isTemplate: isAdmin || user.role === "ADMIN",
+            tagIds: [], // todo: tagセットのロジックは劣後
+            createdBy: user.id,
+            updatedBy: user.id,
+          };
           savedDungeon = await create(payload);
         }
 
@@ -216,50 +235,62 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
         <form onSubmit={handleSubmit((data) => onSubmitSave(data, false))}>
-          <EditorHeader
-            cols={cols}
-            rows={rows}
-            config={formValues}
-            errors={errors}
-            status={initialData?.status ?? "DRAFT"}
-            isDirty={isDirty}
-            isEditMode={isEditMode}
-            isAdmin={isAdmin}
-            isSaving={isCreating || isUpdating}
-            isDeleting={isDeleting}
-            onConfigChange={(k, v, b) => setValue(k as any, v, { shouldDirty: b, shouldValidate: true })}
-            onSizeChange={(r, c) => {
-              setRows(r);
-              setCols(c);
-              updateTilesSize(r, c);
-              setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
-            }}
-            onCancel={() => {
-              if (isDirty && !window.confirm("変更が保存されていません。終了しますか？")) return;
-              router.push(isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons");
-            }}
-            onSave={() => {
-              handleSubmit((data) => onSubmitSave(data, false))();
-            }}
-            onTestPlay={handleTestPlay}
-            onDeleteClick={(physical) => {
-              if (physical) {
-                if (window.confirm("管理者権限：物理削除を実行します。復元できませんがよろしいですか？")) {
-                  handleDelete();
-                }
-              } else {
-                if (window.confirm("このダンジョンを削除しますか？")) {
-                  const payload = {
-                    status: "DELETED" as const,
-                    deletedFlg: true,
-                    updatedBy: session?.user?.id || initialData.userId,
-                  };
-                  update(payload);
-                }
-              }
-            }}
-          />
+          <header className="select-none flex flex-col lg:grid lg:grid-cols-[1fr_auto] lg:items-stretch gap-4 w-full mb-6">
+            {/* 📦 左ブロック（フォーム）：独立したダークカードとしてデザイン */}
+            <div className="min-w-0 w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4 flex flex-col justify-center">
+              <EditorInfoForm
+                status={initialData?.status ?? "DRAFT"}
+                config={formValues}
+                cols={cols}
+                rows={rows}
+                errors={errors}
+                onConfigChange={(k, v, b) => setValue(k as any, v, { shouldDirty: b, shouldValidate: true })}
+                onSizeChange={(r, c) => {
+                  setRows(r);
+                  setCols(c);
+                  updateTilesSize(r, c);
+                  setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
+                }}
+              />
+            </div>
 
+            {/* 📦 右ブロック（アクションバー）：左とは別の、独立した静かなカードとしてデザイン */}
+            {/* 💡 背景を「bg-slate-900/60」など少し変える、または同じ bg-slate-900 でも隙間(gap-4)があるため完全に別ブロックに見えます */}
+            <div className="min-w-0 shrink-0 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4">
+              <EditorActionBar
+                isDirty={isDirty}
+                isEditMode={isEditMode}
+                isAdmin={isAdmin}
+                isSaving={isCreating || isUpdating}
+                isDeleting={isDeleting}
+                status={initialData?.status ?? "DRAFT"}
+                onCancel={() => {
+                  if (isDirty && !window.confirm("変更が保存されていません。終了しますか？")) return;
+                  router.push(isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons");
+                }}
+                onSave={() => {
+                  handleSubmit((data) => onSubmitSave(data, false))();
+                }}
+                onTestPlay={handleTestPlay}
+                onDeleteClick={(physical) => {
+                  if (physical) {
+                    if (window.confirm("管理者権限：物理削除を実行します。復元できませんがよろしいですか？")) {
+                      handleDelete();
+                    }
+                  } else {
+                    if (window.confirm("このダンジョンを削除しますか？")) {
+                      const payload = {
+                        status: "DELETED" as const,
+                        deletedFlg: true,
+                        updatedBy: session?.user?.id || initialData?.userId,
+                      };
+                      update(payload);
+                    }
+                  }
+                }}
+              />
+            </div>
+          </header>
           <div className="flex gap-6 mt-6 items-start">
             {/* 左サイドバー */}
             <aside className="w-64 flex-shrink-0 space-y-4">

@@ -175,7 +175,8 @@ export interface UpdateDungeonRequest {
   status?: DungeonStatus;
   deletedFlg?: boolean;
   tagIds?: number[];
-  version?: number;
+  versionMajor?: number; // ゲームのバージョン管理用（任意）
+  versionMinor?: number; // ゲームのバージョン管理用（任意）
   publishedAt?: string | null;
 }
 

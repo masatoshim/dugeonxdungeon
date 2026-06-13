@@ -1,4 +1,5 @@
-export * from "./edit/EditorHeader";
+export * from "./edit/EditorInfoForm";
+export * from "./edit/EditorActionBar";
 export * from "./edit/EditorSizeInput";
 export * from "./edit/TileIconForm";
 export * from "./edit/TilePalette";
