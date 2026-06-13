@@ -89,7 +89,8 @@ export default function GamePlayPage() {
         playScore,
         playTime: clearTime,
         playStatus: status,
-        version: dungeon?.version,
+        versionMajor: dungeon?.versionMajor,
+        versionMinor: dungeon?.versionMinor,
       });
     },
     [isFinished, dungeon, create],
@@ -162,7 +163,8 @@ export default function GamePlayPage() {
                           dungeonId,
                           playScore: clearScore,
                           playTime: clearTime ?? 0,
-                          version: dungeon?.version ?? 1,
+                          versionMajor: dungeon?.versionMajor,
+                          versionMinor: dungeon?.versionMinor,
                         });
 
                         if (result?.pendingId) {

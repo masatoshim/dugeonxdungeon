@@ -5,7 +5,7 @@ import { PendingClearRequest } from "@/types";
 export async function POST(req: Request) {
   try {
     const body: PendingClearRequest = await req.json();
-    const { dungeonId, version, playTime, playScore } = body;
+    const { dungeonId, versionMajor, versionMinor, playTime, playScore } = body;
 
     if (!dungeonId || playTime === undefined || playScore === undefined) {
       return NextResponse.json({ message: "不正なデータです" }, { status: 400 });
@@ -18,7 +18,8 @@ export async function POST(req: Request) {
     const pending = await prisma.pendingClear.create({
       data: {
         dungeonId,
-        version,
+        versionMajor,
+        versionMinor,
         playTime,
         playScore,
         expiresAt,

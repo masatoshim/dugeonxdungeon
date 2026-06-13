@@ -7,7 +7,8 @@ export interface DungeonBase {
   id: string;
   name: string;
   code: string;
-  version: number;
+  versionMajor: number;
+  versionMinor: number;
   userId: string;
   description: string | null;
   mapData: any;
@@ -123,7 +124,8 @@ export interface DungeonFilter extends PaginationFilter {
  */
 export interface DungeonResponse extends DungeonBase {
   isCleared?: boolean;
-  clearedVersion?: number;
+  clearedVersionMajor?: number;
+  clearedVersionMinor?: number;
   isFavorited?: boolean;
   favoritesCount: number;
   clearPlayCount: number;
@@ -234,7 +236,8 @@ export interface CreatePlayHistoryRequest {
   playTime: number; // 実際のプレイ時間(sec)
   playScore: number; // 獲得スコア
   playStatus: PlayStatus;
-  version?: number; // ゲームのバージョン管理用（任意）
+  versionMajor?: number; // ゲームのバージョン管理用（任意）
+  versionMinor?: number; // ゲームのバージョン管理用（任意）
 }
 
 /**
@@ -271,7 +274,8 @@ export interface FavoriteDungeonResponse {
  */
 export interface PendingClearRequest {
   dungeonId: string;
-  version: number;
+  versionMajor: number;
+  versionMinor: number;
   playTime: number;
   playScore: number;
 }

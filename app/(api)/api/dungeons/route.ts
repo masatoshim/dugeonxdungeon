@@ -259,7 +259,7 @@ export async function GET(request: Request) {
                   playStatus: "CLEAR",
                 },
                 take: 1,
-                select: { id: true, version: true },
+                select: { id: true, versionMajor: true, versionMinor: true },
               }
             : false,
           // ログイン中ユーザーの「お気に入り」があるか
@@ -286,7 +286,8 @@ export async function GET(request: Request) {
         totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         tags: d.dungeonTags.map((dt) => dt.tag.name),
         isCleared: (playHistories?.length ?? 0) > 0,
-        clearedVersion: playHistories?.[0]?.version,
+        clearedVersionMajor: playHistories?.[0]?.versionMajor,
+        clearedVersionMinor: playHistories?.[0]?.versionMinor,
         isFavorited: (favoritedBy?.length ?? 0) > 0,
         nickName: user.nickName,
         userIconImageKey: user.iconImageKey,

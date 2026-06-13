@@ -42,6 +42,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const searchParams = useSearchParams();
 
   // 管理者ダッシュボードのユーザーダンジョン「詳細ボタン」から遷移してきた場合
+  // パレットパネルは閉じて、メタ情報パネルは開く
   const fromSource = searchParams.get("from");
   const isFromUserDetail = fromSource === "user-detail";
   const initialPaletteOpen = isFromUserDetail ? false : true;
@@ -74,6 +75,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   });
   const formValues = watch();
 
+  console.log(formValues);
+
   // ダンジョン編集ロジック取得
   const {
     tiles,
@@ -89,7 +92,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   } = useDungeonEditorLogic(initialData);
 
   // 保存
-  const onSubmit = useCallback(
+  const onSubmitSave = useCallback(
     async (data: DungeonFormData, isRedirectingToTest: boolean) => {
       if (linkingState.active) return toast.error("パーツのペアを完成させてください");
 
@@ -164,7 +167,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   // テストプレイボタン押下時のハンドラー
   const handleTestPlay = async () => {
     if (isDirty || !isEditMode) {
-      handleSubmit((data) => onSubmit(data, true))();
+      handleSubmit((data) => onSubmitSave(data, true))();
     } else {
       router.push(`/dungeons/${initialData.id}/test-play?v=${Date.now()}`);
     }
@@ -198,7 +201,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <form onSubmit={handleSubmit((data) => onSubmit(data, false))}>
+        <form onSubmit={handleSubmit((data) => onSubmitSave(data, false))}>
           <EditorHeader
             cols={cols}
             rows={rows}
@@ -217,19 +220,27 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               updateTilesSize(r, c);
               setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
             }}
+            onCancel={() => {
+              if (isDirty && !window.confirm("変更が保存されていません。終了しますか？")) return;
+              router.push(isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons");
+            }}
             onSave={() => {
-              handleSubmit((data) => onSubmit(data, false))();
+              handleSubmit((data) => onSubmitSave(data, false))();
             }}
             onTestPlay={handleTestPlay}
-            onDelete={(physical) => {
+            onDeleteClick={(physical) => {
               if (physical) {
-                handleDelete();
+                if (window.confirm("管理者権限：物理削除を実行します。復元できませんがよろしいですか？")) {
+                  handleDelete();
+                }
               } else {
-                const payload = {
-                  deletedFlg: true,
-                  updatedBy: session?.user?.id || initialData.userId,
-                };
-                update(payload);
+                if (window.confirm("このダンジョンを削除しますか？")) {
+                  const payload = {
+                    deletedFlg: true,
+                    updatedBy: session?.user?.id || initialData.userId,
+                  };
+                  update(payload);
+                }
               }
             }}
           />
