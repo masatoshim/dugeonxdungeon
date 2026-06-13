@@ -340,7 +340,7 @@ export async function POST(request: Request) {
     // セッション（ログインユーザー）の確認
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
+      return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
     }
 
     // リクエストボディの取得
@@ -354,6 +354,38 @@ export async function POST(request: Request) {
     const { tiles, width, height } = mapData;
     if (!tiles || width === undefined || height === undefined) {
       return NextResponse.json({ error: "mapData には tiles, width, height が必要です" }, { status: 400 });
+    }
+
+    // ユーザーの設定している作成上限（createDungeonLimit）を取得
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { createDungeonLimit: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+    }
+
+    // 削除（DELETED）されていない、現在のダンジョン作成数をカウント
+    const activeDungeonCount = await prisma.dungeon.count({
+      where: {
+        userId: userId,
+        status: {
+          not: "DELETED", // DELETEDは含まない
+        },
+      },
+    });
+
+    // 上限を超えている場合はエラーを返す
+    if (activeDungeonCount >= user.createDungeonLimit) {
+      return NextResponse.json(
+        {
+          message: `ダンジョンの作成上限（最大 ${user.createDungeonLimit} 個）に達しているため、新しく作成できません。`,
+          limit: user.createDungeonLimit,
+          current: activeDungeonCount,
+        },
+        { status: 403 }, // 権限/制限エラーのため403 Forbiddenを返す
+      );
     }
 
     // ダンジョン作成と、タグの中間テーブル保存を同時に行う

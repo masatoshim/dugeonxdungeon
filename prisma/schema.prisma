@@ -13,6 +13,7 @@ model User {
   email              String?             @unique
   iconImageKey       String?
   role               Role                @default(USER)
+  createDungeonLimit Int                 @default(10)
   // --- ゲーム統計情報 ---
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)

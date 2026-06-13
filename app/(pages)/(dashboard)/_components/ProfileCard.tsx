@@ -189,7 +189,13 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
             </div>
 
             {!user.deletedFlg && (
-              <label className="absolute bottom-0 right-0 p-2 bg-[#4fd1d1] hover:bg-[#3db8b8] rounded-full cursor-pointer transition-colors shadow-lg">
+              <label
+                className={`absolute bottom-0 right-0 p-2 rounded-full shadow-lg transition-colors ${
+                  isUploading || isActionLoading || !user.isActive
+                    ? "bg-slate-600 cursor-not-allowed opacity-50" // 無効時の見た目
+                    : "bg-[#4fd1d1] hover:bg-[#3db8b8] cursor-pointer" // 有効時の見た目
+                }`}
+              >
                 <Camera size={18} className="text-[#0f111a]" />
                 <input
                   type="file"
