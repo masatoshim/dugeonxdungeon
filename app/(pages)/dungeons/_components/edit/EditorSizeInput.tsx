@@ -37,7 +37,7 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
 
   return (
     <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded border border-gray-700">
-      <span className="text-[10px] text-gray-500 font-bold">{label}</span>
+      <span className="text-[14px] text-gray-500 font-bold">{label}</span>
       <input
         type="number"
         value={tempValue}

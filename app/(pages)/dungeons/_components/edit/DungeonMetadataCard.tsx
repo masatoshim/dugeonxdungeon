@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { DungeonResponse } from "@/types";
 
 type Props = {
-  initialData: any;
+  initialData?: DungeonResponse;
   isEditMode: boolean;
   isAdmin?: boolean;
   defaultOpen?: boolean;
@@ -61,7 +62,9 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
             {/* バージョン */}
             <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
               <span>バージョン:</span>
-              <span className="text-gray-200 font-bold">v{initialData.version ?? 1}</span>
+              <span className="text-gray-200 font-bold">
+                v{initialData.versionMajor ?? 1}.{initialData.versionMinor ?? 0}
+              </span>
             </div>
 
             {isAdmin && (
