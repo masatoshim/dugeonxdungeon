@@ -42,7 +42,7 @@ export const DeleteActionGroup = ({ initialData, isAdmin }: Props) => {
         onClick={() => handleOnDeleteClick(false)}
         disabled={isDeleting}
         className="p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-950/30 border border-slate-800/60 hover:border-red-500/30 focus:border-red-500/50 rounded-md transition-all outline-none disabled:opacity-20"
-        title="削除"
+        title="ダンジョンを削除します"
       >
         <Trash2 size={16} />
       </button>

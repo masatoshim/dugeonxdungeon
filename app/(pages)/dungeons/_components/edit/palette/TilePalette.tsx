@@ -30,7 +30,7 @@ export const TilePalette = ({ selectedTile, onSelect, defaultOpen = true }: Prop
                 : "border-red-950/60 bg-red-950/10 text-red-900/80 hover:text-red-400 hover:bg-red-950/30 hover:border-red-900/50"
             }`}
           >
-            <Eraser size={13} />
+            <Eraser size={16} />
           </button>
 
           {/* コンポーネント全体の最小化 */}
@@ -41,7 +41,7 @@ export const TilePalette = ({ selectedTile, onSelect, defaultOpen = true }: Prop
             aria-label={isOpen ? "パレットを最小化" : "パレットを展開"}
           >
             <ChevronDown
-              size={15}
+              size={16}
               className={`transform transition-transform duration-200 ease-in-out ${isOpen ? "rotate-180 text-slate-300" : ""}`}
             />
           </button>

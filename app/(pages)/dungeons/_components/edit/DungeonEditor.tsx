@@ -148,10 +148,26 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       };
       pushHistory(nextSnapshot);
     },
-    [handleCellClick, selectedTile, setValue, tiles, rows, cols, getCurrentSnapshot, pushHistory],
+    [handleCellClick, selectedTile, tiles, rows, cols, getCurrentSnapshot, pushHistory],
   );
 
   const { images, isLoaded } = useTileImages();
+
+  const getLinkingGuideMessage = () => {
+    if (!linkingState.active) return null;
+
+    if (linkingState.mode === "KEY_DOOR") {
+      return linkingState.pendingType === "KEY_DOOR"
+        ? "「鍵扉」を配置して、鍵とペアリングさせてください"
+        : "「鍵」を配置して、鍵扉とペアリングさせてください";
+    }
+    if (linkingState.mode === "BUTTON_DOOR") {
+      return linkingState.pendingType === "BUTTON_DOOR"
+        ? "「ボタン扉」を配置して、ボタンとペアリングさせてください"
+        : "「ボタン」を配置して、ボタン扉とペアリングさせてください";
+    }
+    return "ペアとなるギミックを配置してください";
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -160,7 +176,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         <FormProvider {...methods}>
           {/* onSubmitのデフォルト挙動を無効化 */}
           <form onSubmit={(e) => e.preventDefault()}>
-            {/* ─── ヘッダー：基本情報フォーム ＆ 管理画面に戻るボタン ─── */}
+            {/* ─── ヘッダー ─── */}
             <header className="select-none w-full mb-6">
               {/* 左側：基本情報フォーム（カード） */}
               <div className="min-w-0 w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4 flex flex-col justify-center">
@@ -188,15 +204,15 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               </div>
             </header>
 
-            {/* ─── メインレイアウト（ワークスペース） ─── */}
+            {/* ─── メインレイアウト ─── */}
             <div className="flex flex-col md:flex-row gap-6 mt-6 items-start w-full">
               {/* 左サイドバー */}
               <aside className="w-64 flex-shrink-0 space-y-4">
                 <TilePalette
                   selectedTile={selectedTile}
                   onSelect={(id) => {
-                    if (linkingState.active && getEntityType(id) !== linkingState.pendingType && id !== "..") {
-                      return toast.error("セット設置を優先してください");
+                    if (linkingState.active && id !== ".." && getEntityType(id) !== linkingState.pendingType) {
+                      return toast.error("セット設置を優先するか、消しゴムでキャンセルしてください");
                     }
                     setSelectedTile(id);
                   }}
@@ -209,20 +225,28 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                   isAdmin={isAdmin}
                   defaultOpen={initialMetadataOpen}
                 />
-
-                {linkingState.active && (
-                  <div className="bg-amber-900/40 border border-amber-500 p-4 rounded-xl animate-pulse">
-                    <p className="text-sm font-bold text-amber-400">Linking Mode</p>
-                    <p className="text-xs">
-                      {linkingState.pendingType === "DOOR" ? "扉" : "スイッチ"}を配置してください
-                    </p>
-                  </div>
-                )}
               </aside>
 
-              {/* メインエリア：キャンバス */}
-              <div className="flex-1 flex flex-col min-w-0">
-                <main className="bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-[calc(100vh-220px)] min-h-[540px] flex">
+              {/* メインエリア：キャンバスコンテナ */}
+              <div className="flex-1 flex flex-col min-w-0 relative h-[calc(100vh-220px)] min-h-[540px] w-full">
+                {linkingState.active && (
+                  <div className="absolute top-4 left-4 right-4 z-30 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="w-full bg-slate-900/95 backdrop-blur-md border-2 border-amber-500 rounded-xl px-5 py-3 flex items-center justify-between shadow-2xl shadow-black/80 pointer-events-auto">
+                      <div className="flex items-center space-x-3">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                        </span>
+                        <p className="text-sm font-bold text-amber-400 tracking-wide">
+                          {getLinkingGuideMessage()} （消しゴムでリセット）
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* メインエリア：キャンバス本体 */}
+                <main className="bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-full w-full flex">
                   <DungeonCanvasView
                     key={`${rows}-${cols}`}
                     tiles={tiles}
