@@ -32,16 +32,29 @@ export function useDungeonCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const targetWidth = cols * TILE_SIZE;
+    const targetHeight = rows * TILE_SIZE;
+
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const entityMap = new Map<string, EntityData>();
     entities.forEach((e) => entityMap.set(`${e.x}-${e.y}`, e));
 
     for (let r = 0; r < rows; r++) {
+      const row = tiles[r];
+      if (!row) continue;
+
       for (let c = 0; c < cols; c++) {
+        const tileId = row[c];
+        if (tileId === undefined) continue;
+
         const dx = c * TILE_SIZE;
         const dy = r * TILE_SIZE;
-        const tileId = tiles[r][c];
         const img = images[tileId];
         const config = TILE_CONFIG[tileId as TileConfigKey];
 

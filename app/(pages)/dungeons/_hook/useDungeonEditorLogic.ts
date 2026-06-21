@@ -35,6 +35,16 @@ export function useDungeonEditorLogic(initialData?: any) {
     firstEntityId: null as string | null,
   });
 
+  // 履歴（Undo/Redo）からステートを直接復元するための更新関数
+  // useCallback でラップし、親側での不要な再レンダリングやエフェクトのトリガーを防ぎます
+  const setTilesState = useCallback((newTiles: string[][]) => {
+    setTiles(newTiles);
+  }, []);
+
+  const setEntitiesState = useCallback((newEntities: EntityData[]) => {
+    setEntities(newEntities);
+  }, []);
+
   // 設置しようとしているタイルがどのエンティティタイプかを判定
   const getEntityType = useCallback((tileId: string) => {
     if (tileId.startsWith("K1")) return "KEY";
@@ -146,9 +156,9 @@ export function useDungeonEditorLogic(initialData?: any) {
 
   return {
     tiles,
-    setTiles,
+    setTilesState,
     entities,
-    setEntities,
+    setEntitiesState,
     rows,
     setRows,
     cols,

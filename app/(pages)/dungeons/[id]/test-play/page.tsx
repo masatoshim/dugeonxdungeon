@@ -43,9 +43,22 @@ export default function TestPlayPage() {
   const handlePublishSetting = async (shouldPublish: boolean) => {
     try {
       const status = shouldPublish ? "PUBLISHED" : "PRIVATE";
-      await update({ status, publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null });
 
-      toast.success(shouldPublish ? "ダンジョンを公開しました！" : "非公開として保存しました。");
+      // Majorバージョンを上げ、Minorを0にリセットする
+      const versionPayload = shouldPublish
+        ? {
+            versionMajor: (dungeon.versionMajor ?? 0) + 1,
+            versionMinor: 0,
+          }
+        : {};
+
+      await update({
+        status,
+        publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
+        ...versionPayload,
+      });
+
+      toast.success(shouldPublish ? "ダンジョンを世界中に公開しました！" : "非公開として保存しました。");
 
       const isAdmin = session?.user?.role === "ADMIN";
       const redirectPath = isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons";

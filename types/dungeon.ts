@@ -157,6 +157,8 @@ export interface CreateDungeonRequest {
   status?: DungeonStatus;
   tagIds?: number[];
   isTemplate: boolean;
+  versionMajor: number;
+  versionMinor: number;
 }
 
 /**
@@ -176,8 +178,8 @@ export interface UpdateDungeonRequest {
   status?: DungeonStatus;
   deletedFlg?: boolean;
   tagIds?: number[];
-  versionMajor?: number; // ゲームのバージョン管理用（任意）
-  versionMinor?: number; // ゲームのバージョン管理用（任意）
+  versionMajor?: number;
+  versionMinor?: number;
   publishedAt?: string | null;
 }
 

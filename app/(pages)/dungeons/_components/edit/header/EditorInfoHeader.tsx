@@ -1,49 +1,60 @@
+"use client";
+
 import { useState } from "react";
-import { FieldErrors } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { DungeonStatus } from "@prisma/client";
 import { Clock, FileText, Settings, ChevronDown } from "lucide-react";
 import { EditorSizeInput } from "@/app/(pages)/dungeons/_components";
 import { BackButton } from "./BackButton";
 import { DeleteActionGroup } from "./DeleteActionGroup";
 import { SaveActionGroup } from "./SaveActionGroup";
+import { HistoryActionGroup } from "./HistoryActionGroup";
 import { DungeonResponse } from "@/types";
+import { DungeonFormData } from "../DungeonEditor";
 
 type Props = {
   isAdmin: boolean;
   status: DungeonStatus;
-  config: {
-    code: string;
-    name: string;
-    description: string;
-    timeLimit: number;
-  };
   cols: number;
   rows: number;
-  errors: FieldErrors;
-  onConfigChange: (key: string, value: string | number, shouldDirty: boolean) => void;
   onSizeChange: (r: number, c: number) => void;
+  onConfigConfirm: () => void;
   initialData?: DungeonResponse;
   user: { id: string; [key: string]: any };
   tiles: string[][];
   entities: any;
   linkingState: { active: boolean; [key: string]: any };
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 };
 
 export const EditorInfoHeader = ({
   isAdmin,
   status,
-  config,
   cols,
   rows,
-  errors,
-  onConfigChange,
   onSizeChange,
+  onConfigConfirm,
   initialData,
   user,
   tiles,
   entities,
   linkingState,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
 }: Props) => {
+  // Props経由ではなく、Contextから直接RHFの状態を取り出す
+  const {
+    register,
+    watch,
+    formState: { errors },
+  } = useFormContext<DungeonFormData>();
+  const config = watch();
+
   const statusStyles =
     {
       DRAFT: "bg-amber-500/10 text-amber-400 border-amber-500/30",
@@ -90,10 +101,11 @@ export const EditorInfoHeader = ({
           )}
         </div>
 
-        {/* 右側：各種操作アクション ＋ 開閉トグルボタン */}
+        {/* 右側：各種操作アクション */}
         <div className="flex items-center gap-3 shrink-0 pl-4">
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <DeleteActionGroup initialData={initialData} isAdmin={isAdmin} />
+            <HistoryActionGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
             <SaveActionGroup
               initialData={initialData}
               isAdmin={isAdmin}
@@ -121,7 +133,6 @@ export const EditorInfoHeader = ({
       {/* ─── 2段目・3段目：コンテンツエリア ─── */}
       {isOpen && (
         <div className="flex flex-col gap-1.5 w-full animate-[fadeIn_0.15s_ease-out]">
-          {/* 2段目：ダンジョン名入力 ＋ サイズ ＋ 制限時間 */}
           <div className="flex flex-col md:flex-row md:items-stretch gap-2 w-full pt-1">
             {/* ダンジョン名入力 */}
             <div className="flex items-center gap-2 bg-slate-950/40 px-3 py-0 rounded-lg border border-slate-800/80 flex-1 min-w-[180px] transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/name">
@@ -130,10 +141,9 @@ export const EditorInfoHeader = ({
               </label>
               <input
                 type="text"
-                value={config.name}
                 placeholder="未設定のダンジョン"
-                onChange={(e) => onConfigChange("name", e.target.value, false)}
                 className={`bg-transparent text-xs font-bold p-0 border-none outline-none focus:outline-none focus:ring-0 w-full transition-colors ${errors.name ? "text-red-200 placeholder-red-400/50" : "text-slate-200 placeholder-slate-600"}`}
+                {...register("name", { onBlur: onConfigConfirm })}
               />
             </div>
 
@@ -171,9 +181,11 @@ export const EditorInfoHeader = ({
                 </span>
                 <input
                   type="number"
-                  value={config.timeLimit}
-                  onChange={(e) => onConfigChange("timeLimit", parseInt(e.target.value) || 0, true)}
                   className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-1.5 py-0 text-center font-mono font-bold text-slate-200 w-12 outline-none focus:ring-0 transition-all text-xs my-0.5"
+                  {...register("timeLimit", {
+                    valueAsNumber: true,
+                    onBlur: onConfigConfirm,
+                  })}
                 />
                 <span className="text-slate-500 font-mono">sec</span>
               </div>
@@ -188,10 +200,9 @@ export const EditorInfoHeader = ({
             />
             <input
               type="text"
-              value={config.description}
               placeholder="ダンジョンの説明文やキャッチコピーを追加..."
-              onChange={(e) => onConfigChange("description", e.target.value, false)}
               className="bg-transparent text-slate-300 outline-none w-full text-xs placeholder-slate-600 py-0.5 focus:ring-0 focus:outline-none"
+              {...register("description", { onBlur: onConfigConfirm })}
             />
           </div>
         </div>
