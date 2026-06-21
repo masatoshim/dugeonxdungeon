@@ -61,7 +61,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       name: initialData?.name || "",
       description: initialData?.description || "",
       timeLimit: initialData?.timeLimit || DUNGEON_DEFAULT.TIME_LIMIT,
-      mapDataCheck: JSON.stringify(initialData?.mapData?.tiles || []),
+      mapDataCheck: 0,
     },
   });
 
@@ -139,7 +139,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       }
 
       handleCellClick(r, c, selectedTile);
-      setValue("mapDataCheck", `tile-${r}-${c}-${Date.now()}`, { shouldDirty: true, shouldValidate: true });
 
       const nextSnapshot = {
         ...getCurrentSnapshot(),
@@ -172,11 +171,9 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                   rows={rows}
                   onConfigConfirm={() => pushHistory()}
                   onSizeChange={(r, c) => {
-                    // 1. まず通常のステート更新（これは画面表示用）
                     setRows(r);
                     setCols(c);
                     updateTilesSize(r, c);
-                    setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
                   }}
                   initialData={initialData}
                   user={user}

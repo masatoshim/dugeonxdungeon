@@ -27,7 +27,6 @@ export function useEditorHistory(
   const [pointer, setPointer] = useState(-1);
   const isApplyingHistory = useRef(false);
 
-  // 現在の状態を取得
   const getCurrentSnapshot = useCallback(
     (): EditorSnapshot => ({
       name: methods.getValues("name"),
@@ -41,7 +40,7 @@ export function useEditorHistory(
     [methods, tiles, entities, rows, cols],
   );
 
-  // 初期化：マップデータが読み込まれたら、最初の状態（0番目）をスタックに積む
+  // 初期化
   useEffect(() => {
     if (tiles.length > 0 && history.length === 0) {
       setHistory([getCurrentSnapshot()]);
@@ -49,30 +48,13 @@ export function useEditorHistory(
     }
   }, [tiles, history.length, getCurrentSnapshot]);
 
-  // サイズ変更（rows, cols）を検知して自動で履歴を積む（1番目以降）
-  useEffect(() => {
-    // 履歴が空、またはポインターが初期値の場合は、初期化を待つため除外
-    if (history.length === 0 || pointer < 0) return;
-
-    const lastSnapshot = history[pointer];
-    // 現在の画面のサイズが、履歴スタックの最新のサイズと異なる場合のみ実行
-    if (lastSnapshot && (lastSnapshot.rows !== rows || lastSnapshot.cols !== cols)) {
-      const currentSnap = getCurrentSnapshot();
-
-      setHistory((prev) => [...prev.slice(0, pointer + 1), currentSnap]);
-      setPointer((prev) => prev + 1);
-    }
-  }, [rows, cols, getCurrentSnapshot, history, pointer]);
-
-  const isPushing = useRef(false);
-  // 履歴を積む
+  // 履歴を積む共通関数
   const pushHistory = useCallback(
     (customSnapshot?: EditorSnapshot) => {
       if (isApplyingHistory.current || isPushing.current) return;
 
       const nextSnapshot = customSnapshot ?? getCurrentSnapshot();
 
-      // 同一データの連続保存を防ぐチェック
       if (history.length > 0 && pointer >= 0) {
         const last = history[pointer];
         if (
@@ -84,41 +66,48 @@ export function useEditorHistory(
           last.timeLimit === nextSnapshot.timeLimit &&
           JSON.stringify(last.tiles) === JSON.stringify(nextSnapshot.tiles)
         ) {
-          // すべての状態が直前と「完全に同じ」なら、重複して積まない
           return;
         }
       }
 
       isPushing.current = true;
+      const nextPointer = pointer + 1;
       setHistory((prev) => [...prev.slice(0, pointer + 1), nextSnapshot]);
-      setPointer((prev) => prev + 1);
+      setPointer(nextPointer);
+
+      methods.setValue("mapDataCheck", nextPointer, { shouldDirty: true });
 
       setTimeout(() => {
         isPushing.current = false;
       }, 50);
     },
-    [pointer, history, getCurrentSnapshot],
+    [pointer, history, getCurrentSnapshot, methods],
   );
+
+  const isPushing = useRef(false);
+
+  // サイズ変更自動検知
+  useEffect(() => {
+    if (history.length === 0 || pointer < 0) return;
+    const lastSnapshot = history[pointer];
+    if (lastSnapshot && (lastSnapshot.rows !== rows || lastSnapshot.cols !== cols)) {
+      pushHistory();
+    }
+  }, [rows, cols, history, pointer, pushHistory]);
 
   // 状態の適用
   const applySnapshot = useCallback(
-    (snapshot: EditorSnapshot) => {
+    (snapshot: EditorSnapshot, targetPointer: number) => {
       isApplyingHistory.current = true;
       setRows(snapshot.rows);
       setCols(snapshot.cols);
       setTilesState(snapshot.tiles);
       setEntitiesState(snapshot.entities);
 
-      methods.reset(
-        {
-          ...methods.getValues(),
-          name: snapshot.name,
-          description: snapshot.description,
-          timeLimit: snapshot.timeLimit,
-          mapDataCheck: `history-${Date.now()}`,
-        },
-        { keepDirty: true },
-      );
+      methods.setValue("name", snapshot.name, { shouldValidate: true, shouldDirty: true });
+      methods.setValue("description", snapshot.description, { shouldDirty: true });
+      methods.setValue("timeLimit", snapshot.timeLimit, { shouldDirty: true });
+      methods.setValue("mapDataCheck", targetPointer, { shouldDirty: true });
 
       setTimeout(() => {
         isApplyingHistory.current = false;
@@ -131,7 +120,7 @@ export function useEditorHistory(
     if (pointer > 0) {
       const next = pointer - 1;
       setPointer(next);
-      applySnapshot(history[next]);
+      applySnapshot(history[next], next);
     }
   }, [pointer, history, applySnapshot]);
 
@@ -139,7 +128,7 @@ export function useEditorHistory(
     if (pointer < history.length - 1) {
       const next = pointer + 1;
       setPointer(next);
-      applySnapshot(history[next]);
+      applySnapshot(history[next], next);
     }
   }, [pointer, history, applySnapshot]);
 
@@ -150,6 +139,6 @@ export function useEditorHistory(
     handleRedo,
     pushHistory,
     getCurrentSnapshot,
-    setHistory, // 初期値の上書き用
+    setHistory,
   };
 }

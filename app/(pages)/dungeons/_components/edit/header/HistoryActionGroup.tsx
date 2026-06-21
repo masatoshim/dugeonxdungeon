@@ -20,7 +20,7 @@ export const HistoryActionGroup = ({ canUndo, canRedo, onUndo, onRedo }: History
         className="flex items-center justify-center w-6 h-6 rounded text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-slate-400 disabled:hover:bg-transparent transition-all active:scale-95 enabled:active:scale-90"
         title="元に戻す (Ctrl+Z)"
       >
-        <Undo2 size={13} />
+        <Undo2 size={16} />
       </button>
 
       {/* 区切り線 */}
@@ -34,7 +34,7 @@ export const HistoryActionGroup = ({ canUndo, canRedo, onUndo, onRedo }: History
         className="flex items-center justify-center w-6 h-6 rounded text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-slate-400 disabled:hover:bg-transparent transition-all active:scale-95 enabled:active:scale-90"
         title="やり直す (Ctrl+Y)"
       >
-        <Redo2 size={13} />
+        <Redo2 size={16} />
       </button>
     </div>
   );
