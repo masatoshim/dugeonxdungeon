@@ -132,3 +132,70 @@ export const TILE_CONFIG: Record<string, TileConfig> = {
 };
 
 export type TileConfigKey = keyof typeof TILE_CONFIG;
+
+export interface PaletteItem {
+  id: string; // "P", "G", ".." (消しゴム) など
+  isEraser?: boolean;
+}
+
+export interface PaletteSubGroup {
+  subLabel?: string; // グループ内の小見出し（「ボタン/扉」「鍵/扉」など。）
+  items: PaletteItem[];
+}
+
+export interface PaletteGroup {
+  label: string; // グループ名
+  subGroups: PaletteSubGroup[];
+}
+
+export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
+  {
+    label: "プレイヤーとゴール",
+    subGroups: [
+      {
+        items: [{ id: "P" }, { id: "G" }],
+      },
+    ],
+  },
+  {
+    label: "壁",
+    subGroups: [
+      {
+        items: [{ id: "W" }, { id: "BW1" }, { id: "BW3" }],
+      },
+    ],
+  },
+  {
+    label: "ギミック",
+    subGroups: [
+      {
+        subLabel: "動かせる石",
+        items: [{ id: "R1" }, { id: "R3" }],
+      },
+      {
+        subLabel: "ボタンと扉",
+        items: [{ id: "B1" }, { id: "D1" }],
+      },
+      {
+        subLabel: "カギと扉",
+        items: [{ id: "K1" }, { id: "KD1" }],
+      },
+    ],
+  },
+  {
+    label: "アイテム",
+    subGroups: [
+      {
+        items: [{ id: "S1" }], // 今後新しい武器が増えたらここに id を足すだけ
+      },
+    ],
+  },
+  {
+    label: "エネミー",
+    subGroups: [
+      {
+        items: [{ id: "E1" }], // 今後新しい敵が増えたらここに id を足すだけ
+      },
+    ],
+  },
+];
