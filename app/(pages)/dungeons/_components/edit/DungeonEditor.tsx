@@ -161,7 +161,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
           {/* onSubmitのデフォルト挙動を無効化 */}
           <form onSubmit={(e) => e.preventDefault()}>
             {/* ─── ヘッダー：基本情報フォーム ＆ 管理画面に戻るボタン ─── */}
-            <header className="select-none flex flex-col lg:grid lg:grid-cols-[1fr_auto] lg:items-start gap-4 w-full mb-6">
+            <header className="select-none w-full mb-6">
               {/* 左側：基本情報フォーム（カード） */}
               <div className="min-w-0 w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4 flex flex-col justify-center">
                 <EditorInfoHeader
@@ -189,7 +189,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </header>
 
             {/* ─── メインレイアウト（ワークスペース） ─── */}
-            <div className="flex gap-6 mt-6 items-start">
+            <div className="flex flex-col md:flex-row gap-6 mt-6 items-start w-full">
               {/* 左サイドバー */}
               <aside className="w-64 flex-shrink-0 space-y-4">
                 <TilePalette

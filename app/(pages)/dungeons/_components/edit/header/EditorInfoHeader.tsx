@@ -132,39 +132,40 @@ export const EditorInfoHeader = ({
 
       {/* ─── 2段目・3段目：コンテンツエリア ─── */}
       {isOpen && (
-        <div className="flex flex-col gap-1.5 w-full animate-[fadeIn_0.15s_ease-out]">
-          <div className="flex flex-col md:flex-row md:items-stretch gap-2 w-full pt-1">
+        <div className="flex flex-col gap-2 w-full animate-[fadeIn_0.15s_ease-out]">
+          <div className="flex flex-col md:flex-row md:items-stretch gap-2.5 w-full pt-1.5">
             {/* ダンジョン名入力 */}
-            <div className="flex items-center gap-2 bg-slate-950/40 px-3 py-0 rounded-lg border border-slate-800/80 flex-1 min-w-[180px] transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/name">
-              <label className="flex items-center gap-1 text-[10px] font-sans font-black tracking-wider text-slate-500 shrink-0 select-none uppercase py-1">
+            <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 min-w-[200px] transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/name">
+              <label className="flex items-center gap-1 text-[11px] font-sans font-black tracking-wider text-slate-400 shrink-0 select-none uppercase">
                 ダンジョン名:
               </label>
+              {/* text-xs -> text-sm に変更 */}
               <input
                 type="text"
                 placeholder="未設定のダンジョン"
-                className={`bg-transparent text-xs font-bold p-0 border-none outline-none focus:outline-none focus:ring-0 w-full transition-colors ${errors.name ? "text-red-200 placeholder-red-400/50" : "text-slate-200 placeholder-slate-600"}`}
+                className={`bg-transparent text-sm font-bold p-0 border-none outline-none focus:outline-none focus:ring-0 w-full transition-colors ${errors.name ? "text-red-200 placeholder-red-400/50" : "text-slate-100 placeholder-slate-600"}`}
                 {...register("name", { onBlur: onConfigConfirm })}
               />
             </div>
 
             {/* サイズ ＆ 制限時間 */}
-            <div className="flex items-center gap-2 text-xs text-slate-400 shrink-0 select-none">
+            <div className="flex items-center gap-2.5 text-sm text-slate-400 shrink-0 select-none">
               {/* サイズ */}
-              <div className="flex items-center gap-2 bg-slate-950/40 px-3 py-0 rounded-lg border border-slate-800/80 shrink-0 h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/size">
+              <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 shrink-0 h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/size">
                 <Settings
-                  size={13}
-                  className="text-slate-500 group-focus-within/size:text-cyan-400 transition-colors"
+                  size={18}
+                  className="text-slate-500 group-focus-within/size:text-cyan-400 transition-colors shrink-0"
                 />
-                <span className="font-medium group-focus-within/size:text-slate-300 transition-colors py-1">
+                <span className="font-black text-[11px] text-slate-400 group-focus-within/size:text-slate-300 transition-colors tracking-wider uppercase leading-none">
                   サイズ:
                 </span>
-                <div className="flex items-center gap-1.5 font-mono text-slate-200">
+                <div className="flex items-center gap-1.5 font-mono text-slate-200 h-full">
                   <EditorSizeInput
                     label="縦"
                     initialValue={rows}
                     onConfirm={(newRows) => onSizeChange(newRows, cols)}
                   />
-                  <span className="text-slate-600 font-bold select-none">×</span>
+                  <span className="text-slate-600 font-bold select-none text-xs leading-none">×</span>
                   <EditorSizeInput
                     label="横"
                     initialValue={cols}
@@ -174,26 +175,29 @@ export const EditorInfoHeader = ({
               </div>
 
               {/* 制限時間 */}
-              <div className="flex items-center gap-2 bg-slate-950/40 px-3 py-0 rounded-lg border border-slate-800/80 shrink-0 h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/time">
-                <Clock size={13} className="text-slate-500 group-focus-within/time:text-cyan-400 transition-colors" />
-                <span className="font-medium text-slate-400 group-focus-within/time:text-slate-300 transition-colors py-1">
+              <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 shrink-0 h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/time">
+                <Clock
+                  size={18}
+                  className="text-slate-500 group-focus-within/time:text-cyan-400 transition-colors shrink-0"
+                />
+                <span className="font-black text-[11px] text-slate-400 group-focus-within/time:text-slate-300 transition-colors tracking-wider uppercase leading-none">
                   制限時間:
                 </span>
                 <input
                   type="number"
-                  className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-1.5 py-0 text-center font-mono font-bold text-slate-200 w-12 outline-none focus:ring-0 transition-all text-xs my-0.5"
+                  className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-2 py-0 text-center font-mono font-bold text-slate-100 w-14 h-6 outline-none focus:ring-0 transition-all text-sm m-0"
                   {...register("timeLimit", {
                     valueAsNumber: true,
                     onBlur: onConfigConfirm,
                   })}
                 />
-                <span className="text-slate-500 font-mono">sec</span>
+                <span className="text-slate-500 font-mono text-xs leading-none">sec</span>
               </div>
             </div>
           </div>
 
           {/* 3段目：説明文 */}
-          <div className="flex items-center gap-2 bg-slate-950/20 px-3 py-0.5 rounded-lg border border-slate-800/40 w-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/40 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/desc">
+          <div className="flex items-center gap-2 bg-slate-950/20 px-3.5 py-1 rounded-xl border border-slate-800/40 w-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/40 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/desc">
             <FileText
               size={13}
               className="text-slate-500 shrink-0 group-focus-within/desc:text-cyan-400 transition-colors"
