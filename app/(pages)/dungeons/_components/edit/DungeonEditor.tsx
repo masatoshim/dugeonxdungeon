@@ -9,7 +9,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 
 import { DUNGEON_DEFAULT } from "@/types";
-import { EditorInfoForm, EditorActionBar, TilePalette } from "@/app/(pages)/dungeons/_components";
+import { EditorInfoHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
+
 import { useGetUser } from "@/app/_hooks";
 import { useTileImages, useDungeonEditorLogic } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
@@ -65,10 +66,9 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   });
 
   const {
-    handleSubmit,
     watch,
     setValue,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = methods;
   const formValues = watch();
 
@@ -124,9 +124,12 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         <FormProvider {...methods}>
           {/* onSubmitのデフォルト挙動を無効化 */}
           <form onSubmit={(e) => e.preventDefault()}>
-            <header className="select-none flex flex-col lg:grid lg:grid-cols-[1fr_auto] lg:items-stretch gap-4 w-full mb-6">
+            {/* ─── ヘッダー：基本情報フォーム ＆ 管理画面に戻るボタン ─── */}
+            <header className="select-none flex flex-col lg:grid lg:grid-cols-[1fr_auto] lg:items-start gap-4 w-full mb-6">
+              {/* 左側：基本情報フォーム（カード） */}
               <div className="min-w-0 w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4 flex flex-col justify-center">
-                <EditorInfoForm
+                <EditorInfoHeader
+                  isAdmin={isAdmin}
                   status={initialData?.status ?? "DRAFT"}
                   config={formValues}
                   cols={cols}
@@ -139,23 +142,16 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                     updateTilesSize(r, c);
                     setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
                   }}
-                />
-              </div>
-
-              <div className="min-w-0 shrink-0 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4">
-                <EditorActionBar
                   initialData={initialData}
-                  isAdmin={isAdmin}
                   user={user}
                   tiles={tiles}
                   entities={entities}
-                  rows={rows}
-                  cols={cols}
                   linkingState={linkingState}
                 />
               </div>
             </header>
 
+            {/* ─── メインレイアウト（ワークスペース） ─── */}
             <div className="flex gap-6 mt-6 items-start">
               {/* 左サイドバー */}
               <aside className="w-64 flex-shrink-0 space-y-4">
@@ -187,18 +183,21 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                 )}
               </aside>
 
-              <main className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-[calc(100vh-160px)] min-h-[600px] flex">
-                <DungeonCanvasView
-                  tiles={tiles}
-                  entities={entities}
-                  rows={rows}
-                  cols={cols}
-                  images={images}
-                  isLoaded={isLoaded}
-                  linkingState={linkingState}
-                  onCanvasAction={handleCanvasAction}
-                />
-              </main>
+              {/* メインエリア：キャンバス */}
+              <div className="flex-1 flex flex-col min-w-0">
+                <main className="bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-[calc(100vh-220px)] min-h-[540px] flex">
+                  <DungeonCanvasView
+                    tiles={tiles}
+                    entities={entities}
+                    rows={rows}
+                    cols={cols}
+                    images={images}
+                    isLoaded={isLoaded}
+                    linkingState={linkingState}
+                    onCanvasAction={handleCanvasAction}
+                  />
+                </main>
+              </div>
             </div>
           </form>
         </FormProvider>

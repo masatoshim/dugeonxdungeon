@@ -156,6 +156,7 @@ export interface CreateDungeonRequest {
   difficulty?: number;
   status?: DungeonStatus;
   tagIds?: number[];
+  isTemplate: boolean;
 }
 
 /**
