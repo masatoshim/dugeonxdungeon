@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { UserResponse } from "@/types";
-import { getUser } from "@/app/_libs/users-api";
+import { UserResponse } from "@/app/_types";
+import { getUser } from "@/app/_apis/users-api";
 import { useSession } from "next-auth/react";
 
 export const useGetUser = (id?: string) => {

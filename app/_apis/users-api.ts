@@ -1,4 +1,4 @@
-import { UserResponse, UserFilter, UsersIndexResponse, CreateUserRequest, UpdateUserRequest } from "@/types";
+import { UserResponse, UserFilter, UsersIndexResponse, CreateUserRequest, UpdateUserRequest } from "@/app/_types";
 
 // ユーザーを登録する関数
 export const createUser = async (data: CreateUserRequest): Promise<UserResponse> => {

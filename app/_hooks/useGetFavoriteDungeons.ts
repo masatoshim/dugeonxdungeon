@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { DungeonsIndexResponse, DungeonByUserFilter } from "@/types";
-import { getFavoriteDungeonByUser } from "@/app/_libs/dungeons-api";
+import { DungeonsIndexResponse, DungeonByUserFilter } from "@/app/_types";
+import { getFavoriteDungeonByUser } from "@/app/_apis/dungeons-api";
 import { useSession } from "next-auth/react";
 
 export const useGetFavoriteDungeons = (filter?: DungeonByUserFilter) => {

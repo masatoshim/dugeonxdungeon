@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { deleteFavoriteDungeon } from "@/app/_libs/dungeons-api";
-import { FavoriteDungeonResponse } from "@/types";
+import { deleteFavoriteDungeon } from "@/app/_apis/dungeons-api";
+import { FavoriteDungeonResponse } from "@/app/_types";
 import { toast } from "sonner";
 
 export const useDeleteFavoriteDungeon = (id: string) => {

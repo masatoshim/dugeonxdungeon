@@ -4,7 +4,8 @@ import { useFormContext } from "react-hook-form";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { useCreateDungeon, useUpdateDungeon } from "@/app/_hooks";
-import { TILE_CONFIG, TileConfigKey, TILE_CATEGORIES, DungeonResponse } from "@/types";
+import { TILE_CONFIG, TileConfigKey, TILE_CATEGORIES } from "@/types";
+import { DungeonResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
 
 type Props = {

@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { updateDungeon } from "@/app/_libs/dungeons-api";
-import { UpdateDungeonRequest, DungeonResponse } from "@/types";
+import { updateDungeon } from "@/app/_apis/dungeons-api";
+import { UpdateDungeonRequest, DungeonResponse } from "@/app/_types";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Heart, CheckSquare } from "lucide-react";
-import { DungeonResponse, FavoriteDungeonResponse } from "@/types";
+import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import {
   useGetFavoriteDungeonStatus,
   useCreateFavoriteDungeon,

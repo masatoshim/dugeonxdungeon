@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
-import { DungeonResponse } from "@/types";
+import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
 import {
   useProfileIcon,
@@ -9,7 +9,6 @@ import {
   useCreateFavoriteDungeon,
   useDeleteFavoriteDungeon,
 } from "@/app/_hooks";
-import { FavoriteDungeonResponse } from "@/types";
 import { toast } from "sonner";
 
 interface DungeonInfoProps {

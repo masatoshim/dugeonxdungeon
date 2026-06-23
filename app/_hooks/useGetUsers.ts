@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { UsersIndexResponse, UserFilter } from "@/types";
-import { fetchUsers } from "@/app/_libs/users-api";
+import { UsersIndexResponse, UserFilter } from "@/app/_types";
+import { fetchUsers } from "@/app/_apis/users-api";
 import { useSession } from "next-auth/react";
 
 export const useGetUsers = (filter?: UserFilter) => {

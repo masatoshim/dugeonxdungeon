@@ -1,5 +1,5 @@
 import { Crown, User } from "lucide-react";
-import { DungeonRankingEntry, MyDungeonRecord } from "@/types";
+import { DungeonRankingEntry, MyDungeonRecord } from "@/app/_types";
 import { DungeonRankingTop3Detail } from "./DungeonRankingTop3Detail";
 import { DungeonRankingTopRankDetail } from "./DungeonRankingTopRankDetail";
 

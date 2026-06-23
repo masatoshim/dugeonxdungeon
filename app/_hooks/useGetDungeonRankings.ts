@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { DungeonRankingsResponse } from "@/types";
-import { getDungeonRankings } from "@/app/_libs/dungeons-api";
+import { DungeonRankingsResponse } from "@/app/_types";
+import { getDungeonRankings } from "@/app/_apis/dungeons-api";
 import { useSession } from "next-auth/react";
 
 export const useGetDungeonRankings = (id?: string) => {

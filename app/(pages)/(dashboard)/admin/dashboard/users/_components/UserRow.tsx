@@ -1,11 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Maximize, Clock, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { UserResponse, DungeonsIndexResponse } from "@/types";
-import { DungeonStatus } from "@prisma/client";
-import { KeyedMutator } from "swr";
+import { UserResponse } from "@/app/_types";
 import { useProfileIcon } from "@/app/_hooks";
 import Image from "next/image";
 

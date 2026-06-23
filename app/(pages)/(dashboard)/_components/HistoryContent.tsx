@@ -7,7 +7,7 @@ import { usegetPlayHistoryDungeons } from "@/app/_hooks";
 import { useSearchParams } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
-import { UserResponse } from "@/types";
+import { UserResponse } from "@/app/_types";
 
 // 履歴画面用のソート項目定義
 const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [

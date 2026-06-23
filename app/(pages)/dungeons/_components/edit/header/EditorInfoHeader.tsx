@@ -9,7 +9,7 @@ import { BackButton } from "./BackButton";
 import { DeleteActionGroup } from "./DeleteActionGroup";
 import { SaveActionGroup } from "./SaveActionGroup";
 import { HistoryActionGroup } from "./HistoryActionGroup";
-import { DungeonResponse } from "@/types";
+import { DungeonResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
 
 type Props = {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
-import { DungeonResponse } from "@/types";
+import { DungeonResponse } from "@/app/_types";
 
 type Props = {
   initialData?: DungeonResponse;

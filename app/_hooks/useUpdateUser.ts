@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { updateUser } from "@/app/_libs/users-api";
-import { UpdateUserRequest, UserResponse } from "@/types";
+import { updateUser } from "@/app/_apis/users-api";
+import { UpdateUserRequest, UserResponse } from "@/app/_types";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 

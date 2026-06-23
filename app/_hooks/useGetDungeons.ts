@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { DungeonsIndexResponse, DungeonFilter } from "@/types";
-import { fetchDungeons } from "@/app/_libs/dungeons-api";
+import { DungeonsIndexResponse, DungeonFilter } from "@/app/_types";
+import { fetchDungeons } from "@/app/_apis/dungeons-api";
 import { useSession } from "next-auth/react";
 
 export const useGetDungeons = (filter?: DungeonFilter) => {

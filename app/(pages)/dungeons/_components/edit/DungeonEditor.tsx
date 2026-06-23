@@ -11,11 +11,10 @@ import { toast } from "sonner";
 import { DUNGEON_DEFAULT, TileConfigKey, TILE_CONFIG, TILE_CATEGORIES } from "@/types";
 import { EditorInfoHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useGetUser } from "@/app/_hooks";
-import { useTileImages, useDungeonEditorLogic } from "@/app/(pages)/dungeons/_hook";
+import { useTileImages, useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
 import { DungeonMetadataCard } from "./DungeonMetadataCard";
-import { DungeonResponse } from "@/types";
-import { useEditorHistory } from "../../_hook/useEditorHistory";
+import { DungeonResponse } from "@/app/_types";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({

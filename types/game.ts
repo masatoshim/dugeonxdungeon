@@ -63,7 +63,3 @@ export interface GimmickConnection {
   button: Phaser.Physics.Arcade.Sprite;
   door: Phaser.Physics.Arcade.Sprite;
 }
-
-export interface StoneData {
-  drag: number; // 空気抵抗・摩擦（ブレーキ）
-}

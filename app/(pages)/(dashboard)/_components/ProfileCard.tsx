@@ -10,7 +10,7 @@ import Image from "next/image";
 import { useProfileIcon } from "@/app/_hooks";
 import { deleteOldImage } from "@/app/_libs/storage";
 import { PasswordChangeModal } from "./PasswordChangeModal";
-import { UserResponse } from "@/types";
+import { UserResponse } from "@/app/_types";
 
 interface ProfileCardProps {
   user: UserResponse;

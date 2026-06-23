@@ -1,5 +1,6 @@
-import { Home, UserCircle, LayoutGrid, Heart, History, Settings, ShieldCheck } from "lucide-react";
+import { Home, UserCircle, LayoutGrid, Heart, History } from "lucide-react";
 
+// ダッシュボード画面のメニュー一覧
 export const getNavItems = (role: string | undefined) => {
   const navItems = [
     { label: "プロフィール", href: "/dashboard/profile", icon: UserCircle },

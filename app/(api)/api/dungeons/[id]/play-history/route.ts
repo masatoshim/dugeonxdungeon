@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/app/_libs/auth";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/app/_libs/prisma";
-import { CreatePlayHistoryRequest } from "@/types/dungeon";
+import { CreatePlayHistoryRequest } from "@/app/_types/dungeon";
 import { PlayStatus } from "@prisma/client";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -1,4 +1,4 @@
-import { EnemyData, StoneData } from "./game";
+import { EnemyData } from "./game";
 import { WeaponData, Item } from "./item";
 
 export const TILE_CATEGORIES = {
@@ -148,6 +148,7 @@ export interface PaletteGroup {
   subGroups: PaletteSubGroup[];
 }
 
+// 編集画面のパレット制御用
 export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   {
     label: "プレイヤーとゴール",

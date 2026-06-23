@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
-import { PendingClearRequest } from "@/types";
+import { PendingClearRequest } from "@/app/_types";
 
 export async function POST(req: Request) {
   try {
