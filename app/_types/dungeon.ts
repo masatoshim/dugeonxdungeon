@@ -1,4 +1,5 @@
 import { DungeonStatus, PlayStatus, FavoritesDungeon } from "@prisma/client";
+import { MapData } from "@/types/game";
 
 /**
  * ダンジョン取得の共通プロパティ
@@ -11,7 +12,7 @@ export interface DungeonBase {
   versionMinor: number;
   userId: string;
   description: string | null;
-  mapData: any;
+  mapData: MapData;
   mapSizeHeight: number;
   mapSizeWidth: number;
   mapSize: number;
@@ -144,7 +145,7 @@ export interface DungeonResponse extends DungeonBase {
 export interface CreateDungeonRequest {
   name: string;
   userId: string;
-  mapData: any;
+  mapData: MapData;
   mapSizeHeight: number;
   mapSizeWidth: number;
   mapSize: number;

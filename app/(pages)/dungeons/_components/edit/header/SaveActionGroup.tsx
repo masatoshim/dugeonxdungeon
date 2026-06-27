@@ -108,11 +108,22 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
   const onTestPlaySubmit = async (data: DungeonFormData) => {
     if (linkingState.active) return toast.error("パーツのペアを完成させてください");
 
-    const flatTiles = tiles.flat();
-    if (!flatTiles.some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER))
-      return toast.error("プレイヤーを設置してください");
-    if (!flatTiles.some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.GOAL))
-      return toast.error("ゴールを設置してください");
+    // プレイヤーとゴールの範囲内存在チェック
+    let hasPlayer = false;
+    let hasGoal = false;
+    for (let r = 1; r < rows - 1; r++) {
+      for (let c = 1; c < cols - 1; c++) {
+        const tile = tiles[r]?.[c];
+        console.log("tile:", tile);
+        if (!tile) continue;
+
+        const category = TILE_CONFIG[tile]?.category;
+        if (category === TILE_CATEGORIES.PLAYER) hasPlayer = true;
+        if (category === TILE_CATEGORIES.GOAL) hasGoal = true;
+      }
+    }
+    if (!hasPlayer) return toast.error("プレイヤーが設置されていません");
+    if (!hasGoal) return toast.error("ゴールが設置されていません");
 
     try {
       const { mapDataCheck, ...rest } = data;

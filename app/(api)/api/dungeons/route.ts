@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
 import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
+import { mapDataSchema } from "@/types/game";
 
 /**
  * GET: ダンジョン一覧取得
@@ -281,8 +282,14 @@ export async function GET(request: Request) {
     let dungeons: DungeonResponse[] = dungeonsRaw.map((d) => {
       const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
       const hasPrivateAccess = isAdmin || sessionUserId === d.userId;
+      const parsedMapData = mapDataSchema.safeParse(d.mapData);
+      const validMapData = parsedMapData.success
+        ? parsedMapData.data
+        : { tiles: [], entities: [], width: 0, height: 0 };
+
       return {
         ...rest,
+        mapData: validMapData,
         totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         tags: d.dungeonTags.map((dt) => dt.tag.name),
         isCleared: (playHistories?.length ?? 0) > 0,

@@ -20,28 +20,28 @@ export const DUNGEON_DEFAULT = {
   MAX_SIZE: 256,
 } as const;
 
-export interface EntityData {
-  id: string; // 一意のID（ボタンと扉の紐付け用など）
-  type: "ROCK" | "IRON_BALL" | "ICE" | "BUTTON" | "DOOR" | "KEY" | "SWITCH" | "LIGHT";
-  x: number;
-  y: number;
-  properties?: {
-    // 各ギミック固有の設定
-    targetId?: string; // ボタンが操作する扉のID
-    tileId?: string;
-    useCount?: number; // 使用回数制限
-    isLocked?: boolean; // 最初から鍵がかかっているか
-  };
-}
+// export interface EntityData {
+//   id: string; // 一意のID（ボタンと扉の紐付け用など）
+//   type: "ROCK" | "IRON_BALL" | "ICE" | "BUTTON" | "DOOR" | "KEY" | "SWITCH" | "LIGHT";
+//   x: number;
+//   y: number;
+//   properties?: {
+//     // 各ギミック固有の設定
+//     targetId?: string; // ボタンが操作する扉のID
+//     tileId?: string;
+//     useCount?: number; // 使用回数制限
+//     isLocked?: boolean; // 最初から鍵がかかっているか
+//   };
+// }
 
-export interface MapData {
-  tiles: string[][];
-  entities: EntityData[]; // 動的なオブジェクトはここに集約
-  settings: {
-    isDark: boolean; // 初期状態が真っ暗かどうか
-    ambientLight: number; // 明るさの度合い
-  };
-}
+// export interface MapData {
+//   tiles: string[][];
+//   entities: EntityData[]; // 動的なオブジェクトはここに集約
+//   settings: {
+//     isDark: boolean; // 初期状態が真っ暗かどうか
+//     ambientLight: number; // 明るさの度合い
+//   };
+// }
 
 // ゲームの実行時状態
 export interface GameState {
@@ -63,3 +63,40 @@ export interface GimmickConnection {
   button: Phaser.Physics.Arcade.Sprite;
   door: Phaser.Physics.Arcade.Sprite;
 }
+
+// src/types/game.ts (または適切な型定義ファイル)
+import { z } from "zod";
+
+// EntityDataのバリデーションスキーマ
+export const entityDataSchema = z.object({
+  id: z.string(),
+  type: z.enum(["ROCK", "IRON_BALL", "ICE", "BUTTON", "DOOR", "KEY", "SWITCH", "LIGHT"]),
+  x: z.number(),
+  y: z.number(),
+  properties: z
+    .object({
+      targetId: z.string().optional(),
+      tileId: z.string().optional(),
+      useCount: z.number().optional(),
+      isLocked: z.boolean().optional(),
+    })
+    .optional(),
+});
+
+// MapDataのバリデーションスキーマ
+export const mapDataSchema = z.object({
+  tiles: z.array(z.array(z.string())),
+  entities: z.array(entityDataSchema),
+  settings: z
+    .object({
+      isDark: z.boolean(),
+      ambientLight: z.number(),
+    })
+    .optional(),
+  width: z.number(),
+  height: z.number(),
+});
+
+// 既存の interface 宣言を Zod から推論された型に置き換える（または互換性を持たせる）
+export type EntityData = z.infer<typeof entityDataSchema>;
+export type MapData = z.infer<typeof mapDataSchema>;

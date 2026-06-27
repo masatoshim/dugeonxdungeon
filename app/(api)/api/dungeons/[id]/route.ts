@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { DungeonBase, DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
-import { now } from "next-auth/client/_utils";
+import { mapDataSchema } from "@/types/game";
 
 /**
  * GET: ダンジョン詳細取得
@@ -41,8 +41,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
     const { user, ...rest } = dungeon;
     const hasPrivateAccess = isAdmin || sessionUserId === dungeon.userId;
+
+    const parsedMapData = mapDataSchema.safeParse(dungeon.mapData);
+    const validMapData = parsedMapData.success ? parsedMapData.data : { tiles: [], entities: [], width: 0, height: 0 };
+
     const response: DungeonResponse = {
       ...rest,
+      mapData: validMapData,
       totalPlayCount: dungeon.clearPlayCount + dungeon.failurePlayCount + dungeon.interruptPlayCount,
       tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
       createdAt: dungeon.createdAt.toISOString(),
@@ -113,8 +118,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
+    const parsedMapData = mapDataSchema.safeParse(updatedDungeon.mapData);
+    const validMapData = parsedMapData.success ? parsedMapData.data : { tiles: [], entities: [], width: 0, height: 0 };
+
     const responseDungeon: DungeonBase = {
       ...updatedDungeon,
+      mapData: validMapData,
       tags: updatedDungeon.dungeonTags.map((dt) => dt.tag.name),
       nickName: updatedDungeon.user.nickName,
       userIconImageKey: updatedDungeon.user.iconImageKey,

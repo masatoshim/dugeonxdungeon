@@ -4,6 +4,7 @@ import { authOptions } from "@/app/_libs/auth";
 import { prisma } from "@/app/_libs/prisma";
 import { DungeonResponse, DungeonsIndexResponse } from "@/app/_types";
 import { DungeonStatus } from "@prisma/client";
+import { mapDataSchema } from "@/types/game";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -89,9 +90,14 @@ export async function GET(request: Request) {
 
     const dungeons: DungeonResponse[] = dungeonsData.map((d) => {
       const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
+      const parsedMapData = mapDataSchema.safeParse(d.mapData);
+      const validMapData = parsedMapData.success
+        ? parsedMapData.data
+        : { tiles: [], entities: [], width: 0, height: 0 };
 
       return {
         ...rest,
+        mapData: validMapData,
         nickName: user.nickName || "USER_NAME",
         userIconImageKey: user.iconImageKey,
         totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
