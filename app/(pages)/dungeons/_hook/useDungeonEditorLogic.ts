@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
-import { TILE_CONFIG, TILE_CATEGORIES, EntityData, TileConfigKey, DUNGEON_DEFAULT } from "@/types";
+import { TILE_CONFIG } from "@/game-core/master";
+import { TILE_CATEGORIES, EntityData, TileConfigKey, DUNGEON_DEFAULT } from "@/game-core/types";
 import { toast } from "sonner";
 
 // 内部ロジック判定用

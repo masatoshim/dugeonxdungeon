@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
 import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
-import { mapDataSchema } from "@/types/game";
+import { mapDataSchema } from "@/game-core/schemas/map";
 
 /**
  * GET: ダンジョン一覧取得
@@ -363,6 +363,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "mapData には tiles, width, height が必要です" }, { status: 400 });
     }
 
+    const parsedMapData = mapDataSchema.safeParse(mapData);
+    const validMapData = parsedMapData.success ? parsedMapData.data : { tiles: [], entities: [], width: 0, height: 0 };
+
     // ユーザーの設定している作成上限（createDungeonLimit）を取得
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -400,7 +403,7 @@ export async function POST(request: Request) {
       data: {
         ...dungeonData,
         code: dungeonData.code || `DN-${crypto.randomUUID().slice(0, 8)}`,
-        mapData: mapData,
+        mapData: validMapData,
         user: {
           connect: { id: userId },
         },

@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { MapData } from "@/types";
+import { MapData } from "@/game-core/types";
 
 // Canvas操作を含むコンポーネントをロード
 const GameCanvas = dynamic(() => import("@/app/(pages)/dungeons/_components/game/GameCanvas"), {

@@ -4,7 +4,7 @@ import { authOptions } from "@/app/_libs/auth";
 import { prisma } from "@/app/_libs/prisma";
 import { DungeonResponse, DungeonsIndexResponse } from "@/app/_types";
 import { DungeonStatus } from "@prisma/client";
-import { mapDataSchema } from "@/types/game";
+import { mapDataSchema } from "@/game-core/schemas/map";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);

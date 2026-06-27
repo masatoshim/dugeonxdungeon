@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { TILE_CONFIG, TILE_PALETTE_SCHEMA, TileConfigKey } from "@/types";
+import { TILE_CONFIG, TILE_PALETTE_SCHEMA } from "@/game-core/master";
+import { TileConfigKey } from "@/game-core/types";
 import { TileIconForm } from "./TileIconForm";
 import { ChevronDown, Eraser, Play } from "lucide-react";
 

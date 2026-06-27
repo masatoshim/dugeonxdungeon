@@ -8,7 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { DUNGEON_DEFAULT, TileConfigKey, TILE_CONFIG, TILE_CATEGORIES } from "@/types";
+import { DUNGEON_DEFAULT, TILE_CATEGORIES, TileConfigKey } from "@/game-core/types";
+import { TILE_CONFIG } from "@/game-core/master";
 import { EditorInfoHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useGetUser } from "@/app/_hooks";
 import { useTileImages, useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";

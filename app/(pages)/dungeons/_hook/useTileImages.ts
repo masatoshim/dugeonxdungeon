@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TILE_CONFIG, ASSETS } from "@/types";
+import { TILE_CONFIG, ASSETS } from "@/game-core/master";
 
 export function useTileImages() {
   const [images, setImages] = useState<Record<string, HTMLImageElement>>({});

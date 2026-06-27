@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { EntityData } from "@/types";
+import { EntityData } from "@/game-core/types";
 
 export interface EditorSnapshot {
   name: string;

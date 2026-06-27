@@ -1,4 +1,4 @@
-import { TILE_CONFIG, ASSETS } from "@/types";
+import { ASSETS, TILE_CONFIG } from "@/game-core/master";
 
 // タイルの表示用コンポーネント
 export const TileIconForm = ({ tileId, size = 32 }: { tileId: string; size?: number }) => {

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useEffect } from "react";
-import { TILE_CONFIG, TileConfigKey, EntityData } from "@/types";
+import { TILE_CONFIG } from "@/game-core/master";
+import { TileConfigKey, EntityData } from "@/game-core/types";
 
 interface UseDungeonCanvasProps {
   tiles: string[][];

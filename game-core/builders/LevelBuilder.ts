@@ -1,4 +1,5 @@
-import { TILE_CONFIG, TILE_CATEGORIES, TileConfig, EntityData, GimmickConnection } from "@/types";
+import { TILE_CONFIG } from "@/game-core/master";
+import { TILE_CATEGORIES, TileConfig, EntityData, GimmickConnection } from "@/game-core/types";
 import { Enemy } from "@/game-core/entities/Enemy";
 
 export interface LevelGroups {

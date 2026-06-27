@@ -1,5 +1,6 @@
 import * as Phaser from "phaser";
-import { GAME_EVENTS, ASSETS, MapData, WeaponData, GimmickConnection } from "@/types";
+import { GAME_EVENTS, MapData, WeaponData, GimmickConnection } from "@/game-core//types";
+import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";

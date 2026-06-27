@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { MapData } from "@/types";
+import { MapData } from "@/game-core/types";
 import { PlayGameContent } from "@/app/(pages)/dungeons/_components";
 import { useGetDungeon, useUpdateDungeon } from "@/app/_hooks";
 

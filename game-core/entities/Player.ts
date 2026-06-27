@@ -1,7 +1,7 @@
 // game/entities/Player.ts
 
 import * as Phaser from "phaser";
-import { WeaponData, PlayerInventory } from "@/types";
+import { WeaponData, PlayerInventory } from "@/game-core/types";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private arcadeBody: Phaser.Physics.Arcade.Body;

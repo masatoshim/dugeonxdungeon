@@ -1,5 +1,5 @@
 import { DungeonStatus, PlayStatus, FavoritesDungeon } from "@prisma/client";
-import { MapData } from "@/types/game";
+import { MapData } from "@/game-core/types";
 
 /**
  * ダンジョン取得の共通プロパティ

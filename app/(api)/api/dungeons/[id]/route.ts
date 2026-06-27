@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
 import { DungeonBase, DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
-import { mapDataSchema } from "@/types/game";
+import { mapDataSchema } from "@/game-core/schemas/map";
 
 /**
  * GET: ダンジョン詳細取得

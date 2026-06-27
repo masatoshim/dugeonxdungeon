@@ -4,7 +4,8 @@ import { useFormContext } from "react-hook-form";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { useCreateDungeon, useUpdateDungeon } from "@/app/_hooks";
-import { TILE_CONFIG, TileConfigKey, TILE_CATEGORIES } from "@/types";
+import { TILE_CONFIG } from "@/game-core/master";
+import { TILE_CATEGORIES } from "@/game-core/types";
 import { DungeonResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
 
@@ -124,6 +125,12 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
     if (!hasPlayer) return toast.error("プレイヤーが設置されていません");
     if (!hasGoal) return toast.error("ゴールが設置されていません");
 
+    // 編集モード、かつ何も変更がないなら、APIへの保存をスキップして即遷移
+    if (isEditMode && !isDirty) {
+      router.push(`/dungeons/${initialData?.id}/test-play?v=${Date.now()}`);
+      return;
+    }
+
     try {
       const { mapDataCheck, ...rest } = data;
       let savedDungeon: DungeonResponse;
@@ -191,13 +198,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
       {/* テストプレイして公開 */}
       <button
         type="button"
-        onClick={async () => {
-          if (isDirty || !isEditMode) {
-            handleSubmit(onTestPlaySubmit)();
-          } else {
-            router.push(`/dungeons/${initialData?.id}/test-play?v=${Date.now()}`);
-          }
-        }}
+        onClick={handleSubmit(onTestPlaySubmit)}
         className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500 hover:bg-cyan-400 rounded-md text-xs font-black shadow-lg shadow-cyan-500/10 border border-transparent focus:border-white/40 outline-none transition-all text-slate-950 active:scale-95 shrink-0"
       >
         <Play size={12} fill="currentColor" />
