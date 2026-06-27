@@ -114,7 +114,6 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
     for (let r = 1; r < rows - 1; r++) {
       for (let c = 1; c < cols - 1; c++) {
         const tile = tiles[r]?.[c];
-        console.log("tile:", tile);
         if (!tile) continue;
 
         const category = TILE_CONFIG[tile]?.category;
