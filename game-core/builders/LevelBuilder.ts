@@ -87,11 +87,9 @@ export class LevelBuilder {
 
     // 扉の生成
     entities
-      .filter((e) => e.type === "DOOR")
+      .filter((e) => e.tileId === "D1" || e.tileId === "KD1")
       .forEach((e) => {
-        const tileId = e.properties?.tileId || "KD1";
-
-        const config = TILE_CONFIG[tileId];
+        const config = TILE_CONFIG[e.tileId];
         const door = scene.physics.add.staticSprite(e.x * 32 + 16, e.y * 32 + 16, config.texture);
 
         const closedFrame = 0;
@@ -107,10 +105,10 @@ export class LevelBuilder {
 
     // ボタンの生成
     entities
-      .filter((e) => e.type === "BUTTON")
+      // .filter((e) => e.type === "BUTTON")
+      .filter((e) => e.tileId === "B1")
       .forEach((e) => {
-        const tileId = e.properties?.tileId || "B1";
-        const config = TILE_CONFIG[tileId];
+        const config = TILE_CONFIG[e.tileId];
 
         const button = scene.physics.add.sprite(e.x * 32 + 16, e.y * 32 + 16, config.texture);
         const closedFrame = 0;
@@ -136,10 +134,9 @@ export class LevelBuilder {
 
     // カギの生成
     entities
-      .filter((e) => e.type === "KEY")
+      .filter((e) => e.tileId === "K1")
       .forEach((e) => {
-        const tileId = e.properties?.tileId || "K1";
-        const config = TILE_CONFIG[tileId];
+        const config = TILE_CONFIG[e.tileId];
 
         // config からテクスチャとフレームを取得
         const keyItem = scene.physics.add.staticSprite(e.x * 32 + 16, e.y * 32 + 16, config.texture!, 0);

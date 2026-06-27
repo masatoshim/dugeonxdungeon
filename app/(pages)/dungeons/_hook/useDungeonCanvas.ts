@@ -3,7 +3,7 @@ import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { EntityData } from "@/game-core/types";
 
 interface UseDungeonCanvasProps {
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: EntityData[];
   rows: number;
   cols: number;
@@ -58,7 +58,7 @@ export function useDungeonCanvas({
         const dy = r * TILE_SIZE;
 
         // マスタ設定を先に取得する
-        const config = TILE_CONFIG[tileId as TileConfigKey];
+        const config = TILE_CONFIG[tileId];
         // 登録されているテクスチャキー（例: "wall"）を使って images から画像を探す
         const img = config?.texture ? images[config.texture] : null;
 
@@ -73,8 +73,8 @@ export function useDungeonCanvas({
         // エンティティ（鍵や扉）の描画
         const entity = entityMap.get(`${c}-${r}`);
         if (entity) {
-          const entityTileId = entity.properties?.tileId;
-          const entityConfig = entityTileId ? TILE_CONFIG[entityTileId as TileConfigKey] : null;
+          const entityTileId = entity.tileId;
+          const entityConfig = entityTileId ? TILE_CONFIG[entityTileId] : null;
           const entityImg = entityConfig?.texture ? images[entityConfig.texture] : null;
 
           if (entityImg && entityConfig) {

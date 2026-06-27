@@ -172,7 +172,7 @@ const PaletteSubGroupSection = ({
           <div className="flex flex-wrap gap-2 items-start justify-start">
             {subGroup.items.map((item) => {
               if (item.isEraser) return null;
-              const tile = TILE_CONFIG[item.id as TileConfigKey];
+              const tile = TILE_CONFIG[item.id];
               if (!tile) return null;
 
               return (

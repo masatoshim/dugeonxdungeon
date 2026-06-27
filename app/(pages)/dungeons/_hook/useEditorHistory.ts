@@ -15,7 +15,7 @@ export interface EditorSnapshot {
 
 export function useEditorHistory(
   methods: UseFormReturn<any>,
-  tiles: string[][],
+  tiles: TileConfigKey[][],
   entities: EntityData[],
   rows: number,
   cols: number,

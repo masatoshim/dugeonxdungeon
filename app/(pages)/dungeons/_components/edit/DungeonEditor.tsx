@@ -131,10 +131,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const handleCanvasAction = useCallback(
     (r: number, c: number) => {
       if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
-      if (selectedTile !== " " && TILE_CONFIG[selectedTile as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER) {
-        const hasPlayer = tiles
-          .flat()
-          .some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER);
+      if (selectedTile !== " " && TILE_CONFIG[selectedTile]?.category === TILE_CATEGORIES.PLAYER) {
+        const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
         if (hasPlayer) return toast.error("プレイヤーは1つのみです");
       }
 

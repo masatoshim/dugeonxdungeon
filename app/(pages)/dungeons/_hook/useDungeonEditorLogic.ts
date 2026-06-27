@@ -125,9 +125,7 @@ export function useDungeonEditorLogic(initialData?: any) {
 
       // プレイヤー単一チェック
       if (category === TILE_CATEGORIES.PLAYER) {
-        const hasPlayer = tiles
-          .flat()
-          .some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER);
+        const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
         if (hasPlayer) {
           toast.error("プレイヤーは1つのみです");
           return;
@@ -184,10 +182,9 @@ export function useDungeonEditorLogic(initialData?: any) {
             const filtered = prev.filter((e) => !(e.x === c && e.y === r));
             const newEntity: EntityData = {
               id: newId,
-              type: savedEntityType!,
+              tileId: selectedTile,
               x: c,
               y: r,
-              properties: { tileId: selectedTile },
             };
             return [...filtered, newEntity];
           });
@@ -197,10 +194,10 @@ export function useDungeonEditorLogic(initialData?: any) {
             const filtered = prev.filter((e) => !(e.x === c && e.y === r));
             const newEntity: EntityData = {
               id: newId,
-              type: savedEntityType!,
+              tileId: selectedTile,
               x: c,
               y: r,
-              properties: { tileId: selectedTile, targetId: firstId! },
+              properties: { targetId: firstId! },
             };
             return filtered
               .map((e) => (e.id === firstId ? { ...e, properties: { ...e.properties, targetId: newId } } : e))

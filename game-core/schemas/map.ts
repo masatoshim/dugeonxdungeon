@@ -8,13 +8,12 @@ const zodTileKeyEnum = z.custom<TileConfigKey>((val) => {
 
 export const entityDataSchema = z.object({
   id: z.string(),
-  type: z.enum(["ROCK", "IRON_BALL", "ICE", "BUTTON", "DOOR", "KEY", "SWITCH", "LIGHT"]),
+  tileId: zodTileKeyEnum,
   x: z.number(),
   y: z.number(),
   properties: z
     .object({
       targetId: z.string().optional(),
-      tileId: zodTileKeyEnum.optional(),
       useCount: z.number().optional(),
       isLocked: z.boolean().optional(),
     })

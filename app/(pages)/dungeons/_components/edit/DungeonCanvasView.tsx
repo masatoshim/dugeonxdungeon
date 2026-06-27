@@ -1,9 +1,10 @@
 "use client";
 
 import { useDungeonCanvas } from "@/app/(pages)/dungeons/_hook";
+import { TileConfigKey } from "@/game-core/master";
 
 interface Props {
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: any[];
   rows: number;
   cols: number;

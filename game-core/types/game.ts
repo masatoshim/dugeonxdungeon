@@ -1,5 +1,6 @@
 import { PlayerInventory } from "@/game-core/types";
 import { TileConfigKey } from "@/game-core/master";
+import { TileCategory } from "@/game-core/types";
 import type Phaser from "phaser";
 
 export const GAME_EVENTS = {
@@ -18,12 +19,11 @@ export const DUNGEON_DEFAULT = {
 
 export interface EntityData {
   id: string;
-  type: "ROCK" | "IRON_BALL" | "ICE" | "BUTTON" | "DOOR" | "KEY" | "SWITCH" | "LIGHT";
+  tileId: TileConfigKey;
   x: number;
   y: number;
   properties?: {
     targetId?: string;
-    tileId?: TileConfigKey;
     useCount?: number;
     isLocked?: boolean;
   };
