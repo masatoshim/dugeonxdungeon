@@ -1,15 +1,16 @@
 import { ASSETS, TILE_CONFIG } from "@/game-core/master";
+import { TileConfigKey } from "@/game-core/master";
 
 // タイルの表示用コンポーネント
-export const TileIconForm = ({ tileId, size = 32 }: { tileId: string; size?: number }) => {
-  const config = TILE_CONFIG[tileId as keyof typeof TILE_CONFIG];
+export const TileIconForm = ({ tileId, size = 32 }: { tileId: TileConfigKey; size?: number }) => {
+  const config = TILE_CONFIG[tileId];
 
   // 該当なし、または空タイルの場合は背景色のみ表示
   if (!config || tileId === " ") {
     return <div className="bg-slate-900 rounded-sm" style={{ width: size, height: size }} />;
   }
 
-  const textureKey = config.texture as keyof typeof ASSETS;
+  const textureKey = config.texture;
   const texturePath = ASSETS[textureKey];
   const BASE_SIZE = 32;
 

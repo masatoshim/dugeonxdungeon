@@ -1,5 +1,5 @@
 import { Item, WeaponData } from "@/game-core/types";
-import { TileConfigKey } from "@/game-core/master";
+import { TileConfigKey, AssetKey } from "@/game-core/master";
 
 export const TILE_CATEGORIES = {
   EMPTY: "EMPTY",
@@ -25,7 +25,7 @@ export interface EnemyData {
 export interface TileConfig {
   name: string;
   category: TileCategory;
-  texture: string;
+  texture: AssetKey;
   openFrame?: number;
   isBreakable?: boolean;
   isLocked?: boolean;

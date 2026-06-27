@@ -18,5 +18,5 @@ export const CORE_TILES = {
     isBreakable: true,
     hp: 3,
   },
-  " ": { name: "床", category: TILE_CATEGORIES.EMPTY, texture: "" },
+  " ": { name: "床", category: TILE_CATEGORIES.EMPTY, texture: "empty" },
 } as const satisfies Record<string, TileConfig>;

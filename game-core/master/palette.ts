@@ -1,4 +1,4 @@
-import { PaletteGroup } from "../types/tiles";
+import { PaletteGroup } from "@/game-core/types/tiles";
 
 export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   {
