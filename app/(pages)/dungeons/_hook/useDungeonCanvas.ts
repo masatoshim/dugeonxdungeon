@@ -56,8 +56,11 @@ export function useDungeonCanvas({
 
         const dx = c * TILE_SIZE;
         const dy = r * TILE_SIZE;
-        const img = images[tileId];
+
+        // マスタ設定を先に取得する
         const config = TILE_CONFIG[tileId as TileConfigKey];
+        // 登録されているテクスチャキー（例: "wall"）を使って images から画像を探す
+        const img = config?.texture ? images[config.texture] : null;
 
         // 床などの基本タイルを描画
         if (img && config) {
@@ -72,8 +75,8 @@ export function useDungeonCanvas({
         const entity = entityMap.get(`${c}-${r}`);
         if (entity) {
           const entityTileId = entity.properties?.tileId;
-          const entityImg = entityTileId ? images[entityTileId] : null;
           const entityConfig = entityTileId ? TILE_CONFIG[entityTileId as TileConfigKey] : null;
+          const entityImg = entityConfig?.texture ? images[entityConfig.texture] : null;
 
           if (entityImg && entityConfig) {
             const esx = (entityConfig.frame || 0) * TILE_SIZE;

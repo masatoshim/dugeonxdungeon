@@ -45,12 +45,9 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
+    // すべてのアセットを一律で 32x32 のスプライトシートとして全自動ロード
     Object.entries(ASSETS).forEach(([key, path]) => {
-      if (key === "tileset" || key === "items" || key === "stones" || key === "doors" || key === "buttons") {
-        this.load.spritesheet(key, path, { frameWidth: 32, frameHeight: 32 });
-      } else {
-        this.load.image(key, path);
-      }
+      this.load.spritesheet(key, path, { frameWidth: 32, frameHeight: 32 });
     });
   }
 
@@ -158,7 +155,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     // 移動先の最終地点を計算
-    const isIce = stone.getData("config")?.category === "ICE" || stone.texture.key === "ice"; // 氷判定
+    const isIce = stone.texture.key === "iceStone"; // 氷判定
     const targetPos = this.calculateTargetPosition(stone, moveX, moveY, isIce);
 
     if (targetPos.x === stone.x && targetPos.y === stone.y) return;

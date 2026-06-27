@@ -5,7 +5,6 @@ export const TILE_CATEGORIES = {
   EMPTY: "EMPTY",
   WALL: "WALL",
   STONE: "STONE",
-  ICE: "ICE",
   PLAYER: "PLAYER",
   ENEMY: "ENEMY",
   ITEM: "ITEM",

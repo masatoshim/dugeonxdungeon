@@ -11,18 +11,26 @@ export const TileIconForm = ({ tileId, size = 32 }: { tileId: string; size?: num
 
   const textureKey = config.texture as keyof typeof ASSETS;
   const texturePath = ASSETS[textureKey];
-  const frameX = (config.frame || 0) * size;
+
+  const BASE_SIZE = 32;
+  const frameX = (config.frame || 0) * BASE_SIZE;
+
+  const scale = size / BASE_SIZE;
 
   return (
-    <div
-      className="bg-no-repeat rendering-pixelated"
-      style={{
-        width: size,
-        height: size,
-        backgroundImage: `url(${texturePath})`,
-        backgroundPosition: `-${frameX}px 0px`,
-        backgroundSize: `auto ${size}px`,
-      }}
-    />
+    <div className="overflow-hidden bg-slate-900/50 rounded-sm" style={{ width: size, height: size }}>
+      <div
+        className="bg-no-repeat rendering-pixelated"
+        style={{
+          width: BASE_SIZE,
+          height: BASE_SIZE,
+          backgroundImage: `url(${texturePath})`,
+          backgroundPosition: `-${frameX}px 0px`,
+          backgroundSize: "auto 32px",
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      />
+    </div>
   );
 };

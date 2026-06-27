@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TILE_CONFIG, ASSETS } from "@/game-core/master";
+import { ASSETS } from "@/game-core/master";
 
 export function useTileImages() {
   const [images, setImages] = useState<Record<string, HTMLImageElement>>({});
@@ -8,22 +8,27 @@ export function useTileImages() {
   useEffect(() => {
     const loadImages = async () => {
       const loadedImages: Record<string, HTMLImageElement> = {};
-      const tasks = Object.keys(TILE_CONFIG).map((tileId) => {
+
+      const tasks = Object.entries(ASSETS).map(([textureKey, src]) => {
         return new Promise((resolve) => {
           const img = new Image();
-          const config = TILE_CONFIG[tileId];
-          const textureKey = config.texture as keyof typeof ASSETS;
-          img.src = ASSETS[textureKey];
+          img.src = src;
           img.onload = () => {
-            loadedImages[tileId] = img;
+            loadedImages[textureKey] = img;
             resolve(true);
+          };
+          img.onerror = () => {
+            console.error(`Failed to load image: ${textureKey} from ${src}`);
+            resolve(false);
           };
         });
       });
+
       await Promise.all(tasks);
       setImages(loadedImages);
       setIsLoaded(true);
     };
+
     loadImages();
   }, []);
 
