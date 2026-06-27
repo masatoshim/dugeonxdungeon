@@ -5,15 +5,13 @@ export const TileIconForm = ({ tileId, size = 32 }: { tileId: string; size?: num
   const config = TILE_CONFIG[tileId as keyof typeof TILE_CONFIG];
 
   // 該当なし、または空タイルの場合は背景色のみ表示
-  if (!config || tileId === "..") {
+  if (!config || tileId === " ") {
     return <div className="bg-slate-900 rounded-sm" style={{ width: size, height: size }} />;
   }
 
   const textureKey = config.texture as keyof typeof ASSETS;
   const texturePath = ASSETS[textureKey];
-
   const BASE_SIZE = 32;
-  const frameX = (config.frame || 0) * BASE_SIZE;
 
   const scale = size / BASE_SIZE;
 
@@ -25,7 +23,7 @@ export const TileIconForm = ({ tileId, size = 32 }: { tileId: string; size?: num
           width: BASE_SIZE,
           height: BASE_SIZE,
           backgroundImage: `url(${texturePath})`,
-          backgroundPosition: `-${frameX}px 0px`,
+          backgroundPosition: `-0px 0px`,
           backgroundSize: "auto 32px",
           transform: `scale(${scale})`,
           transformOrigin: "top left",

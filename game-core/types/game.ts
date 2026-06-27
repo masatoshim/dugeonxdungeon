@@ -1,4 +1,5 @@
-import { PlayerInventory } from "./items";
+import { PlayerInventory } from "@/game-core/types";
+import { TileConfigKey } from "@/game-core/master";
 import type Phaser from "phaser";
 
 export const GAME_EVENTS = {
@@ -22,14 +23,14 @@ export interface EntityData {
   y: number;
   properties?: {
     targetId?: string;
-    tileId?: string;
+    tileId?: TileConfigKey;
     useCount?: number;
     isLocked?: boolean;
   };
 }
 
 export interface MapData {
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities?: EntityData[];
   settings?: {
     isDark: boolean;

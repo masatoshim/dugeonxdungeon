@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { TILE_CONFIG, TILE_PALETTE_SCHEMA } from "@/game-core/master";
-import { TileConfigKey } from "@/game-core/types";
+import { TileConfigKey } from "@/game-core/master";
 import { TileIconForm } from "./TileIconForm";
 import { ChevronDown, Eraser, Play } from "lucide-react";
 
 type Props = {
-  selectedTile: string;
-  onSelect: (id: string) => void;
+  selectedTile: TileConfigKey;
+  onSelect: (id: TileConfigKey) => void;
   defaultOpen?: boolean;
 };
 
@@ -23,10 +23,10 @@ export const TilePalette = ({ selectedTile, onSelect, defaultOpen = true }: Prop
           {/* 消しゴムボタン */}
           <button
             type="button"
-            onClick={() => onSelect("..")}
+            onClick={() => onSelect(" ")}
             title="消しゴム (ERASER)"
             className={`p-1.5 rounded-md transition-all duration-150 border flex items-center justify-center ${
-              selectedTile === ".."
+              selectedTile === " "
                 ? "border-red-500/80 bg-red-950/40 text-red-400 shadow-sm shadow-red-950"
                 : "border-red-950/60 bg-red-950/10 text-red-900/80 hover:text-red-400 hover:bg-red-950/30 hover:border-red-900/50"
             }`}
@@ -72,8 +72,8 @@ const PaletteGroupSection = ({
   onSelect,
 }: {
   group: (typeof TILE_PALETTE_SCHEMA)[number];
-  selectedTile: string;
-  onSelect: (id: string) => void;
+  selectedTile: TileConfigKey;
+  onSelect: (id: TileConfigKey) => void;
 }) => {
   const [isGroupOpen, setIsGroupOpen] = useState(true);
 
@@ -127,7 +127,7 @@ const PaletteSubGroupSection = ({
 }: {
   subGroup: (typeof TILE_PALETTE_SCHEMA)[number]["subGroups"][number];
   selectedTile: string;
-  onSelect: (id: string) => void;
+  onSelect: (id: TileConfigKey) => void;
 }) => {
   const [isSubOpen, setIsSubOpen] = useState(true);
   const hasSubLabel = !!subGroup.subLabel;

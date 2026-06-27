@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { MapData, EntityData } from "../types/game";
+import { MapData, EntityData } from "@/game-core/types/game";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+
+const zodTileKeyEnum = z.custom<TileConfigKey>((val) => {
+  return typeof val === "string" && val in TILE_CONFIG;
+});
 
 export const entityDataSchema = z.object({
   id: z.string(),
@@ -9,7 +14,7 @@ export const entityDataSchema = z.object({
   properties: z
     .object({
       targetId: z.string().optional(),
-      tileId: z.string().optional(),
+      tileId: zodTileKeyEnum.optional(),
       useCount: z.number().optional(),
       isLocked: z.boolean().optional(),
     })
@@ -17,7 +22,15 @@ export const entityDataSchema = z.object({
 }) satisfies z.ZodType<EntityData>;
 
 export const mapDataSchema = z.object({
-  tiles: z.array(z.array(z.string())),
+  tiles: z.preprocess(
+    (val) => {
+      if (Array.isArray(val)) {
+        return val.map((row) => (Array.isArray(row) ? row.map((tile) => (tile === " " ? " " : tile)) : row));
+      }
+      return val;
+    },
+    z.array(z.array(zodTileKeyEnum)),
+  ),
   entities: z.array(entityDataSchema).optional(),
   settings: z
     .object({

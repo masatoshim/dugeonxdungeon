@@ -1,12 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { EntityData } from "@/game-core/types";
+import { TileConfigKey } from "@/game-core/master";
 
 export interface EditorSnapshot {
   name: string;
   description: string;
   timeLimit: number;
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: EntityData[];
   rows: number;
   cols: number;
@@ -20,7 +21,7 @@ export function useEditorHistory(
   cols: number,
   setRows: (r: number) => void,
   setCols: (c: number) => void,
-  setTilesState: (t: string[][]) => void,
+  setTilesState: (t: TileConfigKey[][]) => void,
   setEntitiesState: (e: EntityData[]) => void,
 ) {
   const [history, setHistory] = useState<EditorSnapshot[]>([]);

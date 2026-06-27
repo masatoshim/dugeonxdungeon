@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     const sortField = searchParams.get("sort") || "createdAt";
     const sortOrder = searchParams.get("order") === "asc" ? "asc" : "desc";
 
-    //検索条件の動的構築
+    // 検索条件の動的構築
     const andConditions: Prisma.DungeonWhereInput[] = [];
 
     // デフォルトで削除済みは除外
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       andConditions.push({ deletedFlg: false });
     }
 
-    // status検索
+    // status検索のパース
     const statusListParam = searchParams.get("statusList");
     const statusParam = searchParams.get("status");
     const statusList = statusListParam
@@ -52,9 +52,7 @@ export async function GET(request: Request) {
           if (statusList.length > 0) andConditions.push({ status: { in: statusList } });
           andConditions.push({ userId: targetUserId });
         } else {
-          // 他人のID指定なら「公開中」のみ
-          andConditions.push({ status: "PUBLISHED" });
-          andConditions.push({ userId: targetUserId });
+          andConditions.push({ status: "PUBLISHED", userId: targetUserId });
         }
       } else {
         // ユーザーID指定なしの一覧画面
@@ -85,15 +83,9 @@ export async function GET(request: Request) {
     if (searchParams.get("name")) andConditions.push({ name: { contains: searchParams.get("name")! } });
     // user検索用のオブジェクトを準備
     const userFilter: Prisma.UserWhereInput = {};
-    if (isAdmin && searchParams.get("userName")) {
-      userFilter.userName = { contains: searchParams.get("userName")! };
-    }
-    if (searchParams.get("nickName")) {
-      userFilter.nickName = { contains: searchParams.get("nickName")! };
-    }
-    if (Object.keys(userFilter).length > 0) {
-      andConditions.push({ user: { is: userFilter } });
-    }
+    if (isAdmin && searchParams.get("userName")) userFilter.userName = { contains: searchParams.get("userName")! };
+    if (searchParams.get("nickName")) userFilter.nickName = { contains: searchParams.get("nickName")! };
+    if (Object.keys(userFilter).length > 0) andConditions.push({ user: userFilter });
 
     // 横断検索 (text)
     const searchText = searchParams.get("text");
@@ -101,7 +93,7 @@ export async function GET(request: Request) {
       andConditions.push({ OR: [{ name: { contains: searchText } }, { description: { contains: searchText } }] });
     }
 
-    // 範囲フィルター用ヘルパー
+    // 範囲フィルター用ヘルパー関数
     const addRangeFilter = (field: Extract<keyof Prisma.DungeonWhereInput, string>, type: "number" | "date") => {
       const val = searchParams.get(field);
       const from = searchParams.get(`${field}From`);
@@ -110,9 +102,7 @@ export async function GET(request: Request) {
       if (val || from || to) {
         const transform = (v: string) => (type === "number" ? Number(v) : new Date(v));
         if (val) {
-          andConditions.push({
-            [field]: transform(val),
-          });
+          andConditions.push({ [field]: transform(val) });
         } else {
           andConditions.push({
             [field]: {
@@ -124,7 +114,7 @@ export async function GET(request: Request) {
       }
     };
 
-    // 数値項目の実行
+    // 範囲検索の自動適用
     (
       [
         "mapSizeHeight",
@@ -143,29 +133,23 @@ export async function GET(request: Request) {
     // 日付項目の実行
     (["publishedAt", "createdAt", "updatedAt"] as const).forEach((field) => addRangeFilter(field, "date"));
 
-    // リスト取得制限 (isTemplate / deletedFlg)
+    // フラグ項目検索のヘルパー
     const setListFilter = (field: keyof Prisma.DungeonWhereInput, param: string) => {
       const list = searchParams.getAll(param);
-      if (list.length > 0) {
-        andConditions.push({ [field]: { in: list.map((v) => v === "true") } });
-      }
+      if (list.length > 0) andConditions.push({ [field]: { in: list.map((v) => v === "true") } });
     };
     setListFilter("isTemplate", "isTemplateList");
     setListFilter("deletedFlg", "deletedFlgList");
-    const isTemplateParam = searchParams.get("isTemplate");
-    if (isTemplateParam) {
-      andConditions.push({ isTemplate: isTemplateParam === "true" });
-    }
-    const deletedFlgParam = searchParams.get("deletedFlg");
-    if (deletedFlgParam) {
-      andConditions.push({ deletedFlg: deletedFlgParam === "true" });
-    }
+
+    if (searchParams.get("isTemplate")) andConditions.push({ isTemplate: searchParams.get("isTemplate") === "true" });
+    if (searchParams.get("deletedFlg")) andConditions.push({ deletedFlg: searchParams.get("deletedFlg") === "true" });
 
     const difficultyListParam = searchParams.get("difficultyList");
-    const difficultyList = difficultyListParam ? difficultyListParam.split(",") : [];
-    if (difficultyList.length > 0) {
-      andConditions.push({ difficulty: { in: difficultyList.map((d) => Number(d)) } });
+    if (difficultyListParam) {
+      const difficultyList = difficultyListParam.split(",").map(Number);
+      andConditions.push({ difficulty: { in: difficultyList } });
     }
+
     // プレイ状況による絞り込みロジック
     const playStatusListParam = searchParams.get("playStatusList");
     const playStatusParam = searchParams.get("playStatus");
@@ -186,7 +170,7 @@ export async function GET(request: Request) {
           playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } },
         });
       } else {
-        // 指定されたステータス（FAILUREなど）の履歴があるものを検索
+        // 指定されたステータスの履歴があるものを検索
         andConditions.push({
           playHistories: {
             some: {
@@ -197,9 +181,7 @@ export async function GET(request: Request) {
         });
         // かつ、一度でもクリアしているものは除外する
         if (isSeekingNotCleared) {
-          andConditions.push({
-            playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } },
-          });
+          andConditions.push({ playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } } });
         }
       }
     }
@@ -235,16 +217,9 @@ export async function GET(request: Request) {
 
     // 判定対象のユーザーIDを決定
     const targetCheckUserId = searchParams.get("checkUserId");
-    let effectiveCheckUserId: string | undefined = undefined;
+    const effectiveCheckUserId = isAdmin && targetCheckUserId ? targetCheckUserId : sessionUserId;
 
-    if (isAdmin && targetCheckUserId) {
-      // 管理者が特定のユーザーを指定した場合
-      effectiveCheckUserId = targetCheckUserId;
-    } else {
-      // 一般ユーザーは常に自分自身が対象
-      effectiveCheckUserId = sessionUserId;
-    }
-    // DB実行 (合計件数とデータ取得)
+    // DB実行
     const [totalCount, dungeonsRaw] = await Promise.all([
       prisma.dungeon.count({ where: { AND: andConditions } }),
       prisma.dungeon.findMany({
@@ -255,10 +230,7 @@ export async function GET(request: Request) {
           // ログイン中ユーザーの「クリア実績」があるか（Ver問わず1件あればOK）
           playHistories: effectiveCheckUserId
             ? {
-                where: {
-                  userId: effectiveCheckUserId,
-                  playStatus: "CLEAR",
-                },
+                where: { userId: effectiveCheckUserId, playStatus: "CLEAR" },
                 take: 1,
                 select: { id: true, versionMajor: true, versionMinor: true },
               }
@@ -278,18 +250,15 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    // 後処理 (totalPlayCountの計算と平坦化)
+    // マッピング処理
     let dungeons: DungeonResponse[] = dungeonsRaw.map((d) => {
       const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
       const hasPrivateAccess = isAdmin || sessionUserId === d.userId;
-      const parsedMapData = mapDataSchema.safeParse(d.mapData);
-      const validMapData = parsedMapData.success
-        ? parsedMapData.data
-        : { tiles: [], entities: [], width: 0, height: 0 };
+      const parsedMapData = mapDataSchema.parse(d.mapData);
 
       return {
         ...rest,
-        mapData: validMapData,
+        mapData: parsedMapData,
         totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         tags: d.dungeonTags.map((dt) => dt.tag.name),
         isCleared: (playHistories?.length ?? 0) > 0,
@@ -307,11 +276,9 @@ export async function GET(request: Request) {
       };
     });
 
-    // totalPlayCountによる絞り込み（メモリ上でのフィルタリング）
     const tpc = searchParams.get("totalPlayCount");
     const tpcFrom = searchParams.get("totalPlayCountFrom");
     const tpcTo = searchParams.get("totalPlayCountTo");
-
     if (tpc || tpcFrom || tpcTo) {
       dungeons = dungeons.filter((d) => {
         if (tpc && d.totalPlayCount !== Number(tpc)) return false;
@@ -321,8 +288,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // レスポンス
-    const responseBody: DungeonsIndexResponse = {
+    return NextResponse.json({
       dungeons,
       meta: {
         totalCount,
@@ -330,9 +296,7 @@ export async function GET(request: Request) {
         limit,
         hasNext: index + limit < totalCount,
       },
-    };
-
-    return NextResponse.json(responseBody);
+    });
   } catch (error) {
     console.error("GET Dungeons Error:", error);
     return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
@@ -354,17 +318,18 @@ export async function POST(request: Request) {
     const body: CreateDungeonRequest = await request.json();
     const { userId, mapData, tagIds, ...dungeonData } = body;
 
-    // mapData 内部プロパティのバリデーション
-    if (!mapData) {
-      return NextResponse.json({ error: "mapData は必須です" }, { status: 400 });
-    }
-    const { tiles, width, height } = mapData;
-    if (!tiles || width === undefined || height === undefined) {
-      return NextResponse.json({ error: "mapData には tiles, width, height が必要です" }, { status: 400 });
+    // 基本データチェック
+    if (!mapData || !mapData.tiles || mapData.width === undefined || mapData.height === undefined) {
+      return NextResponse.json({ error: "不正な mapData 構造です" }, { status: 400 });
     }
 
     const parsedMapData = mapDataSchema.safeParse(mapData);
-    const validMapData = parsedMapData.success ? parsedMapData.data : { tiles: [], entities: [], width: 0, height: 0 };
+    if (!parsedMapData.success) {
+      return NextResponse.json(
+        { error: "マップデータのバリデーションに失敗しました", details: parsedMapData.error.format() },
+        { status: 400 },
+      );
+    }
 
     // ユーザーの設定している作成上限（createDungeonLimit）を取得
     const user = await prisma.user.findUnique({
@@ -398,16 +363,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // ダンジョン作成と、タグの中間テーブル保存を同時に行う
+    // 新規作成実行
     const newDungeon = await prisma.dungeon.create({
       data: {
         ...dungeonData,
-        code: dungeonData.code || `DN-${crypto.randomUUID().slice(0, 8)}`,
-        mapData: validMapData,
-        user: {
-          connect: { id: userId },
-        },
-        // 中間テーブル（DungeonTag）への紐付け
+        code: dungeonData.code || `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+        mapData: parsedMapData.data,
+        user: { connect: { id: userId } },
         dungeonTags:
           tagIds && tagIds.length > 0
             ? {
@@ -423,13 +385,9 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Dungeon Creation Error:", error);
 
-    // Prismaのユニーク制約違反（codeの重複など）
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return NextResponse.json({ message: "指定されたダンジョンコードは既に使用されています" }, { status: 409 });
-      }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ message: "指定されたダンジョンコードは既に使用されています" }, { status: 409 });
     }
-
     return NextResponse.json({ message: "サーバーエラーが発生しました" }, { status: 500 });
   }
 }

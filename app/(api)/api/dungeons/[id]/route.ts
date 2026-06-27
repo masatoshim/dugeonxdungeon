@@ -7,6 +7,30 @@ import { Prisma } from "@prisma/client";
 import { mapDataSchema } from "@/game-core/schemas/map";
 
 /**
+ * レスポンス構造の詰め替えを一元管理する共通ヘルパー
+ */
+function mapToDungeonResponse(
+  dungeon: Prisma.DungeonGetPayload<{
+    include: {
+      user: { select: { userName: true; nickName: true; iconImageKey: true } };
+      dungeonTags: { include: { tag: true } };
+    };
+  }>,
+  hasPrivateAccess: boolean,
+): DungeonBase {
+  const parsedMapData = mapDataSchema.parse(dungeon.mapData);
+
+  return {
+    ...dungeon,
+    mapData: parsedMapData,
+    tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
+    nickName: dungeon.user.nickName,
+    userIconImageKey: dungeon.user.iconImageKey,
+    userName: hasPrivateAccess ? dungeon.user.userName : undefined,
+  };
+}
+
+/**
  * GET: ダンジョン詳細取得
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -39,22 +63,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         { status: 404 },
       );
     }
-    const { user, ...rest } = dungeon;
-    const hasPrivateAccess = isAdmin || sessionUserId === dungeon.userId;
 
-    const parsedMapData = mapDataSchema.safeParse(dungeon.mapData);
-    const validMapData = parsedMapData.success ? parsedMapData.data : { tiles: [], entities: [], width: 0, height: 0 };
+    const hasPrivateAccess = isAdmin || sessionUserId === dungeon.userId;
+    const dungeonBase = mapToDungeonResponse(dungeon, hasPrivateAccess);
 
     const response: DungeonResponse = {
-      ...rest,
-      mapData: validMapData,
+      ...dungeonBase,
+      favoritesCount: dungeon.favoritesCount,
+      clearPlayCount: dungeon.clearPlayCount,
+      failurePlayCount: dungeon.failurePlayCount,
+      interruptPlayCount: dungeon.interruptPlayCount,
       totalPlayCount: dungeon.clearPlayCount + dungeon.failurePlayCount + dungeon.interruptPlayCount,
-      tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
       createdAt: dungeon.createdAt.toISOString(),
       updatedAt: dungeon.updatedAt.toISOString(),
-      userName: hasPrivateAccess ? dungeon.user.userName : undefined,
-      nickName: dungeon.user.nickName,
-      userIconImageKey: dungeon.user.iconImageKey,
+      createdBy: hasPrivateAccess ? dungeon.createdBy : undefined,
+      updatedBy: hasPrivateAccess ? dungeon.updatedBy : undefined,
     };
 
     return NextResponse.json(response);
@@ -118,31 +141,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
-    const parsedMapData = mapDataSchema.safeParse(updatedDungeon.mapData);
-    const validMapData = parsedMapData.success ? parsedMapData.data : { tiles: [], entities: [], width: 0, height: 0 };
-
-    const responseDungeon: DungeonBase = {
-      ...updatedDungeon,
-      mapData: validMapData,
-      tags: updatedDungeon.dungeonTags.map((dt) => dt.tag.name),
-      nickName: updatedDungeon.user.nickName,
-      userIconImageKey: updatedDungeon.user.iconImageKey,
-      userName: hasPrivateAccess ? updatedDungeon.user.userName : undefined,
-    };
-
     const response: UpdateDungeonResponse = {
       message: "ダンジョン情報を更新しました",
-      dungeon: responseDungeon,
+      dungeon: mapToDungeonResponse(updatedDungeon, hasPrivateAccess),
     };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error("Dungeon Update Error:", error);
 
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return NextResponse.json({ message: "コードが重複しています" }, { status: 409 });
-      }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ message: "コードが重複しています" }, { status: 409 });
     }
     return NextResponse.json({ message: "サーバーエラーが発生しました" }, { status: 500 });
   }
@@ -160,23 +169,17 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
     const { id } = await params;
 
-    // 削除対象の存在確認と、現在の値を取得
-    const dungeon = await prisma.dungeon.findUnique({ where: { id } });
-    if (!dungeon) {
-      return NextResponse.json({ message: "ダンジョンが見つかりません" }, { status: 404 });
-    }
-
-    // 削除処理
+    // 削除処理（Prisma の既定の挙動に任せ、catch 側で存在エラーを安全にハンドル）
     await prisma.dungeon.delete({
       where: { id },
     });
+
     return NextResponse.json({ message: "ダンジョンを完全に削除しました" });
   } catch (error) {
     console.error("Dungeon Delete Error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return NextResponse.json({ message: "削除対象が見つかりません" }, { status: 404 });
-      }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ message: "削除対象が見つかりません" }, { status: 404 });
     }
     return NextResponse.json({ message: "削除に失敗しました" }, { status: 500 });
   }

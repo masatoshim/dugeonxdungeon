@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { useCreateDungeon, useUpdateDungeon } from "@/app/_hooks";
-import { TILE_CONFIG } from "@/game-core/master";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { TILE_CATEGORIES } from "@/game-core/types";
 import { DungeonResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
@@ -13,7 +13,7 @@ type Props = {
   initialData?: DungeonResponse;
   isAdmin: boolean;
   user: { id: string; role?: string; [key: string]: any };
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: any;
   rows: number;
   cols: number;
@@ -36,12 +36,14 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
   const isSaving = isCreating || isUpdating;
 
   // 共通マップデータを組み立てる軽量ヘルパー
-  const getCommonMapData = () => ({
-    tiles: tiles.map((row) => row.map((c) => (c === ".." ? " " : c))),
-    entities,
-    width: cols,
-    height: rows,
-  });
+  function getCommonMapData() {
+    return {
+      tiles: tiles,
+      entities: entities,
+      width: cols,
+      height: rows,
+    };
+  }
 
   /**
    * 下書き保存

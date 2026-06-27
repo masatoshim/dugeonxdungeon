@@ -1,6 +1,7 @@
 import { TILE_CONFIG } from "@/game-core/master";
 import { TILE_CATEGORIES, TileConfig, EntityData, GimmickConnection } from "@/game-core/types";
 import { Enemy } from "@/game-core/entities/Enemy";
+import { TileConfigKey } from "@/game-core/master";
 
 export interface LevelGroups {
   walls: Phaser.Physics.Arcade.StaticGroup;
@@ -23,7 +24,7 @@ export class LevelBuilder {
    * マップデータを解析して、各種オブジェクトを生成・グループ化する
    * 基本的にタイル配列（mapData）に基づいた静的な配置を行う
    */
-  public createLevel(mapData: string[][], groups: LevelGroups) {
+  public createLevel(mapData: TileConfigKey[][], groups: LevelGroups) {
     mapData.forEach((row, y) => {
       row.forEach((tileId, x) => {
         const config = TILE_CONFIG[tileId];
@@ -58,21 +59,14 @@ export class LevelBuilder {
 
           case TILE_CATEGORIES.ENEMY:
             // Enemyクラスのインスタンスを生成してグループに追加
-            const enemy = new Enemy(
-              this.scene,
-              posX,
-              posY,
-              config.texture!,
-              config.frame ?? 0,
-              config.enemyData?.hp || config.hp || 1,
-            );
+            const enemy = new Enemy(this.scene, posX, posY, config.texture!, 0, config.enemyData?.hp || 1);
             if (config.enemyData) enemy.setData("enemyData", config.enemyData);
 
             groups.enemies.add(enemy);
             break;
 
           case TILE_CATEGORIES.GOAL:
-            const goal = this.scene.physics.add.staticSprite(posX, posY, config.texture!, config.frame ?? 0);
+            const goal = this.scene.physics.add.staticSprite(posX, posY, config.texture!, 0);
             groups.goal.add(goal);
             goal.body.updateFromGameObject();
             goal.setDepth(1);
@@ -96,13 +90,14 @@ export class LevelBuilder {
       .filter((e) => e.type === "DOOR")
       .forEach((e) => {
         const tileId = e.properties?.tileId || "KD1";
+
         const config = TILE_CONFIG[tileId];
         const door = scene.physics.add.staticSprite(e.x * 32 + 16, e.y * 32 + 16, config.texture);
 
-        const closedFrame = config.frame ?? 0;
+        const closedFrame = 0;
         door.setFrame(closedFrame);
         door.setData("id", e.id);
-        door.setData("isLocked", config.isLocked);
+        door.setData("isLocked", config.isLocked ?? false);
         door.setData("openFrame", config.openFrame ?? 1);
         door.setData("closedFrame", closedFrame);
 
@@ -118,7 +113,7 @@ export class LevelBuilder {
         const config = TILE_CONFIG[tileId];
 
         const button = scene.physics.add.sprite(e.x * 32 + 16, e.y * 32 + 16, config.texture);
-        const closedFrame = config.frame ?? 0;
+        const closedFrame = 0;
         button.setFrame(closedFrame);
         button.setImmovable(true);
 
@@ -147,12 +142,7 @@ export class LevelBuilder {
         const config = TILE_CONFIG[tileId];
 
         // config からテクスチャとフレームを取得
-        const keyItem = scene.physics.add.staticSprite(
-          e.x * 32 + 16,
-          e.y * 32 + 16,
-          config.texture!,
-          config.frame ?? 0,
-        );
+        const keyItem = scene.physics.add.staticSprite(e.x * 32 + 16, e.y * 32 + 16, config.texture!, 0);
 
         // 拾った際のアイテム情報と、エディタで設定した targetId をマージ
         keyItem.setData("config", {
@@ -175,7 +165,7 @@ export class LevelBuilder {
    * 扉生成用ヘルパー
    */
   private createDoorFromConfig(x: number, y: number, config: TileConfig, groups: LevelGroups) {
-    const door = this.scene.physics.add.staticSprite(x, y, config.texture, config.frame ?? 0);
+    const door = this.scene.physics.add.staticSprite(x, y, config.texture, 0);
     if (config.openFrame !== undefined) door.setData("openFrame", config.openFrame);
     if (config.isLocked) door.setData("isLocked", true);
     groups.doors.add(door);
@@ -185,7 +175,7 @@ export class LevelBuilder {
    * アイテム生成用ヘルパー
    */
   private createItemFromConfig(x: number, y: number, config: TileConfig, groups: LevelGroups) {
-    const item = this.scene.physics.add.staticSprite(x, y, config.texture, config.frame ?? 0);
+    const item = this.scene.physics.add.staticSprite(x, y, config.texture, 0);
     item.setData("config", config);
     groups.items.add(item);
     (item.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
@@ -196,7 +186,7 @@ export class LevelBuilder {
    */
   private createWall(x: number, y: number, config: TileConfig, groups: LevelGroups) {
     const targetGroup = config.isBreakable ? groups.breakableWalls : groups.walls;
-    const wall = targetGroup.create(x, y, config.texture, config.frame ?? 0) as Phaser.Physics.Arcade.Sprite;
+    const wall = targetGroup.create(x, y, config.texture, 0) as Phaser.Physics.Arcade.Sprite;
 
     if (config.isBreakable) {
       wall.setData("hp", config.hp);
@@ -211,7 +201,7 @@ export class LevelBuilder {
    * 動かせる石・氷の生成ロジック
    */
   private createMovableStone(x: number, y: number, config: TileConfig, groups: LevelGroups) {
-    const stone = this.scene.physics.add.sprite(x, y, config.texture, config.frame ?? 0);
+    const stone = this.scene.physics.add.sprite(x, y, config.texture, 0);
 
     stone.setData("config", config);
     stone.setData("isMoving", false);

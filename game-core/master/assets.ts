@@ -22,7 +22,7 @@ import slimeImg from "@/game-core/assets/enemies/slime.png";
 
 export const ASSETS = {
   // core
-  player_idle: playerImg.src,
+  player: playerImg.src,
   goal: goalImg.src,
   wall: wallImg.src,
   wallbreakable1: wallbreakable1Img.src,

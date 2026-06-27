@@ -30,7 +30,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   ) => void;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, "player_idle");
+    super(scene, x, y, "player");
 
     scene.add.existing(this);
     scene.physics.add.existing(this);

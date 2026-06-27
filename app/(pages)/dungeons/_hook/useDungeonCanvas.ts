@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from "react";
-import { TILE_CONFIG } from "@/game-core/master";
-import { TileConfigKey, EntityData } from "@/game-core/types";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+import { EntityData } from "@/game-core/types";
 
 interface UseDungeonCanvasProps {
   tiles: string[][];
@@ -64,8 +64,7 @@ export function useDungeonCanvas({
 
         // 床などの基本タイルを描画
         if (img && config) {
-          const frameIndex = config.frame || 0;
-          const sx = frameIndex * TILE_SIZE;
+          const sx = 0;
           const sy = 0;
 
           ctx.drawImage(img, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
@@ -79,8 +78,7 @@ export function useDungeonCanvas({
           const entityImg = entityConfig?.texture ? images[entityConfig.texture] : null;
 
           if (entityImg && entityConfig) {
-            const esx = (entityConfig.frame || 0) * TILE_SIZE;
-            ctx.drawImage(entityImg, esx, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(entityImg, 0, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
           }
 
           // セット設置中のハイライト

@@ -11,6 +11,7 @@ import { SaveActionGroup } from "./SaveActionGroup";
 import { HistoryActionGroup } from "./HistoryActionGroup";
 import { DungeonResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
+import { TileConfigKey } from "@/game-core/master";
 
 type Props = {
   isAdmin: boolean;
@@ -21,7 +22,7 @@ type Props = {
   onConfigConfirm: () => void;
   initialData?: DungeonResponse;
   user: { id: string; [key: string]: any };
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: any;
   linkingState: { active: boolean; [key: string]: any };
   canUndo: boolean;

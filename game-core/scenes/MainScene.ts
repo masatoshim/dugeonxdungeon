@@ -4,13 +4,14 @@ import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";
+import { TileConfigKey } from "@/game-core/master";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
   private timeLimit: number = 0;
   private timeLeft: number = 0;
   // データ管理
-  private tiles!: string[][];
+  private tiles!: TileConfigKey[][];
   private tileSize: number = 32;
 
   // エンティティ・マネージャー

@@ -1,5 +1,5 @@
-import { Item, WeaponData } from "./items";
-import { TILE_CONFIG } from "../master";
+import { Item, WeaponData } from "@/game-core/types";
+import { TileConfigKey } from "@/game-core/master";
 
 export const TILE_CATEGORIES = {
   EMPTY: "EMPTY",
@@ -26,7 +26,6 @@ export interface TileConfig {
   name: string;
   category: TileCategory;
   texture: string;
-  frame: number;
   openFrame?: number;
   isBreakable?: boolean;
   isLocked?: boolean;
@@ -36,11 +35,9 @@ export interface TileConfig {
   weaponData?: WeaponData;
 }
 
-export type TileConfigKey = keyof typeof TILE_CONFIG;
-
 // エディタパレット用型定義
 export interface PaletteItem {
-  id: string;
+  id: TileConfigKey;
   isEraser?: boolean;
 }
 

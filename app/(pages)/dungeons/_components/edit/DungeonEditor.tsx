@@ -8,8 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { DUNGEON_DEFAULT, TILE_CATEGORIES, TileConfigKey } from "@/game-core/types";
-import { TILE_CONFIG } from "@/game-core/master";
+import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { EditorInfoHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useGetUser } from "@/app/_hooks";
 import { useTileImages, useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
@@ -127,11 +127,11 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   }, [handleUndo, handleRedo]);
 
   // タイル配置アクション
-  const [selectedTile, setSelectedTile] = useState("W");
+  const [selectedTile, setSelectedTile] = useState<TileConfigKey>("W");
   const handleCanvasAction = useCallback(
     (r: number, c: number) => {
       if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
-      if (selectedTile !== ".." && TILE_CONFIG[selectedTile as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER) {
+      if (selectedTile !== " " && TILE_CONFIG[selectedTile as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER) {
         const hasPlayer = tiles
           .flat()
           .some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER);
@@ -143,7 +143,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       const nextSnapshot = {
         ...getCurrentSnapshot(),
         tiles: tiles.map((row, ri) =>
-          row.map((cell, ci) => (ri === r && ci === c ? (selectedTile === ".." ? ".." : selectedTile) : cell)),
+          row.map((cell, ci) => (ri === r && ci === c ? (selectedTile === " " ? " " : selectedTile) : cell)),
         ),
       };
       pushHistory(nextSnapshot);
@@ -211,7 +211,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                 <TilePalette
                   selectedTile={selectedTile}
                   onSelect={(id) => {
-                    if (linkingState.active && id !== ".." && getEntityType(id) !== linkingState.pendingType) {
+                    if (linkingState.active && id !== " " && getEntityType(id) !== linkingState.pendingType) {
                       return toast.error("セット設置を優先するか、消しゴムでキャンセルしてください");
                     }
                     setSelectedTile(id);

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
-import { TILE_CONFIG } from "@/game-core/master";
-import { TILE_CATEGORIES, EntityData, TileConfigKey, DUNGEON_DEFAULT } from "@/game-core/types";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+import { TILE_CATEGORIES, EntityData, DUNGEON_DEFAULT } from "@/game-core/types";
+
 import { toast } from "sonner";
 
 // 内部ロジック判定用
@@ -17,7 +18,7 @@ export function useDungeonEditorLogic(initialData?: any) {
   const [cols, setCols] = useState(initialData?.mapData?.width || DUNGEON_DEFAULT.COLS);
 
   // タイルデータ初期化
-  const [tiles, setTiles] = useState<string[][]>(() => {
+  const [tiles, setTiles] = useState<TileConfigKey[][]>(() => {
     if (initialData?.mapData?.tiles) return initialData.mapData.tiles;
     return Array(DUNGEON_DEFAULT.ROWS)
       .fill(0)
@@ -25,7 +26,7 @@ export function useDungeonEditorLogic(initialData?: any) {
         Array(DUNGEON_DEFAULT.COLS)
           .fill(0)
           .map((_, c) =>
-            r === 0 || r === DUNGEON_DEFAULT.ROWS - 1 || c === 0 || c === DUNGEON_DEFAULT.COLS - 1 ? "W" : "..",
+            r === 0 || r === DUNGEON_DEFAULT.ROWS - 1 || c === 0 || c === DUNGEON_DEFAULT.COLS - 1 ? "W" : " ",
           ),
       );
   });
@@ -50,7 +51,7 @@ export function useDungeonEditorLogic(initialData?: any) {
 
   // 履歴（Undo/Redo）からステートを直接復元するための更新関数
   // useCallback でラップし、親側での不要な再レンダリングやエフェクトのトリガーを防ぎます
-  const setTilesState = useCallback((newTiles: string[][]) => {
+  const setTilesState = useCallback((newTiles: TileConfigKey[][]) => {
     setTiles(newTiles);
   }, []);
 
@@ -76,7 +77,7 @@ export function useDungeonEditorLogic(initialData?: any) {
       const oldCols = prev[0].length;
       const nextTiles = Array(newRows)
         .fill(0)
-        .map(() => Array(newCols).fill(".."));
+        .map(() => Array(newCols).fill(" "));
 
       for (let r = 0; r < newRows; r++) {
         for (let c = 0; c < newCols; c++) {
@@ -99,17 +100,17 @@ export function useDungeonEditorLogic(initialData?: any) {
 
   // セルクリック（設置）ロジック
   const handleCellClick = useCallback(
-    (r: number, c: number, selectedTile: string) => {
+    (r: number, c: number, selectedTile: TileConfigKey) => {
       // 境界チェック (外壁には設置不可)
       if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
 
-      const isEraser = selectedTile === "..";
+      const isEraser = selectedTile === " ";
 
       if (linkingRef.current.active && isEraser) {
         cancelLinking();
       }
 
-      const config = TILE_CONFIG[selectedTile as TileConfigKey];
+      const config = TILE_CONFIG[selectedTile];
       const category = config?.category;
 
       const incomingType = getEntityType(selectedTile);
@@ -171,7 +172,7 @@ export function useDungeonEditorLogic(initialData?: any) {
       setTiles((prev) => {
         const next = [...prev];
         next[r] = [...next[r]];
-        next[r][c] = isGimmick ? ".." : selectedTile;
+        next[r][c] = isGimmick ? " " : selectedTile;
         return next;
       });
 
