@@ -1,7 +1,7 @@
 "use client";
 
 import { DungeonCard } from "@/app/(pages)/_components/list/DungeonCard";
-import { DungeonResponse } from "@/types";
+import { DungeonResponse } from "@/app/_types";
 
 interface DungeonCardListProps {
   dungeons: DungeonResponse[] | undefined;

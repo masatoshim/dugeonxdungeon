@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { UserResponse, UpdateUserRequest, UpdateUserResponse } from "@/types";
+import { UserResponse, UpdateUserRequest, UpdateUserResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 
@@ -77,7 +77,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ message: "ユーザーが見つかりません" }, { status: 404 });
     }
 
-    // 2. 順位（rank）の算出
+    // 順位（rank）の算出
     // 自分より totalPlayScore が高いユーザーの数 + 1 が現在の順位
     const rank =
       (await prisma.user.count({
@@ -89,6 +89,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           deletedFlg: false,
         },
       })) + 1;
+
+    const activeDungeonCount = await prisma.dungeon.count({
+      where: {
+        userId: user.id,
+        status: {
+          not: "DELETED",
+        },
+      },
+    });
 
     const hasPrivateAccess = isAdmin || session?.user?.id === user.id;
     const response: UserResponse = {
@@ -125,17 +134,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         }),
       // 管理者のみ、または本人のみ取得可能にする項目
       ...(hasPrivateAccess && {
+        createDungeonLimit: user.createDungeonLimit,
+        activeDungeonCount: activeDungeonCount,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
         lastLoginAt: user.lastLoginAt?.toISOString() ?? undefined,
         email: user.email,
         emailVerified: user.emailVerified?.toISOString() ?? undefined,
         isGoogleUser: user.hashedPassword === null,
+        isActive: user.isActive,
       }),
       // 管理者のみ取得可能にする項目
       ...(isAdmin && {
         role: user.role,
-        isActive: user.isActive,
         deletedFlg: user.deletedFlg,
         createdBy: user.createdBy,
         updatedBy: user.updatedBy,

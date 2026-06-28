@@ -14,9 +14,9 @@ export interface Item {
   maxUses?: number;
   remainingUses?: number;
   weaponData?: WeaponData;
-  targetDoorId?: string; // 鍵が対応する扉のID
-  canBreakWalls?: boolean; // 特定のカテゴリの壁を壊せるかなどのフラグ
-  consumesOnUse?: boolean; // 使用時に消費するか（鍵など）
+  targetDoorId?: string;
+  canBreakWalls?: boolean;
+  consumesOnUse?: boolean;
 }
 
 export interface PlayerInventory {

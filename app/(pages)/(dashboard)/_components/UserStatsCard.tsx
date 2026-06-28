@@ -1,7 +1,7 @@
 "use client";
 
 import { PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
-import { UserResponse } from "@/types";
+import { UserResponse } from "@/app/_types";
 
 interface UserStatsCardProps {
   user: UserResponse;

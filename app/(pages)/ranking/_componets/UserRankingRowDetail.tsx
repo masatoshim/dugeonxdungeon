@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { UserResponse } from "@/types";
+import { UserResponse } from "@/app/_types";
 import { useProfileIcon } from "@/app/_hooks";
 
 interface UserRankingRowDetailProps {

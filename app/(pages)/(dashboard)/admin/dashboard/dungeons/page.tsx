@@ -7,7 +7,7 @@ import { useGetDungeons } from "@/app/_hooks";
 import { useSession } from "next-auth/react";
 import { DungeonRow } from "@/app/(pages)/_components/list/DungeonRow";
 import { DungeonFilterBar } from "./_components/DungeonFilterBar";
-import { DungeonFilter } from "@/types";
+import { DungeonFilter } from "@/app/_types";
 
 export default function AdminDungeonsPage() {
   return (

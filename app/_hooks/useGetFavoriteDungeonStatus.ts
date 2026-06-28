@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { FavoriteStatusResponse } from "@/types";
-import { getFavoriteDungeon } from "@/app/_libs/dungeons-api";
+import { FavoriteStatusResponse } from "@/app/_types";
+import { getFavoriteDungeon } from "@/app/_apis/dungeons-api";
 import { useSession } from "next-auth/react";
 
 export const useGetFavoriteDungeonStatus = (id: string, userId?: string) => {

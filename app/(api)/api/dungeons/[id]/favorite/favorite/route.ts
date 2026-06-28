@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { authOptions } from "@/app/_libs/auth";
 import { getServerSession } from "next-auth";
-import { FavoriteDungeonResponse } from "@/types";
+import { FavoriteDungeonResponse } from "@/app/_types";
 import { prisma } from "@/app/_libs/prisma";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

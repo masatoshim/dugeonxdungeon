@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { createPlayHistory } from "@/app/_libs/dungeons-api";
-import { CreatePlayHistoryRequest, PlayHistoryResponse } from "@/types";
+import { createPlayHistory } from "@/app/_apis/dungeons-api";
+import { CreatePlayHistoryRequest, PlayHistoryResponse } from "@/app/_types";
 import { toast } from "sonner";
 
 export const useCreatePlayHistory = (id: string) => {

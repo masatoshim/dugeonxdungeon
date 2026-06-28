@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { createUser } from "@/app/_libs/users-api";
-import { CreateUserRequest, UserResponse } from "@/types";
+import { createUser } from "@/app/_apis/users-api";
+import { CreateUserRequest, UserResponse } from "@/app/_types";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/app/_libs/auth";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/app/_libs/prisma";
-import { CreatePlayHistoryRequest } from "@/types/dungeon";
+import { CreatePlayHistoryRequest } from "@/app/_types/dungeon";
 import { PlayStatus } from "@prisma/client";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,7 +14,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   try {
     const { id: dungeonId } = await params;
-    const { playTime, playScore, playStatus, version }: CreatePlayHistoryRequest = await req.json();
+    const { playTime, playScore, playStatus, versionMajor, versionMinor }: CreatePlayHistoryRequest = await req.json();
     const isClear = playStatus === PlayStatus.CLEAR;
 
     const result = await prisma.$transaction(async (tx) => {
@@ -26,7 +26,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           playTime,
           playScore,
           playStatus,
-          version: version || 1,
+          versionMajor: versionMajor,
+          versionMinor: versionMinor,
         },
       });
 

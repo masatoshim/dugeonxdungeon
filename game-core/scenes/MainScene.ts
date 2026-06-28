@@ -1,15 +1,22 @@
 import * as Phaser from "phaser";
-import { GAME_EVENTS, ASSETS, MapData, WeaponData, GimmickConnection } from "@/types";
+import { GAME_EVENTS, MapData, WeaponData, GimmickConnection } from "@/game-core//types";
+import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";
+import { TileConfigKey } from "@/game-core/master";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
   private timeLimit: number = 0;
   private timeLeft: number = 0;
+  private isTimerStarted: boolean = false;
+
+  private timeText!: Phaser.GameObjects.Text;
+  private timeContainer!: Phaser.GameObjects.Graphics;
+
   // データ管理
-  private tiles!: string[][];
+  private tiles!: TileConfigKey[][];
   private tileSize: number = 32;
 
   // エンティティ・マネージャー
@@ -41,15 +48,14 @@ export class MainScene extends Phaser.Scene {
     this.timeLeft = data.timeLimit ?? 60;
     this.levelBuilder = new LevelBuilder(this);
     this.isGameOver = false;
+
+    this.isTimerStarted = false;
   }
 
   preload() {
+    // すべてのアセットを一律で 32x32 のスプライトシートとして全自動ロード
     Object.entries(ASSETS).forEach(([key, path]) => {
-      if (key === "tileset" || key === "items" || key === "stones" || key === "doors" || key === "buttons") {
-        this.load.spritesheet(key, path, { frameWidth: 32, frameHeight: 32 });
-      } else {
-        this.load.image(key, path);
-      }
+      this.load.spritesheet(key, path, { frameWidth: 32, frameHeight: 32 });
     });
   }
 
@@ -92,7 +98,7 @@ export class MainScene extends Phaser.Scene {
     this.setupPhysics(); // 壁や敵との衝突判定
     this.setupCamera(); // カメラ設定
 
-    this.startCountdown();
+    this.createTimerUI();
   }
 
   private setupPhysics() {
@@ -157,7 +163,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     // 移動先の最終地点を計算
-    const isIce = stone.getData("config")?.category === "ICE" || stone.texture.key === "ice"; // 氷判定
+    const isIce = stone.texture.key === "iceStone"; // 氷判定
     const targetPos = this.calculateTargetPosition(stone, moveX, moveY, isIce);
 
     if (targetPos.x === stone.x && targetPos.y === stone.y) return;
@@ -265,9 +271,55 @@ export class MainScene extends Phaser.Scene {
     // }
   }
 
+  private createTimerUI() {
+    const { width } = this.scale;
+
+    // 背景の黒半透明ボックス
+    this.timeContainer = this.add.graphics();
+    this.timeContainer.fillStyle(0x000000, 0.8);
+    this.timeContainer.lineStyle(1, 0x00ffcc, 0.3);
+
+    // 右上の固定位置に角丸長方形を描画
+    const rectX = width - 210;
+    const rectY = 20;
+    const rectW = 190;
+    const rectH = 55;
+    this.timeContainer.fillRoundedRect(rectX, rectY, rectW, rectH, 8);
+    this.timeContainer.strokeRoundedRect(rectX, rectY, rectW, rectH, 8);
+    this.timeContainer.setScrollFactor(0); // カメラが動いても画面に固定
+    this.timeContainer.setDepth(200); // 最前面に表示
+
+    // 「TIME」表示
+    this.add
+      .text(rectX + 15, rectY + 22, "TIME", {
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: "#94a3b8", // slate-400
+      })
+      .setScrollFactor(0)
+      .setDepth(201);
+
+    // メインの残り時間デジタル数字
+    this.timeText = this.add
+      .text(width - 30, rectY + 10, this.timeLimit.toFixed(3), {
+        fontFamily: "monospace",
+        fontSize: "30px",
+        color: "#00ffcc",
+        fontStyle: "bold",
+      })
+      .setOrigin(1, 0) // 右寄せにするために原点を右上に設定
+      .setScrollFactor(0)
+      .setDepth(201);
+  }
+
   update() {
     // ゲーム終了時は何もしない
     if (this.isGameOver) return;
+
+    if (!this.isTimerStarted) {
+      this.startTime = performance.now();
+      this.isTimerStarted = true;
+    }
 
     // プレイ時間を小数点3桁で計測
     const now = performance.now();
@@ -275,11 +327,9 @@ export class MainScene extends Phaser.Scene {
     const currentLeft = Math.max(0, this.timeLimit - elapsedMs / 1000);
     if (this.timeLeft !== currentLeft) {
       this.timeLeft = currentLeft;
-      window.dispatchEvent(
-        new CustomEvent("update-time", {
-          detail: parseFloat(this.timeLeft.toFixed(3)),
-        }),
-      );
+      if (this.timeText) {
+        this.timeText.setText(this.timeLeft.toFixed(3));
+      }
     }
     // タイムアップ判定
     if (this.timeLeft <= 0) {
@@ -365,10 +415,6 @@ export class MainScene extends Phaser.Scene {
       // マップを画面の中央に
       this.cameras.main.setScroll(-(this.scale.width - mapWidth) / 2, -(this.scale.height - mapHeight) / 2);
     }
-  }
-
-  private startCountdown() {
-    this.startTime = performance.now();
   }
 
   /**

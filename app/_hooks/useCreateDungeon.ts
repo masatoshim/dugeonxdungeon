@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { createDungeon } from "@/app/_libs/dungeons-api";
-import { CreateDungeonRequest, DungeonResponse } from "@/types";
+import { createDungeon } from "@/app/_apis/dungeons-api";
+import { CreateDungeonRequest, DungeonResponse } from "@/app/_types";
 import { toast } from "sonner";
 
 export const useCreateDungeon = () => {

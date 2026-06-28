@@ -9,7 +9,13 @@ export interface UserBase {
   userName: string;
   nickName: string | null;
   iconImageKey: string | null;
+  createDungeonLimit?: number;
+
   // 管理者のみ、または本人のみ取得可能にする項目
+  emailVerified?: string | null; // ISO 8601 文字列
+  lastLoginAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   email?: string | null;
   isActive?: boolean;
   deletedFlg?: boolean;
@@ -80,10 +86,7 @@ export interface UserFilter {
  * APIレスポンス
  */
 export interface UserResponse extends UserBase {
-  emailVerified?: string | null; // ISO 8601 文字列
-  lastLoginAt?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  activeDungeonCount?: number;
   // 統計情報
   rank: number;
   totalPlayScore: number;

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useProfileIcon } from "@/app/_hooks";
-import { UserResponse } from "@/types";
+import { UserResponse } from "@/app/_types";
 
 interface UserRankingTop3DetailPageProps {
   user: UserResponse;

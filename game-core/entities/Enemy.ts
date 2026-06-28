@@ -1,9 +1,10 @@
 import * as Phaser from "phaser";
+import { AssetKey } from "@/game-core/master";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveEvent: Phaser.Time.TimerEvent;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame: number, hp: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, texture: AssetKey, frame: number, hp: number) {
     super(scene, x, y, texture, frame);
 
     // シーンへの追加と物理エンジンの有効化

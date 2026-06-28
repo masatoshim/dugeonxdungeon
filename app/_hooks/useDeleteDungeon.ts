@@ -1,5 +1,5 @@
 import useSWRMutation from "swr/mutation";
-import { deleteDungeon } from "@/app/_libs/dungeons-api";
+import { deleteDungeon } from "@/app/_apis/dungeons-api";
 import { toast } from "sonner";
 
 export const useDeleteDungeon = (id: string) => {

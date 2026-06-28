@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { DungeonsIndexResponse, DungeonByUserFilter } from "@/types";
-import { getPlayHistoryByUser } from "@/app/_libs/dungeons-api";
+import { DungeonsIndexResponse, DungeonByUserFilter } from "@/app/_types";
+import { getPlayHistoryByUser } from "@/app/_apis/dungeons-api";
 import { useSession } from "next-auth/react";
 
 export const usegetPlayHistoryDungeons = (filter?: DungeonByUserFilter) => {

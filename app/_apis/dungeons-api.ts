@@ -10,7 +10,7 @@ import {
   FavoriteDungeonResponse,
   FavoriteStatusResponse,
   PendingClearRequest,
-} from "@/types";
+} from "@/app/_types";
 
 // ダンジョンを登録する関数
 export const createDungeon = async (data: CreateDungeonRequest): Promise<DungeonResponse> => {

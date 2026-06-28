@@ -1,9 +1,10 @@
 "use client";
 
 import { useDungeonCanvas } from "@/app/(pages)/dungeons/_hook";
+import { TileConfigKey } from "@/game-core/master";
 
 interface Props {
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: any[];
   rows: number;
   cols: number;
@@ -51,7 +52,10 @@ export function DungeonCanvasView({
   };
 
   return (
-    <div className="m-auto relative shadow-2xl ring-4 ring-black">
+    <div
+      className="m-auto relative shadow-2xl ring-4 ring-black"
+      style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}
+    >
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-amber-500 z-10">
           Loading Assets...
@@ -59,8 +63,6 @@ export function DungeonCanvasView({
       )}
       <canvas
         ref={canvasRef}
-        width={cols * TILE_SIZE}
-        height={rows * TILE_SIZE}
         onMouseDown={handlePointerEvent}
         onMouseMove={(e) => {
           if (e.buttons === 1) handlePointerEvent(e);

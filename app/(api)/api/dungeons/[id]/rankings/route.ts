@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonRankingEntry, DungeonRankingsResponse } from "@/types";
+import { DungeonRankingEntry, DungeonRankingsResponse } from "@/app/_types";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

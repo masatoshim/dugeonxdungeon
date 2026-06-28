@@ -36,8 +36,8 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
   };
 
   return (
-    <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded border border-gray-700">
-      <span className="text-[10px] text-gray-500 font-bold">{label}</span>
+    <div className="flex items-center gap-1.5 bg-gray-800 px-2 py-0.5 rounded border border-gray-700 h-full">
+      <span className="text-[11px] text-gray-400 font-black tracking-wider uppercase select-none">{label}</span>
       <input
         type="number"
         value={tempValue}
@@ -59,7 +59,7 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
           }
         }}
         onBlur={handleBlur}
-        className="w-10 bg-transparent text-center text-xs focus:outline-none appearance-none"
+        className="w-11 bg-transparent text-center text-sm font-bold text-slate-100 focus:outline-none appearance-none p-0 border-none focus:ring-0"
         min={MIN_SIZE}
         max={MAX_SIZE}
       />

@@ -1,8 +1,9 @@
 import { useCallback, useRef, useEffect } from "react";
-import { TILE_CONFIG, TileConfigKey, EntityData } from "@/types";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+import { EntityData } from "@/game-core/types";
 
 interface UseDungeonCanvasProps {
-  tiles: string[][];
+  tiles: TileConfigKey[][];
   entities: EntityData[];
   rows: number;
   cols: number;
@@ -32,23 +33,38 @@ export function useDungeonCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const targetWidth = cols * TILE_SIZE;
+    const targetHeight = rows * TILE_SIZE;
+
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const entityMap = new Map<string, EntityData>();
     entities.forEach((e) => entityMap.set(`${e.x}-${e.y}`, e));
 
     for (let r = 0; r < rows; r++) {
+      const row = tiles[r];
+      if (!row) continue;
+
       for (let c = 0; c < cols; c++) {
+        const tileId = row[c];
+        if (tileId === undefined) continue;
+
         const dx = c * TILE_SIZE;
         const dy = r * TILE_SIZE;
-        const tileId = tiles[r][c];
-        const img = images[tileId];
-        const config = TILE_CONFIG[tileId as TileConfigKey];
+
+        // マスタ設定を先に取得する
+        const config = TILE_CONFIG[tileId];
+        // 登録されているテクスチャキー（例: "wall"）を使って images から画像を探す
+        const img = config?.texture ? images[config.texture] : null;
 
         // 床などの基本タイルを描画
         if (img && config) {
-          const frameIndex = config.frame || 0;
-          const sx = frameIndex * TILE_SIZE;
+          const sx = 0;
           const sy = 0;
 
           ctx.drawImage(img, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
@@ -57,13 +73,12 @@ export function useDungeonCanvas({
         // エンティティ（鍵や扉）の描画
         const entity = entityMap.get(`${c}-${r}`);
         if (entity) {
-          const entityTileId = entity.properties?.tileId;
-          const entityImg = entityTileId ? images[entityTileId] : null;
-          const entityConfig = entityTileId ? TILE_CONFIG[entityTileId as TileConfigKey] : null;
+          const entityTileId = entity.tileId;
+          const entityConfig = entityTileId ? TILE_CONFIG[entityTileId] : null;
+          const entityImg = entityConfig?.texture ? images[entityConfig.texture] : null;
 
           if (entityImg && entityConfig) {
-            const esx = (entityConfig.frame || 0) * TILE_SIZE;
-            ctx.drawImage(entityImg, esx, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(entityImg, 0, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
           }
 
           // セット設置中のハイライト

@@ -30,7 +30,8 @@ export async function POST(req: Request) {
         data: {
           userId: session.user.id,
           dungeonId: pending.dungeonId,
-          version: pending.version,
+          versionMajor: pending.versionMajor,
+          versionMinor: pending.versionMinor,
           playScore: pending.playScore,
           playTime: pending.playTime,
           playStatus: "CLEAR",

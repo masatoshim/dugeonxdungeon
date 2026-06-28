@@ -1,23 +1,25 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useSWRConfig } from "swr";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useSearchParams } from "next/navigation";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { DUNGEON_DEFAULT, TILE_CONFIG, TileConfigKey, TILE_CATEGORIES } from "@/types";
-import { EditorHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
-import { useCreateDungeon, useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
-import { useTileImages, useDungeonEditorLogic } from "@/app/(pages)/dungeons/_hook";
+import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+import { EditorInfoHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
+import { useGetUser } from "@/app/_hooks";
+import { useTileImages, useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
 import { DungeonMetadataCard } from "./DungeonMetadataCard";
+import { DungeonResponse } from "@/app/_types";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({
+  code: z.string(),
   name: z.string().min(1, "ダンジョン名は必須入力です").max(50, "ダンジョン名は50文字以内で入力してください"),
   description: z.string().max(1000, "説明文は1000文字以内で入力してください"),
   timeLimit: z
@@ -26,55 +28,46 @@ const dungeonSchema = z.object({
     .max(3600, "制限時間は1時間以内に設定してください"),
   mapDataCheck: z.any(), // 変更検知用の隠しフィールド（バリデーションは通すだけ）
 });
-type DungeonFormData = z.infer<typeof dungeonSchema>;
+export type DungeonFormData = z.infer<typeof dungeonSchema>; // 子側で使うためexport
 
 interface DungeonEditorProps {
-  initialData?: any; // 編集時は既存データが入る
+  initialData?: DungeonResponse; // 編集時は既存データが入る
   isAdmin: boolean;
 }
 
 export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const { data: session } = useSession();
   const user = session?.user;
+
   if (!user) return toast.error("セッションが切断されました。再ログインしてください。");
 
-  const router = useRouter();
+  const { user: userInfo } = useGetUser(user.id);
   const searchParams = useSearchParams();
 
   // 管理者ダッシュボードのユーザーダンジョン「詳細ボタン」から遷移してきた場合
+  // パレットパネルは閉じて、メタ情報パネルは開く
   const fromSource = searchParams.get("from");
   const isFromUserDetail = fromSource === "user-detail";
   const initialPaletteOpen = isFromUserDetail ? false : true;
   const initialMetadataOpen = isFromUserDetail ? true : false;
 
-  const { mutate } = useSWRConfig(); // キャッシュ操作用
   const isEditMode = !!initialData?.id;
 
-  // API Hooks の初期化
-  const { create, isCreating } = useCreateDungeon();
-  const { update, isUpdating } = useUpdateDungeon(initialData?.id || "");
-  const { remove, isDeleting } = useDeleteDungeon(initialData?.id || "");
-
   // React Hook Form の初期化
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    formState: { errors, isDirty },
-  } = useForm<DungeonFormData>({
+  const methods = useForm<DungeonFormData>({
     resolver: zodResolver(dungeonSchema),
     defaultValues: {
+      code: initialData?.code || "-",
       name: initialData?.name || "",
       description: initialData?.description || "",
       timeLimit: initialData?.timeLimit || DUNGEON_DEFAULT.TIME_LIMIT,
-      mapDataCheck: JSON.stringify(initialData?.mapData?.tiles || []),
+      mapDataCheck: 0,
     },
   });
+
+  const { watch, setValue } = methods;
   const formValues = watch();
 
-  // ダンジョン編集ロジック取得
   const {
     tiles,
     entities,
@@ -86,197 +79,188 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     getEntityType,
     setRows,
     setCols,
+    setTilesState,
+    setEntitiesState,
   } = useDungeonEditorLogic(initialData);
 
-  // 保存
-  const onSubmit = useCallback(
-    async (data: DungeonFormData, isRedirectingToTest: boolean) => {
-      if (linkingState.active) return toast.error("パーツのペアを完成させてください");
-
-      const flatTiles = tiles.flat();
-      if (!flatTiles.some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.PLAYER))
-        return toast.error("プレイヤーを設置してください");
-      if (!flatTiles.some((t) => TILE_CONFIG[t as TileConfigKey]?.category === TILE_CATEGORIES.GOAL))
-        return toast.error("ゴールを設置してください");
-
-      const { mapDataCheck, ...rest } = data; // 隠しフィールドを除外
-      const payload = {
-        ...rest,
-        ...(isEditMode && { version: initialData.version + 1 }),
-        code: isEditMode ? initialData.code : `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-        userId: isEditMode ? initialData.userId : user.id,
-        mapData: {
-          tiles: tiles.map((row) => row.map((c) => (c === ".." ? " " : c))),
-          entities,
-          width: cols,
-          height: rows,
-        },
-        mapSizeHeight: rows,
-        mapSizeWidth: cols,
-        mapSize: cols * rows,
-        difficulty: isEditMode ? initialData.difficulty : 3,
-        status: "DRAFT" as const, // 保存する際は常に編集中に更新
-        isTemplate: isAdmin || user.role === "ADMIN",
-        tagIds: [], // todo: tagセットのロジックは劣後
-        createdBy: isEditMode ? initialData.createdBy : user.id,
-        updatedBy: user.id,
-      };
-
-      try {
-        let savedDungeon: any;
-        if (isEditMode) {
-          savedDungeon = await update(payload);
-        } else {
-          savedDungeon = await create(payload);
-        }
-
-        // savedDungeonから最新のIDを取得（作成直後はIDが新しく発行されるため）
-        const targetId = savedDungeon?.id || initialData?.id;
-        if (targetId) {
-          await mutate(`/api/dungeons/${targetId}`, savedDungeon, {
-            revalidate: true, // 強制再取得
-          });
-          // テストプレイボタンからの実行だった場合
-          if (isRedirectingToTest) {
-            router.refresh();
-            router.push(`/dungeons/${targetId}/test-play`);
-            return;
-          }
-        }
-
-        if (!isRedirectingToTest) {
-          reset(data);
-        }
-
-        if (isAdmin) {
-          router.push("/admin/dashboard/dungeons");
-          return;
-        } else {
-          router.push("/dashboard/dungeons");
-        }
-      } catch (e) {
-        // todo: エラーはHooks内のtoastで処理
-      }
-    },
-    [tiles, entities, rows, cols, user, isEditMode, initialData, linkingState.active],
+  const { canUndo, canRedo, handleUndo, handleRedo, pushHistory, getCurrentSnapshot, setHistory } = useEditorHistory(
+    methods,
+    tiles,
+    entities,
+    rows,
+    cols,
+    setRows,
+    setCols,
+    setTilesState,
+    setEntitiesState,
   );
 
-  // テストプレイボタン押下時のハンドラー
-  const handleTestPlay = async () => {
-    if (isDirty || !isEditMode) {
-      handleSubmit((data) => onSubmit(data, true))();
-    } else {
-      router.push(`/dungeons/${initialData.id}/test-play?v=${Date.now()}`);
-    }
-  };
+  // 初期名生成ロジック
+  useEffect(() => {
+    if (!isEditMode && userInfo && !formValues.name) {
+      const nickName = userInfo.nickName || userInfo.userName || "Player";
+      const nextNumber = (userInfo.activeDungeonCount || 0) + 1;
+      const autoGeneratedName = `${nickName}_${String(nextNumber).padStart(3, "0")}`;
 
-  // ダンジョンの物理削除（管理者のみ）
-  const handleDelete = async () => {
-    if (!isAdmin) {
-      toast.error("削除処理が実行できません");
-    }
-    await remove();
-    router.push("/admin/dashboard/dungeons");
-  };
+      setValue("name", autoGeneratedName, { shouldValidate: true });
 
-  // キャンバスに対する操作を統合
-  const [selectedTile, setSelectedTile] = useState("W");
+      const snap = getCurrentSnapshot();
+      snap.name = autoGeneratedName;
+      setHistory([snap]);
+    }
+  }, [userInfo, isEditMode, setValue, getCurrentSnapshot, setHistory]);
+
+  // 編集履歴キーボードショートカット
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
+  // タイル配置アクション
+  const [selectedTile, setSelectedTile] = useState<TileConfigKey>("W");
   const handleCanvasAction = useCallback(
     (r: number, c: number) => {
-      // ロジック側のタイル更新
+      if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
+      if (selectedTile !== " " && TILE_CONFIG[selectedTile]?.category === TILE_CATEGORIES.PLAYER) {
+        const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
+        if (hasPlayer) return toast.error("プレイヤーは1つのみです");
+      }
+
       handleCellClick(r, c, selectedTile);
-      // フォームのDirtyフラグを立てる
-      setValue("mapDataCheck", `tile-${r}-${c}-${Date.now()}`, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+
+      const nextSnapshot = {
+        ...getCurrentSnapshot(),
+        tiles: tiles.map((row, ri) =>
+          row.map((cell, ci) => (ri === r && ci === c ? (selectedTile === " " ? " " : selectedTile) : cell)),
+        ),
+      };
+      pushHistory(nextSnapshot);
     },
-    [handleCellClick, selectedTile, setValue],
+    [handleCellClick, selectedTile, tiles, rows, cols, getCurrentSnapshot, pushHistory],
   );
+
   const { images, isLoaded } = useTileImages();
+
+  const getLinkingGuideMessage = () => {
+    if (!linkingState.active) return null;
+
+    if (linkingState.mode === "KEY_DOOR") {
+      return linkingState.pendingType === "KEY_DOOR"
+        ? "「鍵扉」を配置して、鍵とペアリングさせてください"
+        : "「鍵」を配置して、鍵扉とペアリングさせてください";
+    }
+    if (linkingState.mode === "BUTTON_DOOR") {
+      return linkingState.pendingType === "BUTTON_DOOR"
+        ? "「ボタン扉」を配置して、ボタンとペアリングさせてください"
+        : "「ボタン」を配置して、ボタン扉とペアリングさせてください";
+    }
+    return "ペアとなるギミックを配置してください";
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <form onSubmit={handleSubmit((data) => onSubmit(data, false))}>
-          <EditorHeader
-            cols={cols}
-            rows={rows}
-            config={formValues}
-            errors={errors}
-            status={initialData?.status ?? "DRAFT"}
-            isDirty={isDirty}
-            isEditMode={isEditMode}
-            isAdmin={isAdmin}
-            isSaving={isCreating || isUpdating}
-            isDeleting={isDeleting}
-            onConfigChange={(k, v, b) => setValue(k as any, v, { shouldDirty: b, shouldValidate: true })}
-            onSizeChange={(r, c) => {
-              setRows(r);
-              setCols(c);
-              updateTilesSize(r, c);
-              setValue("mapDataCheck", `size-${r}-${c}-${Date.now()}`, { shouldDirty: true });
-            }}
-            onSave={() => {
-              handleSubmit((data) => onSubmit(data, false))();
-            }}
-            onTestPlay={handleTestPlay}
-            onDelete={(physical) => {
-              if (physical) {
-                handleDelete();
-              } else {
-                const payload = {
-                  deletedFlg: true,
-                  updatedBy: session?.user?.id || initialData.userId,
-                };
-                update(payload);
-              }
-            }}
-          />
+        {/* FormProviderで囲み、子コンポーネントがContext経由でReact Hook Formを扱えるようにする */}
+        <FormProvider {...methods}>
+          {/* onSubmitのデフォルト挙動を無効化 */}
+          <form onSubmit={(e) => e.preventDefault()}>
+            {/* ─── ヘッダー ─── */}
+            <header className="select-none w-full mb-6">
+              {/* 左側：基本情報フォーム（カード） */}
+              <div className="min-w-0 w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4 flex flex-col justify-center">
+                <EditorInfoHeader
+                  isAdmin={isAdmin}
+                  status={initialData?.status ?? "DRAFT"}
+                  cols={cols}
+                  rows={rows}
+                  onConfigConfirm={() => pushHistory()}
+                  onSizeChange={(r, c) => {
+                    setRows(r);
+                    setCols(c);
+                    updateTilesSize(r, c);
+                  }}
+                  initialData={initialData}
+                  user={user}
+                  tiles={tiles}
+                  entities={entities}
+                  linkingState={linkingState}
+                  canUndo={canUndo}
+                  canRedo={canRedo}
+                  onUndo={handleUndo}
+                  onRedo={handleRedo}
+                />
+              </div>
+            </header>
 
-          <div className="flex gap-6 mt-6 items-start">
-            {/* 左サイドバー */}
-            <aside className="w-64 flex-shrink-0 space-y-4">
-              <TilePalette
-                selectedTile={selectedTile}
-                onSelect={(id) => {
-                  if (linkingState.active && getEntityType(id) !== linkingState.pendingType && id !== "..") {
-                    return toast.error("セット設置を優先してください");
-                  }
-                  setSelectedTile(id);
-                }}
-                defaultOpen={initialPaletteOpen}
-              />
+            {/* ─── メインレイアウト ─── */}
+            <div className="flex flex-col md:flex-row gap-6 mt-6 items-start w-full">
+              {/* 左サイドバー */}
+              <aside className="w-64 flex-shrink-0 space-y-4">
+                <TilePalette
+                  selectedTile={selectedTile}
+                  onSelect={(id) => {
+                    if (linkingState.active && id !== " " && getEntityType(id) !== linkingState.pendingType) {
+                      return toast.error("セット設置を優先するか、消しゴムでキャンセルしてください");
+                    }
+                    setSelectedTile(id);
+                  }}
+                  defaultOpen={initialPaletteOpen}
+                />
 
-              <DungeonMetadataCard
-                initialData={initialData}
-                isEditMode={isEditMode}
-                isAdmin={isAdmin}
-                defaultOpen={initialMetadataOpen}
-              />
+                <DungeonMetadataCard
+                  initialData={initialData}
+                  isEditMode={isEditMode}
+                  isAdmin={isAdmin}
+                  defaultOpen={initialMetadataOpen}
+                />
+              </aside>
 
-              {linkingState.active && (
-                <div className="bg-amber-900/40 border border-amber-500 p-4 rounded-xl animate-pulse">
-                  <p className="text-sm font-bold text-amber-400">Linking Mode</p>
-                  <p className="text-xs">{linkingState.pendingType === "DOOR" ? "扉" : "スイッチ"}を配置してください</p>
-                </div>
-              )}
-            </aside>
+              {/* メインエリア：キャンバスコンテナ */}
+              <div className="flex-1 flex flex-col min-w-0 relative h-[calc(100vh-220px)] min-h-[540px] w-full">
+                {linkingState.active && (
+                  <div className="absolute top-4 left-4 right-4 z-30 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="w-full bg-slate-900/95 backdrop-blur-md border-2 border-amber-500 rounded-xl px-5 py-3 flex items-center justify-between shadow-2xl shadow-black/80 pointer-events-auto">
+                      <div className="flex items-center space-x-3">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                        </span>
+                        <p className="text-sm font-bold text-amber-400 tracking-wide">
+                          {getLinkingGuideMessage()} （消しゴムでリセット）
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-            <main className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-[calc(100vh-160px)] min-h-[600px] flex">
-              <DungeonCanvasView
-                tiles={tiles}
-                entities={entities}
-                rows={rows}
-                cols={cols}
-                images={images}
-                isLoaded={isLoaded}
-                linkingState={linkingState}
-                onCanvasAction={handleCanvasAction}
-              />
-            </main>
-          </div>
-        </form>
+                {/* メインエリア：キャンバス本体 */}
+                <main className="bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-full w-full flex">
+                  <DungeonCanvasView
+                    key={`${rows}-${cols}`}
+                    tiles={tiles}
+                    entities={entities}
+                    rows={rows}
+                    cols={cols}
+                    images={images}
+                    isLoaded={isLoaded}
+                    linkingState={linkingState}
+                    onCanvasAction={handleCanvasAction}
+                  />
+                </main>
+              </div>
+            </div>
+          </form>
+        </FormProvider>
       </div>
     </div>
   );

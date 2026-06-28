@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { MapData } from "@/types";
+import { MapData } from "@/game-core/types";
 import { PlayGameContent } from "@/app/(pages)/dungeons/_components";
 import { useGetDungeon, useUpdateDungeon } from "@/app/_hooks";
 
@@ -43,9 +43,22 @@ export default function TestPlayPage() {
   const handlePublishSetting = async (shouldPublish: boolean) => {
     try {
       const status = shouldPublish ? "PUBLISHED" : "PRIVATE";
-      await update({ status, publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null });
 
-      toast.success(shouldPublish ? "ダンジョンを公開しました！" : "非公開として保存しました。");
+      // Majorバージョンを上げ、Minorを0にリセットする
+      const versionPayload = shouldPublish
+        ? {
+            versionMajor: (dungeon.versionMajor ?? 0) + 1,
+            versionMinor: 0,
+          }
+        : {};
+
+      await update({
+        status,
+        publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
+        ...versionPayload,
+      });
+
+      toast.success(shouldPublish ? "ダンジョンを世界中に公開しました！" : "非公開として保存しました。");
 
       const isAdmin = session?.user?.role === "ADMIN";
       const redirectPath = isAdmin ? "/admin/dashboard/dungeons" : "/dashboard/dungeons";
@@ -62,7 +75,6 @@ export default function TestPlayPage() {
           key={gameKey}
           dungeon={dungeon}
           parsedMapData={parsedMapData}
-          isFinished={isFinished}
           onClear={() => {
             setIsClear(true);
             setIsFinished(true);

@@ -1,4 +1,5 @@
 import { DungeonStatus, PlayStatus, FavoritesDungeon } from "@prisma/client";
+import { MapData } from "@/game-core/types";
 
 /**
  * ダンジョン取得の共通プロパティ
@@ -7,10 +8,11 @@ export interface DungeonBase {
   id: string;
   name: string;
   code: string;
-  version: number;
+  versionMajor: number;
+  versionMinor: number;
   userId: string;
   description: string | null;
-  mapData: any;
+  mapData: MapData;
   mapSizeHeight: number;
   mapSizeWidth: number;
   mapSize: number;
@@ -123,7 +125,8 @@ export interface DungeonFilter extends PaginationFilter {
  */
 export interface DungeonResponse extends DungeonBase {
   isCleared?: boolean;
-  clearedVersion?: number;
+  clearedVersionMajor?: number;
+  clearedVersionMinor?: number;
   isFavorited?: boolean;
   favoritesCount: number;
   clearPlayCount: number;
@@ -142,7 +145,7 @@ export interface DungeonResponse extends DungeonBase {
 export interface CreateDungeonRequest {
   name: string;
   userId: string;
-  mapData: any;
+  mapData: MapData;
   mapSizeHeight: number;
   mapSizeWidth: number;
   mapSize: number;
@@ -154,6 +157,9 @@ export interface CreateDungeonRequest {
   difficulty?: number;
   status?: DungeonStatus;
   tagIds?: number[];
+  isTemplate: boolean;
+  versionMajor: number;
+  versionMinor: number;
 }
 
 /**
@@ -173,7 +179,8 @@ export interface UpdateDungeonRequest {
   status?: DungeonStatus;
   deletedFlg?: boolean;
   tagIds?: number[];
-  version?: number;
+  versionMajor?: number;
+  versionMinor?: number;
   publishedAt?: string | null;
 }
 
@@ -234,7 +241,8 @@ export interface CreatePlayHistoryRequest {
   playTime: number; // 実際のプレイ時間(sec)
   playScore: number; // 獲得スコア
   playStatus: PlayStatus;
-  version?: number; // ゲームのバージョン管理用（任意）
+  versionMajor?: number; // ゲームのバージョン管理用（任意）
+  versionMinor?: number; // ゲームのバージョン管理用（任意）
 }
 
 /**
@@ -271,7 +279,8 @@ export interface FavoriteDungeonResponse {
  */
 export interface PendingClearRequest {
   dungeonId: string;
-  version: number;
+  versionMajor: number;
+  versionMinor: number;
   playTime: number;
   playScore: number;
 }

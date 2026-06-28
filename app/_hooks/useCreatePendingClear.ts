@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import { createPendingClear } from "@/app/_libs/dungeons-api";
-import { PendingClearRequest } from "@/types";
+import { createPendingClear } from "@/app/_apis/dungeons-api";
+import { PendingClearRequest } from "@/app/_types";
 import { toast } from "sonner";
 
 export const useCreatePendingClear = () => {

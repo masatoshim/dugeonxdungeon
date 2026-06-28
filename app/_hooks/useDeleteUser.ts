@@ -1,5 +1,5 @@
 import useSWRMutation from "swr/mutation";
-import { deleteUser } from "@/app/_libs/users-api";
+import { deleteUser } from "@/app/_apis/users-api";
 import { toast } from "sonner";
 
 export const useDeleteUser = (id: string) => {

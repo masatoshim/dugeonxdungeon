@@ -1,8 +1,6 @@
 "use client";
 
-import { PlayStatus } from "@prisma/client";
 import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import {
   useGetUser,

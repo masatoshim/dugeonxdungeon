@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Crown } from "lucide-react";
-import { DungeonRankingEntry } from "@/types";
+import { DungeonRankingEntry } from "@/app/_types";
 import { useProfileIcon } from "@/app/_hooks";
 
 interface Props {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Maximize, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
-import { DungeonResponse, DungeonsIndexResponse } from "@/types";
+import { DungeonResponse, DungeonsIndexResponse } from "@/app/_types";
 import { DungeonStatus } from "@prisma/client";
 import { KeyedMutator } from "swr";
 

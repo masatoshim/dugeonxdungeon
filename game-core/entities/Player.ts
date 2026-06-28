@@ -1,7 +1,7 @@
 // game/entities/Player.ts
 
 import * as Phaser from "phaser";
-import { WeaponData, PlayerInventory } from "@/types";
+import { WeaponData, PlayerInventory } from "@/game-core/types";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private arcadeBody: Phaser.Physics.Arcade.Body;
@@ -30,7 +30,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   ) => void;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, "player_idle");
+    super(scene, x, y, "player");
 
     scene.add.existing(this);
     scene.physics.add.existing(this);

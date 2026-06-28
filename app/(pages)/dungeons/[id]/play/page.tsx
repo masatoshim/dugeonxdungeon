@@ -6,8 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { PlayGameContent } from "@/app/(pages)/dungeons/_components";
 import { useGetDungeon, useCreatePlayHistory, useCreatePendingClear, useConfirmClear } from "@/app/_hooks";
-import { toast } from "sonner";
-import { MapData } from "@/types";
+import { MapData } from "@/game-core/types";
 import { PlayStatus } from "@prisma/client";
 
 export default function GamePlayPage() {
@@ -89,7 +88,8 @@ export default function GamePlayPage() {
         playScore,
         playTime: clearTime,
         playStatus: status,
-        version: dungeon?.version,
+        versionMajor: dungeon?.versionMajor,
+        versionMinor: dungeon?.versionMinor,
       });
     },
     [isFinished, dungeon, create],
@@ -122,7 +122,6 @@ export default function GamePlayPage() {
         key={gameKey}
         dungeon={dungeon}
         parsedMapData={parsedMapData}
-        isFinished={isFinished}
         onClear={(score, timeLeft) => handleGameEnd(PlayStatus.CLEAR, score, timeLeft)}
         onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
       />
@@ -162,7 +161,8 @@ export default function GamePlayPage() {
                           dungeonId,
                           playScore: clearScore,
                           playTime: clearTime ?? 0,
-                          version: dungeon?.version ?? 1,
+                          versionMajor: dungeon?.versionMajor,
+                          versionMinor: dungeon?.versionMinor,
                         });
 
                         if (result?.pendingId) {
