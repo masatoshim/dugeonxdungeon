@@ -105,7 +105,6 @@ export class LevelBuilder {
 
     // ボタンの生成
     entities
-      // .filter((e) => e.type === "BUTTON")
       .filter((e) => e.tileId === "B1")
       .forEach((e) => {
         const config = TILE_CONFIG[e.tileId];

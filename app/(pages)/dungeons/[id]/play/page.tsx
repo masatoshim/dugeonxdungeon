@@ -122,7 +122,6 @@ export default function GamePlayPage() {
         key={gameKey}
         dungeon={dungeon}
         parsedMapData={parsedMapData}
-        isFinished={isFinished}
         onClear={(score, timeLeft) => handleGameEnd(PlayStatus.CLEAR, score, timeLeft)}
         onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
       />

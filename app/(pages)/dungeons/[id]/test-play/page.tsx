@@ -75,7 +75,6 @@ export default function TestPlayPage() {
           key={gameKey}
           dungeon={dungeon}
           parsedMapData={parsedMapData}
-          isFinished={isFinished}
           onClear={() => {
             setIsClear(true);
             setIsFinished(true);

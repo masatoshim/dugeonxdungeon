@@ -29,6 +29,7 @@ export const ASSETS = {
   wallbreakable1: wallbreakable1Img.src,
   wallbreakable3: wallbreakable3Img.src,
   empty: emptyImg.src,
+
   // gimmicks
   stone: stoneImg.src,
   iceStone: iceStoneImg.src,
@@ -37,8 +38,10 @@ export const ASSETS = {
   buttonTrigger: buttonTriggerImg.src,
   keySilver: keySilverImg.src,
   keySilverDoor: keySilverDoorImg.src,
+
   // items
   weaponSword: weaponSwordImg.src,
+
   // enemies
   slime: slimeImg.src,
 } as const;

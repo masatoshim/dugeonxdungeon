@@ -1,6 +1,5 @@
 import { PlayerInventory } from "@/game-core/types";
 import { TileConfigKey } from "@/game-core/master";
-import { TileCategory } from "@/game-core/types";
 import type Phaser from "phaser";
 
 export const GAME_EVENTS = {

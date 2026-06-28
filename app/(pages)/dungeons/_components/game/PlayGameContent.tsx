@@ -17,12 +17,11 @@ interface PlayGameContentProps {
     description?: string | null;
   };
   parsedMapData: MapData;
-  isFinished: boolean;
   onClear: (score: number, timeLeft: number) => void;
   onGameOver: (score: number, timeLeft: number) => void;
 }
 
-export function PlayGameContent({ dungeon, parsedMapData, isFinished, onClear, onGameOver }: PlayGameContentProps) {
+export function PlayGameContent({ dungeon, parsedMapData, onClear, onGameOver }: PlayGameContentProps) {
   return (
     <main className="flex flex-col items-center p-8 bg-gray-900 min-h-screen text-white">
       {/* ダンジョン名 */}
@@ -32,9 +31,6 @@ export function PlayGameContent({ dungeon, parsedMapData, isFinished, onClear, o
       <div className="relative border-4 border-gray-700 rounded-lg overflow-hidden shadow-2xl bg-black">
         {/* mapData と timeLimit を渡す */}
         <GameCanvas mapData={parsedMapData} timeLimit={dungeon.timeLimit} onClear={onClear} onGameOver={onGameOver} />
-
-        {/* UIオーバーレイ */}
-        <GameUI isFinished={isFinished} initialTime={dungeon.timeLimit} />
       </div>
 
       {/* ダンジョン情報セクション */}
