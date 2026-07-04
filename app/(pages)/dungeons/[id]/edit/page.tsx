@@ -3,9 +3,17 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DungeonEditor } from "@/app/(pages)/dungeons/_components";
+// import { DungeonEditor } from "@/app/(pages)/dungeons/_components";
 import { useGetDungeon } from "@/app/_hooks";
 import { toast } from "sonner";
+
+import dynamic from "next/dynamic";
+const DungeonEditor = dynamic(() => import("@/app/(pages)/dungeons/_components").then((mod) => mod.DungeonEditor), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">エディタを起動中...</div>
+  ),
+});
 
 export default function EditPage() {
   const { data: session, status } = useSession();

@@ -47,6 +47,49 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // 入力設定
     this.cursors = scene.input.keyboard!.createCursorKeys();
     this.spaceKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // アニメーションの生成
+    this.createAnimations();
+  }
+
+  /**
+   * プレイヤーのアニメーションを一括登録
+   */
+  private createAnimations() {
+    // 重複登録によるエラーを防ぐガード句
+    if (this.scene.anims.exists("player-walk-down")) return;
+
+    // 下向き歩行
+    this.scene.anims.create({
+      key: "player-walk-down",
+      frames: this.scene.anims.generateFrameNumbers("player", { frames: [0, 1, 0, 2] }),
+      frameRate: 12, // todo: アニメーションの速さを設定
+      repeat: -1, // 無限ループ
+    });
+
+    // 左向き歩行
+    this.scene.anims.create({
+      key: "player-walk-left",
+      frames: this.scene.anims.generateFrameNumbers("player", { frames: [3, 4, 3, 5] }),
+      frameRate: 12,
+      repeat: -1,
+    });
+
+    // 右向き歩行
+    this.scene.anims.create({
+      key: "player-walk-right",
+      frames: this.scene.anims.generateFrameNumbers("player", { frames: [6, 7, 6, 8] }),
+      frameRate: 12,
+      repeat: -1,
+    });
+
+    // 上向き歩行
+    this.scene.anims.create({
+      key: "player-walk-up",
+      frames: this.scene.anims.generateFrameNumbers("player", { frames: [9, 10, 9, 11] }),
+      frameRate: 12,
+      repeat: -1,
+    });
   }
 
   // 鍵の管理用メソッドを更新
@@ -99,6 +142,33 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
       this.executeAttack();
     }
+
+    // アニメーション制御
+    if (this.arcadeBody.velocity.x < 0) {
+      this.anims.play("player-walk-left", true);
+    } else if (this.arcadeBody.velocity.x > 0) {
+      this.anims.play("player-walk-right", true);
+    } else if (this.arcadeBody.velocity.y < 0) {
+      this.anims.play("player-walk-up", true);
+    } else if (this.arcadeBody.velocity.y > 0) {
+      this.anims.play("player-walk-down", true);
+    } else {
+      this.anims.stop();
+
+      if (this.lastDirection.x === 0 && this.lastDirection.y === 1) {
+        this.anims.stop();
+        this.setFrame(0);
+      } else if (this.lastDirection.x === 0 && this.lastDirection.y === -1) {
+        this.anims.stop();
+        this.setFrame(9);
+      } else if (this.lastDirection.x === 1 && this.lastDirection.y === 0) {
+        this.anims.stop();
+        this.setFrame(6);
+      } else if (this.lastDirection.x === -1 && this.lastDirection.y === 0) {
+        this.anims.stop();
+        this.setFrame(3);
+      }
+    }
   }
 
   private executeAttack() {
@@ -126,11 +196,4 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     };
     console.log(`${weapon.name} を装備した！`);
   }
-
-  // public playDamageEffect() {
-  //   if (!this.isTinted) {
-  //     this.setTint(0xff0000);
-  //     this.scene.time.delayedCall(200, () => this.clearTint());
-  //   }
-  // }
 }

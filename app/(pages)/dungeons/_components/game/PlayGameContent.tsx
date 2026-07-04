@@ -5,9 +5,6 @@ import { MapData } from "@/game-core/types";
 const GameCanvas = dynamic(() => import("@/app/(pages)/dungeons/_components/game/GameCanvas"), {
   ssr: false,
 });
-const GameUI = dynamic(() => import("@/app/(pages)/dungeons/_components/game/GameUI"), {
-  ssr: false,
-});
 
 interface PlayGameContentProps {
   dungeon: {
