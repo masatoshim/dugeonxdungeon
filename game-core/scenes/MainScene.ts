@@ -109,6 +109,10 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.breakableWalls);
     this.physics.add.collider(this.enemies, this.walls);
     this.physics.add.collider(this.enemies, this.breakableWalls);
+    this.physics.add.collider(this.enemies, this.movableStones, (e, s) => {
+      this.stopStoneMovement(s as Phaser.Physics.Arcade.Sprite);
+    });
+    this.physics.add.collider(this.enemies, this.doors);
 
     // 石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
     this.physics.add.collider(this.player, this.movableStones, (p, s) => {
@@ -162,6 +166,23 @@ export class MainScene extends Phaser.Scene {
       moveY = dy > 0 ? 32 : -32;
     }
 
+    // 押そうとした1マス先に敵がいるかチェック
+    const nextGridX = stone.x + moveX;
+    const nextGridY = stone.y + moveY;
+    let isEnemyAhead = false;
+
+    this.enemies.getChildren().forEach((e) => {
+      const enemy = e as Phaser.Physics.Arcade.Sprite;
+      // 1マス先の座標に敵がいればフラグを立てる
+      if (Phaser.Math.Distance.Between(enemy.x, enemy.y, nextGridX, nextGridY) < 16) {
+        isEnemyAhead = true;
+      }
+    });
+    // 進行方向に敵がいたら動かさない
+    if (isEnemyAhead) {
+      return;
+    }
+
     // 移動先の最終地点を計算
     const isIce = stone.texture.key === "iceStone"; // 氷判定
     const targetPos = this.calculateTargetPosition(stone, moveX, moveY, isIce);
@@ -183,7 +204,25 @@ export class MainScene extends Phaser.Scene {
         stone.setData("isMoving", false);
         if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
       },
+      // 氷が滑っている途中で敵に当たり、Tweenが途中で kill された場合にも
+      // 正しく移動中フラグを落として物理ボディを同期するためのセーフティ
+      onKill: () => {
+        stone.setData("isMoving", false);
+        if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
+      },
     });
+  }
+
+  /**
+   * 滑っている石を敵との衝突時に強制ストップ
+   */
+  private stopStoneMovement(stone: Phaser.Physics.Arcade.Sprite) {
+    // 実行中の移動Tweenを強制終了
+    this.tweens.killTweensOf(stone);
+    // 中途半端な座標で止まらないよう、グリッドの中心にスナップ
+    const snappedX = Math.floor(stone.x / 32) * 32 + 16;
+    const snappedY = Math.floor(stone.y / 32) * 32 + 16;
+    stone.setPosition(snappedX, snappedY);
   }
 
   /**
