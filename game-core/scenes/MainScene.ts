@@ -254,7 +254,7 @@ export class MainScene extends Phaser.Scene {
       currX = nextX;
       currY = nextY;
 
-      // 「石」の場合は1回（1マス）でループ終了
+      // 石の場合は1回でループ終了
       if (!isIce) break;
 
       // 無限ループ防止（マップ範囲外チェックなど）
@@ -328,7 +328,7 @@ export class MainScene extends Phaser.Scene {
     this.timeContainer.setScrollFactor(0); // カメラが動いても画面に固定
     this.timeContainer.setDepth(200); // 最前面に表示
 
-    // 「TIME」表示
+    // TIME表示
     this.add
       .text(rectX + 15, rectY + 22, "TIME", {
         fontFamily: "monospace",
@@ -346,7 +346,7 @@ export class MainScene extends Phaser.Scene {
         color: "#00ffcc",
         fontStyle: "bold",
       })
-      .setOrigin(1, 0) // 右寄せにするために原点を右上に設定
+      .setOrigin(1, 0)
       .setScrollFactor(0)
       .setDepth(201);
   }
@@ -471,6 +471,21 @@ export class MainScene extends Phaser.Scene {
     const hitArea = this.add.rectangle(attackX, attackY, size, size, 0xffff00, 0);
     this.physics.add.existing(hitArea);
 
+    // エフェクトを画面に表示
+    let effect = null;
+    if (weapon?.id == "SWORD") {
+      effect = this.add.sprite(attackX, attackY, "weaponSwordAttackEffect");
+    }
+    if (effect) {
+      if (direction.x === 1)
+        effect.setAngle(270); // 右向き
+      else if (direction.x === -1)
+        effect.setAngle(90); // 左向き
+      else if (direction.y === 1)
+        effect.setAngle(0); // 下向き
+      else if (direction.y === -1) effect.setAngle(180); // 上向き
+    }
+
     // 敵へのダメージ
     this.physics.overlap(hitArea, this.enemies, (_, target) => {
       if (target instanceof Enemy) target.takeDamage(damage);
@@ -485,7 +500,11 @@ export class MainScene extends Phaser.Scene {
       // this.player.consumeWeaponCharge();
     });
 
-    this.time.delayedCall(100, () => hitArea.destroy());
+    // 判定オブジェクトとエフェクト画像を一定時間（100ms）後に一緒に消去する
+    this.time.delayedCall(100, () => {
+      hitArea.destroy();
+      if (effect) effect.destroy();
+    });
   }
 
   /**

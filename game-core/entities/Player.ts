@@ -1,5 +1,3 @@
-// game/entities/Player.ts
-
 import * as Phaser from "phaser";
 import { WeaponData, PlayerInventory } from "@/game-core/types";
 
@@ -56,39 +54,36 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * プレイヤーのアニメーションを一括登録
    */
   private createAnimations() {
-    // 重複登録によるエラーを防ぐガード句
+    // 重複登録防止ガード
     if (this.scene.anims.exists("player-walk-down")) return;
 
-    // 下向き歩行
-    this.scene.anims.create({
-      key: "player-walk-down",
-      frames: this.scene.anims.generateFrameNumbers("player", { frames: [0, 1, 0, 2] }),
-      frameRate: 12, // todo: アニメーションの速さを設定
-      repeat: -1, // 無限ループ
-    });
+    const animsConfig = [
+      // 通常状態
+      { key: "player-walk-down", texture: "player", frames: [0, 1, 0, 2] },
+      { key: "player-walk-left", texture: "player", frames: [3, 4, 3, 5] },
+      { key: "player-walk-right", texture: "player", frames: [6, 7, 6, 8] },
+      { key: "player-walk-up", texture: "player", frames: [9, 10, 9, 11] },
 
-    // 左向き歩行
-    this.scene.anims.create({
-      key: "player-walk-left",
-      frames: this.scene.anims.generateFrameNumbers("player", { frames: [3, 4, 3, 5] }),
-      frameRate: 12,
-      repeat: -1,
-    });
+      // 剣装備状態
+      { key: "player-sword-walk-down", texture: "playerSword", frames: [0, 1, 0, 2] },
+      { key: "player-sword-walk-left", texture: "playerSword", frames: [3, 4, 3, 5] },
+      { key: "player-sword-walk-right", texture: "playerSword", frames: [6, 7, 6, 8] },
+      { key: "player-sword-walk-up", texture: "playerSword", frames: [9, 10, 9, 11] },
 
-    // 右向き歩行
-    this.scene.anims.create({
-      key: "player-walk-right",
-      frames: this.scene.anims.generateFrameNumbers("player", { frames: [6, 7, 6, 8] }),
-      frameRate: 12,
-      repeat: -1,
-    });
+      // 攻撃時
+      { key: "player-sword-attack-down", texture: "playerSword", frames: [12], rate: 1, loop: 0 },
+      { key: "player-sword-attack-left", texture: "playerSword", frames: [13], rate: 1, loop: 0 },
+      { key: "player-sword-attack-right", texture: "playerSword", frames: [14], rate: 1, loop: 0 },
+      { key: "player-sword-attack-up", texture: "playerSword", frames: [15], rate: 1, loop: 0 },
+    ];
 
-    // 上向き歩行
-    this.scene.anims.create({
-      key: "player-walk-up",
-      frames: this.scene.anims.generateFrameNumbers("player", { frames: [9, 10, 9, 11] }),
-      frameRate: 12,
-      repeat: -1,
+    animsConfig.forEach((cfg) => {
+      this.scene.anims.create({
+        key: cfg.key,
+        frames: this.scene.anims.generateFrameNumbers(cfg.texture, { frames: cfg.frames }),
+        frameRate: cfg.rate ?? 12,
+        repeat: cfg.loop ?? -1,
+      });
     });
   }
 
@@ -115,6 +110,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
+    if (this.isAttacking) {
+      this.arcadeBody.setVelocity(0);
+      return;
+    }
+
     const speed = 80; // Todo: 適切な移動スピードに
     this.arcadeBody.setVelocity(0);
 
@@ -141,34 +141,45 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
       this.executeAttack();
+      return;
     }
+
+    // 動的なプレフィックスを取得
+    const prefix = this.getAnimPrefix();
 
     // アニメーション制御
     if (this.arcadeBody.velocity.x < 0) {
-      this.anims.play("player-walk-left", true);
+      this.anims.play(`${prefix}walk-left`, true);
     } else if (this.arcadeBody.velocity.x > 0) {
-      this.anims.play("player-walk-right", true);
+      this.anims.play(`${prefix}walk-right`, true);
     } else if (this.arcadeBody.velocity.y < 0) {
-      this.anims.play("player-walk-up", true);
+      this.anims.play(`${prefix}walk-up`, true);
     } else if (this.arcadeBody.velocity.y > 0) {
-      this.anims.play("player-walk-down", true);
+      this.anims.play(`${prefix}walk-down`, true);
     } else {
       this.anims.stop();
 
+      // 静止時のフレーム制御
       if (this.lastDirection.x === 0 && this.lastDirection.y === 1) {
-        this.anims.stop();
         this.setFrame(0);
       } else if (this.lastDirection.x === 0 && this.lastDirection.y === -1) {
-        this.anims.stop();
         this.setFrame(9);
       } else if (this.lastDirection.x === 1 && this.lastDirection.y === 0) {
-        this.anims.stop();
         this.setFrame(6);
       } else if (this.lastDirection.x === -1 && this.lastDirection.y === 0) {
-        this.anims.stop();
         this.setFrame(3);
       }
     }
+  }
+
+  /**
+   * 装備状態に応じたアニメーションのプレフィックスを返す
+   */
+  private getAnimPrefix(): string {
+    if (this.currentWeapon) {
+      return `player-${this.currentWeapon.id.toLowerCase()}-`;
+    }
+    return "player-";
   }
 
   private executeAttack() {
@@ -176,12 +187,32 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.isAttacking = true;
 
+    // 現在の武器プレフィックスを使用して攻撃モーションを再生
+    const prefix = this.getAnimPrefix();
+    if (this.lastDirection.x === 0 && this.lastDirection.y === 1) {
+      this.anims.play(`${prefix}attack-down`);
+    } else if (this.lastDirection.x === 0 && this.lastDirection.y === -1) {
+      this.anims.play(`${prefix}attack-up`);
+    } else if (this.lastDirection.x === 1 && this.lastDirection.y === 0) {
+      this.anims.play(`${prefix}attack-right`);
+    } else if (this.lastDirection.x === -1 && this.lastDirection.y === 0) {
+      this.anims.play(`${prefix}attack-left`);
+    }
+
     if (this.attackCallback) {
       this.attackCallback(this.x, this.y, this.lastDirection, this.currentWeapon);
     }
 
+    // クールダウン後に攻撃状態を解除し、正しい向きの静止フレームに戻す
     this.scene.time.delayedCall(this.currentWeapon.cooldown, () => {
       this.isAttacking = false;
+      if (this.active) {
+        this.anims.stop();
+        if (this.lastDirection.x === 0 && this.lastDirection.y === 1) this.setFrame(0);
+        else if (this.lastDirection.x === 0 && this.lastDirection.y === -1) this.setFrame(9);
+        else if (this.lastDirection.x === 1 && this.lastDirection.y === 0) this.setFrame(6);
+        else if (this.lastDirection.x === -1 && this.lastDirection.y === 0) this.setFrame(3);
+      }
     });
   }
 

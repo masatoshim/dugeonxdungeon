@@ -1,5 +1,6 @@
 // core
 import playerImg from "@/game-core/assets/core/player.png";
+import playerSwordImg from "@/game-core/assets/core/player-sword.png";
 import goalImg from "@/game-core/assets/core/goal.png";
 import wallImg from "@/game-core/assets/core/wall.png";
 import wallbreakable1Img from "@/game-core/assets/core/wall-breakable-1.png";
@@ -17,6 +18,7 @@ import keySilverDoorImg from "@/game-core/assets/gimmicks/key-silver-door.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
+import weaponSwordAttackEffectImg from "@/game-core/assets/items/weapon-sword-attack-effect.png";
 
 // enemies
 import slimeImg from "@/game-core/assets/enemies/slime.png";
@@ -24,6 +26,7 @@ import slimeImg from "@/game-core/assets/enemies/slime.png";
 export const ASSETS = {
   // core
   player: playerImg.src,
+  playerSword: playerSwordImg.src,
   goal: goalImg.src,
   wall: wallImg.src,
   wallbreakable1: wallbreakable1Img.src,
@@ -41,6 +44,7 @@ export const ASSETS = {
 
   // items
   weaponSword: weaponSwordImg.src,
+  weaponSwordAttackEffect: weaponSwordAttackEffectImg.src,
 
   // enemies
   slime: slimeImg.src,
