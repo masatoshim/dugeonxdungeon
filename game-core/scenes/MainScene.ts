@@ -380,6 +380,10 @@ export class MainScene extends Phaser.Scene {
       this.checkGoalCondition();
     }
 
+    this.enemies.getChildren().forEach((enemy) => {
+      enemy.update();
+    });
+
     this.gimmickConnections.forEach((conn) => {
       const { button, door } = conn;
       if (door.getData("isLocked") === true) return;

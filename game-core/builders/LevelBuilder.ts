@@ -59,10 +59,11 @@ export class LevelBuilder {
 
           case TILE_CATEGORIES.ENEMY:
             // Enemyクラスのインスタンスを生成してグループに追加
-            const enemy = new Enemy(this.scene, posX, posY, config.texture!, 0, config.enemyData?.hp || 1);
-            if (config.enemyData) enemy.setData("enemyData", config.enemyData);
-
-            groups.enemies.add(enemy);
+            if (config.enemyData) {
+              const enemy = new Enemy(this.scene, posX, posY, config.texture!, 0, config.enemyData);
+              if (config.enemyData) enemy.setData("enemyData", config.enemyData);
+              groups.enemies.add(enemy);
+            }
             break;
 
           case TILE_CATEGORIES.GOAL:

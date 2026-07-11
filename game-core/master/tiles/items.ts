@@ -5,6 +5,6 @@ export const ITEM_TILES = {
     name: "剣",
     category: TILE_CATEGORIES.ITEM,
     texture: "weaponSword",
-    weaponData: { id: "SWORD", name: "剣", range: 28, size: 24, damage: 2, cooldown: 300 },
+    weaponData: { id: "SWORD", name: "剣", range: 28, size: 10, damage: 2, cooldown: 300 },
   },
 } as const satisfies Record<string, TileConfig>;

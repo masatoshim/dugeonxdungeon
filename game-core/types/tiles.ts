@@ -18,8 +18,14 @@ export interface EnemyData {
   id: string;
   name: string;
   hp?: number;
-  moveType?: "RANDOM" | "HORIZONTAL";
+  xsize?: number;
+  ysize?: number;
+  xoffset?: number;
+  yoffset?: number;
   speed?: number;
+  moveType?: "RANDOM" | "HORIZONTAL";
+  animType?: "SINGLE" | "DIRECTIONAL"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
+  animSize?: number;
 }
 
 export interface TileConfig {
