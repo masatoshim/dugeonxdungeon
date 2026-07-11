@@ -6,6 +6,7 @@ import wallImg from "@/game-core/assets/core/wall.png";
 import wallbreakable1Img from "@/game-core/assets/core/wall-breakable-1.png";
 import wallbreakable3Img from "@/game-core/assets/core/wall-breakable-3.png";
 import emptyImg from "@/game-core/assets/core/empty.png";
+import floorImg from "@/game-core/assets/core/floor.png";
 
 // gimmicks
 import stoneImg from "@/game-core/assets/gimmicks/stone.png";
@@ -32,6 +33,7 @@ export const ASSETS = {
   wallbreakable1: wallbreakable1Img.src,
   wallbreakable3: wallbreakable3Img.src,
   empty: emptyImg.src,
+  floor: floorImg.src,
 
   // gimmicks
   stone: stoneImg.src,

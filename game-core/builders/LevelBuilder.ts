@@ -25,6 +25,18 @@ export class LevelBuilder {
    * 基本的にタイル配列（mapData）に基づいた静的な配置を行う
    */
   public createLevel(mapData: TileConfigKey[][], groups: LevelGroups) {
+    // 地面を描画
+    mapData.forEach((row, y) => {
+      row.forEach((_, x) => {
+        const posX = x * this.tileSize + this.tileSize / 2;
+        const posY = y * this.tileSize + this.tileSize / 2;
+        const floor = this.scene.add.image(posX, posY, "floor", 0);
+
+        floor.setDepth(0);
+      });
+    });
+
+    // 各オブジェクトを生成
     mapData.forEach((row, y) => {
       row.forEach((tileId, x) => {
         const config = TILE_CONFIG[tileId];
@@ -210,6 +222,6 @@ export class LevelBuilder {
     stone.setPushable(false);
 
     stone.body.setSize(32, 32);
-    stone.setDepth(10);
+    stone.setDepth(2);
   }
 }

@@ -45,7 +45,7 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
       parent: containerRef.current,
       physics: {
         default: "arcade",
-        arcade: { debug: true }, // Todo: 当たり判定表示.開発時はtrueに
+        arcade: { debug: false }, // Todo: 当たり判定表示.開発時はtrueに
       },
     };
 
