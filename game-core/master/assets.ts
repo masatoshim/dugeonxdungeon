@@ -10,7 +10,9 @@ import floorImg from "@/game-core/assets/core/floor.png";
 
 // gimmicks
 import stoneImg from "@/game-core/assets/gimmicks/stone.png";
+import stoneBreakableImg from "@/game-core/assets/gimmicks/stone-breakable.png";
 import iceStoneImg from "@/game-core/assets/gimmicks/ice-stone.png";
+import iceStoneBreakableImg from "@/game-core/assets/gimmicks/ice-stone-breakable.png";
 import heavyStoneImg from "@/game-core/assets/gimmicks/heavy-stone.png";
 import buttonDoorImg from "@/game-core/assets/gimmicks/button-door.png";
 import buttonTriggerImg from "@/game-core/assets/gimmicks/button-trigger.png";
@@ -37,7 +39,9 @@ export const ASSETS = {
 
   // gimmicks
   stone: stoneImg.src,
+  stoneBreakable: stoneBreakableImg.src,
   iceStone: iceStoneImg.src,
+  iceStoneBreakable: iceStoneBreakableImg.src,
   heavyStone: heavyStoneImg.src,
   buttonDoor: buttonDoorImg.src,
   buttonTrigger: buttonTriggerImg.src,

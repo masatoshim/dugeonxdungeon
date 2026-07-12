@@ -28,6 +28,12 @@ export interface EnemyData {
   animSize?: number;
 }
 
+export interface StoneData {
+  id: string;
+  stoneType?: "NORMAL" | "BREAKABLE" | "HEAVY";
+  element?: "STONE" | "ICE";
+}
+
 export interface TileConfig {
   name: string;
   category: TileCategory;
@@ -36,6 +42,7 @@ export interface TileConfig {
   isBreakable?: boolean;
   isLocked?: boolean;
   hp?: number;
+  stoneData?: StoneData;
   enemyData?: EnemyData;
   item?: Item;
   weaponData?: WeaponData;

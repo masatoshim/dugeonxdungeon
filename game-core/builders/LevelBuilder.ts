@@ -215,6 +215,10 @@ export class LevelBuilder {
     stone.setData("config", config);
     stone.setData("isMoving", false);
 
+    stone.setData("stoneType", config.stoneData?.stoneType || "NORMAL");
+    stone.setData("element", config.stoneData?.element || "STONE");
+    if (config.hp !== undefined) stone.setData("hp", config.hp);
+
     groups.movableStones.add(stone);
 
     // Tween移動させるための物理無効化設定

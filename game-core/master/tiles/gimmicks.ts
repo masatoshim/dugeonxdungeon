@@ -1,8 +1,36 @@
 import { TileConfig, TILE_CATEGORIES } from "@/game-core/types/tiles";
 
 export const GIMMICK_TILES = {
-  R1: { name: "石", category: TILE_CATEGORIES.STONE, texture: "stone" },
-  R3: { name: "氷", category: TILE_CATEGORIES.STONE, texture: "iceStone" },
+  R1: {
+    name: "石",
+    category: TILE_CATEGORIES.STONE,
+    texture: "stone",
+    stoneData: { id: "S_NORMAL", stoneType: "NORMAL", element: "STONE" },
+  },
+  R3: {
+    name: "氷",
+    category: TILE_CATEGORIES.STONE,
+    texture: "iceStone",
+    stoneData: { id: "S_ICE", stoneType: "NORMAL", element: "ICE" },
+  },
+  R5: {
+    name: "壊れる石",
+    category: TILE_CATEGORIES.STONE,
+    texture: "stoneBreakable",
+    stoneData: { id: "S_BREAKABLE", stoneType: "BREAKABLE", element: "STONE" },
+  },
+  R6: {
+    name: "壊れる氷",
+    category: TILE_CATEGORIES.STONE,
+    texture: "iceStoneBreakable",
+    stoneData: { id: "S_BREAKABLE_ICE", stoneType: "BREAKABLE", element: "ICE" },
+  },
+  R7: {
+    name: "重い石",
+    category: TILE_CATEGORIES.STONE,
+    texture: "heavyStone",
+    stoneData: { id: "S_HEAVY", stoneType: "HEAVY", element: "STONE" },
+  },
   B1: { name: "ボタン", category: TILE_CATEGORIES.GIMMICK, texture: "buttonTrigger", openFrame: 1 },
   D1: { name: "ボタン扉", category: TILE_CATEGORIES.GIMMICK, texture: "buttonDoor", openFrame: 1 },
   K1: {

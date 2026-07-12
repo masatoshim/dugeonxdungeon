@@ -115,8 +115,14 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.enemies, this.doors);
 
     // 石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
-    this.physics.add.collider(this.player, this.movableStones, (p, s) => {
-      this.handleStonePush(p as Player, s as Phaser.Physics.Arcade.Sprite);
+    this.physics.add.collider(this.player, this.movableStones, (p, stoneObject) => {
+      const stone = stoneObject as Phaser.Physics.Arcade.Sprite;
+      const stoneType = stone.getData("stoneType");
+      // 重い石は押して移動させない
+      if (stoneType === "HEAVY") {
+        return;
+      }
+      this.handleStonePush(p as Player, stoneObject as Phaser.Physics.Arcade.Sprite);
     });
 
     // 石が勝手に吹っ飛ぶのを防ぐ
@@ -184,7 +190,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     // 移動先の最終地点を計算
-    const isIce = stone.texture.key === "iceStone"; // 氷判定
+    const isIce = stone.getData("element") === "ICE"; // 氷判定
     const targetPos = this.calculateTargetPosition(stone, moveX, moveY, isIce);
 
     if (targetPos.x === stone.x && targetPos.y === stone.y) return;
@@ -490,6 +496,26 @@ export class MainScene extends Phaser.Scene {
       else if (direction.y === -1) effect.setAngle(180); // 上向き
     }
 
+    // 石への攻撃
+    this.physics.overlap(hitArea, this.movableStones, (_, stoneObject) => {
+      const stone = stoneObject as Phaser.Physics.Arcade.Sprite;
+
+      // すでに移動中なら重ねて処理しない
+      if (stone.getData("isMoving")) return;
+
+      const stoneType = stone.getData("stoneType");
+      const element = stone.getData("element");
+
+      if (stoneType === "BREAKABLE") {
+        this.breakStone(stone, element);
+        return;
+      }
+
+      if (stoneType === "NORMAL" || stoneType === "HEAVY") {
+        this.moveStoneByAttack(stone, direction);
+      }
+    });
+
     // 敵へのダメージ
     this.physics.overlap(hitArea, this.enemies, (_, target) => {
       if (target instanceof Enemy) target.takeDamage(damage);
@@ -509,6 +535,93 @@ export class MainScene extends Phaser.Scene {
       hitArea.destroy();
       if (effect) effect.destroy();
     });
+  }
+
+  /**
+   * 壊れる石・氷を破壊する処理
+   */
+  private breakStone(stone: Phaser.Physics.Arcade.Sprite, element: "STONE" | "ICE") {
+    if (stone.body instanceof Phaser.Physics.Arcade.Body) {
+      stone.body.enable = false;
+    }
+
+    // 破壊するときの演出
+    const flashColor = element === "ICE" ? 0x00ffff : 0xffa500;
+    stone.setTint(flashColor);
+
+    this.tweens.add({
+      targets: stone,
+      alpha: 0,
+      scale: 0.5,
+      duration: 100,
+      onComplete: () => {
+        // todo: SEを追加する
+        // グループとシーンから完全に削除
+        this.movableStones.remove(stone, true, true);
+      },
+    });
+  }
+
+  /**
+   * 攻撃によって石・氷を飛ばす
+   */
+  private moveStoneByAttack(stone: Phaser.Physics.Arcade.Sprite, direction: { x: number; y: number }) {
+    if (stone.getData("isMoving")) return;
+
+    const element = stone.getData("element") || "STONE";
+
+    const executeSlide = (currentStone: Phaser.Physics.Arcade.Sprite) => {
+      const targetX = currentStone.x + direction.x * 32;
+      const targetY = currentStone.y + direction.y * 32;
+      const sensor = this.add.rectangle(targetX, targetY, 28, 28, 0x000000, 0);
+      this.physics.add.existing(sensor, true);
+
+      let isBlocked = false;
+
+      // 判定対象のグループ
+      const obstacleGroups = [this.walls, this.breakableWalls, this.doors, this.movableStones];
+
+      obstacleGroups.forEach((group) => {
+        if (!group) return;
+
+        this.physics.overlap(sensor, group, (_, overlappedObject: any) => {
+          if (overlappedObject === currentStone) return;
+          isBlocked = true;
+        });
+      });
+
+      sensor.destroy();
+
+      if (isBlocked) {
+        currentStone.setData("isMoving", false);
+        return;
+      }
+
+      // 移動開始
+      currentStone.setData("isMoving", true);
+
+      // 1マス分の移動
+      this.tweens.add({
+        targets: currentStone,
+        x: targetX,
+        y: targetY,
+        duration: 120,
+        ease: "Linear",
+        onComplete: () => {
+          if (currentStone.body instanceof Phaser.Physics.Arcade.Body) {
+            currentStone.body.reset(currentStone.x, currentStone.y);
+          }
+
+          if (element === "ICE") {
+            executeSlide(currentStone);
+          } else {
+            currentStone.setData("isMoving", false);
+          }
+        },
+      });
+    };
+
+    executeSlide(stone);
   }
 
   /**

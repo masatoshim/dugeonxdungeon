@@ -21,8 +21,8 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "ギミック",
     subGroups: [
       {
-        subLabel: "動かせる石",
-        items: [{ id: "R1" }, { id: "R3" }],
+        subLabel: "いろんな石",
+        items: [{ id: "R1" }, { id: "R3" }, { id: "R5" }, { id: "R6" }, { id: "R7" }],
       },
       {
         subLabel: "ボタンと扉",
