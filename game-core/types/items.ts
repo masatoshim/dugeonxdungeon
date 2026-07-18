@@ -10,13 +10,14 @@ export interface WeaponData {
 export interface Item {
   id: string;
   name: string;
-  type: "WEAPON" | "LIGHT" | "KEY" | "CONSUMABLE";
+  type: "WEAPON" | "KEY" | "SCORE_ITEM";
   maxUses?: number;
   remainingUses?: number;
   weaponData?: WeaponData;
   targetDoorId?: string;
   canBreakWalls?: boolean;
   consumesOnUse?: boolean;
+  score?: number;
 }
 
 export interface PlayerInventory {

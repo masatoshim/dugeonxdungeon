@@ -18,14 +18,18 @@ export interface EnemyData {
   id: string;
   name: string;
   hp?: number;
+  score: number;
   xsize?: number;
   ysize?: number;
   xoffset?: number;
   yoffset?: number;
+  moveSteps?: number;
   speed?: number;
   moveType?: "RANDOM" | "HORIZONTAL";
   animType?: "SINGLE" | "DIRECTIONAL"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
+  frameRate?: number;
+  isInvincible?: boolean;
 }
 
 export interface StoneData {
@@ -46,6 +50,7 @@ export interface TileConfig {
   enemyData?: EnemyData;
   item?: Item;
   weaponData?: WeaponData;
+  description?: string;
 }
 
 // エディタパレット用型定義

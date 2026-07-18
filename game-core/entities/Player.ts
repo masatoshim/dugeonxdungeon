@@ -12,6 +12,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     items: [],
   };
 
+  private score = 0;
   // 現在の装備
   private currentWeapon: WeaponData | null = null;
   private isAttacking: boolean = false;
@@ -90,7 +91,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // 鍵の管理用メソッドを更新
   public addKey(targetDoorId: string) {
     (this.inventory.keys as any as string[]).push(targetDoorId);
-    console.log(`扉 ${targetDoorId} の鍵を取得`);
   }
 
   public hasKeyFor(doorId: string): boolean {
@@ -103,6 +103,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (index > -1) {
       keys.splice(index, 1);
     }
+  }
+
+  // スコア追加
+  public addScore(score: number) {
+    this.score += score;
+  }
+  // スコア取得
+  public getScore() {
+    return this.score;
   }
 
   public setOnAttack(callback: (x: number, y: number, dir: { x: number; y: number }, weapon: WeaponData) => void) {
@@ -225,6 +234,5 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       type: "WEAPON",
       weaponData: weapon,
     };
-    console.log(`${weapon.name} を装備した！`);
   }
 }

@@ -4,4 +4,3 @@ export * from "./edit/palette/TileIconForm";
 export * from "./edit/palette/TilePalette";
 export * from "./edit/DungeonEditor";
 export * from "./game/PlayGameContent";
-export * from "./game/GameCanvas";

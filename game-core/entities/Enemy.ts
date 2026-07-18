@@ -3,7 +3,7 @@ import { AssetKey } from "@/game-core/master";
 import { EnemyData } from "@/game-core/types";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
-  private moveEvent: Phaser.Time.TimerEvent;
+  private moveEvent!: Phaser.Time.TimerEvent;
   private enemyData: EnemyData;
   private animKeyPrefix: string;
 
@@ -27,21 +27,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // 初期ステータス設定
     this.setData("hp", this.enemyData.hp);
-    this.setBounce(1, 1); // 壁に当たった時に100%の速度で跳ね返る
-    this.setDrag(0); // 摩擦で減速しない
+    this.setBounce(0, 0);
+    this.setDrag(0);
 
     // 敵固有のアニメーション登録
     this.setupAnimations();
 
-    // 2秒ごとに移動方向を変える
     this.moveEvent = scene.time.addEvent({
-      delay: Phaser.Math.Between(1000, 2000),
+      delay: 10,
       callback: this.changeDirection,
       callbackScope: this,
       loop: true,
     });
-
-    this.changeDirection();
   }
 
   /**
@@ -55,7 +52,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         anims.create({
           key: this.animKeyPrefix,
           frames: anims.generateFrameNumbers(this.texture.key, { start: 0, end: (this.enemyData.animSize || 1) - 1 }),
-          frameRate: 10,
+          frameRate: this.enemyData.frameRate || 10,
           repeat: -1,
         });
       }
@@ -78,7 +75,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           anims.create({
             key: key,
             frames: anims.generateFrameNumbers(this.texture.key, { frames: d.frames }),
-            frameRate: 6,
+            frameRate: this.enemyData.frameRate || 10,
             repeat: -1,
           });
         }
@@ -93,6 +90,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   public update() {
     if (!this.active || !this.body) return;
+
+    // 壁にぶつかった瞬間の緊急ターン
+    if (this.enemyData.moveType === "HORIZONTAL") {
+      if (this.body.blocked.left || this.body.touching.left || this.body.blocked.right || this.body.touching.right) {
+        this.changeDirection();
+      }
+    }
 
     // DIRECTIONAL（方向持ち）の敵のみ、速度から判断してアニメーションを上書きする
     if (this.enemyData.animType === "DIRECTIONAL") {
@@ -116,14 +120,52 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (!this.active || !this.body) return;
 
     const speed = this.enemyData.speed || 50;
+    const moveSteps = this.enemyData.moveSteps || 1;
 
     if (this.enemyData.moveType === "HORIZONTAL") {
-      // 左右に往復
-      if (this.body.velocity.x === 0) {
-        this.setVelocityX(speed);
-      } else {
-        this.setVelocityX(-this.body.velocity.x);
+      if (this.getData("isMovingLeft") === undefined) {
+        const startLeft = Phaser.Math.RND.pick([true, false]);
+        this.setData("isMovingLeft", startLeft);
       }
+      // 壁への接触判定
+      if (this.body.blocked.left || this.body.touching.left) {
+        this.setVelocityX(speed);
+        this.setData("isMovingLeft", false);
+      } else if (this.body.blocked.right || this.body.touching.right) {
+        this.setVelocityX(-speed);
+        this.setData("isMovingLeft", true);
+      } else {
+        // moveSteps分移動した時
+        // そのまま進むか、反転するかをランダムで決定
+        const currentMoveLeft = this.getData("isMovingLeft");
+        const shouldTurn = Phaser.Math.RND.pick([true, false]);
+        if (shouldTurn) {
+          // 現在の進行方向と逆にする
+          if (currentMoveLeft) {
+            this.setVelocityX(-speed);
+            this.setData("isMovingLeft", false);
+          } else {
+            this.setVelocityX(speed);
+            this.setData("isMovingLeft", true);
+          }
+        } else {
+          //現在の進行方向をそのまま維持
+          if (currentMoveLeft) {
+            this.setVelocityX(speed);
+          } else {
+            this.setVelocityX(-speed);
+          }
+          this.setData("isMovingLeft", currentMoveLeft);
+        }
+      }
+      // 低速度フリーズ対策の安全バッファを含めたタイマーリセット
+      const nextDelay = ((moveSteps * 32) / speed) * 1000 + 100;
+      this.moveEvent.reset({
+        delay: nextDelay,
+        callback: this.changeDirection,
+        callbackScope: this,
+        loop: true,
+      });
     } else if (this.enemyData.moveType === "RANDOM") {
       // 4方向ランダム移動
       const dir = Phaser.Math.RND.pick([
@@ -133,6 +175,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         [0, 1],
       ]);
       this.setVelocity(dir[0] * speed, dir[1] * speed);
+      // ディレイ設定
+      const nextDelay = moveSteps > 0 ? ((moveSteps * 32) / speed) * 1000 : Phaser.Math.Between(1000, 2000);
+      this.moveEvent.reset({
+        delay: nextDelay,
+        callback: this.changeDirection,
+        callbackScope: this,
+        loop: true,
+      });
     }
   }
 
@@ -146,11 +196,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (hp <= 0) {
       this.moveEvent.destroy();
       this.destroy();
+      return this.enemyData.score;
     } else {
       this.setTint(0xff0000);
       this.scene.time.delayedCall(100, () => {
         if (this.active) this.clearTint();
       });
+      return 0;
     }
+  }
+
+  public getEnemyData() {
+    return this.enemyData;
   }
 }

@@ -13,7 +13,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "壁",
     subGroups: [
       {
-        items: [{ id: "W" }, { id: "BW1" }, { id: "BW3" }],
+        items: [{ id: "W" }, { id: "BW1" }, { id: "BW2" }, { id: "BW3" }],
       },
     ],
   },
@@ -38,7 +38,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "アイテム",
     subGroups: [
       {
-        items: [{ id: "S1" }], // 今後新しい武器が増えたらここに id を足すだけ
+        items: [{ id: "S1" }, { id: "J1" }],
       },
     ],
   },
@@ -46,7 +46,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "エネミー",
     subGroups: [
       {
-        items: [{ id: "E1" }], // 今後新しい敵が増えたらここに id を足すだけ
+        items: [{ id: "E1" }, { id: "E2" }, { id: "E3" }, { id: "EB1" }],
       },
     ],
   },

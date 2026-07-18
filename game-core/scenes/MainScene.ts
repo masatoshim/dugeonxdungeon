@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { GAME_EVENTS, MapData, WeaponData, GimmickConnection } from "@/game-core//types";
+import { GAME_EVENTS, MapData, WeaponData, GimmickConnection, TileConfig, EnemyData } from "@/game-core//types";
 import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
@@ -284,9 +284,9 @@ export class MainScene extends Phaser.Scene {
 
   // アイテムを拾った時の処理
   private handleItemPickup(playerObj: any, itemObj: any) {
-    const player = playerObj as Player;
+    const player: Player = playerObj;
     const itemSprite = itemObj as Phaser.Physics.Arcade.Sprite;
-    const config = itemSprite.getData("config") as any; // 一旦 any で構造の違いを許容
+    const config: TileConfig = itemSprite.getData("config");
 
     if (!config) return;
 
@@ -298,6 +298,15 @@ export class MainScene extends Phaser.Scene {
         itemSprite.destroy();
         console.log(`${itemData.name}を拾った！`);
       }
+      return;
+    }
+
+    // スコアアイテムのパターン
+    if (config.item && config.item.type === "SCORE_ITEM") {
+      const itemData = config.item;
+      player.addScore(itemData.score || 0);
+      itemSprite.destroy();
+      console.log(`${itemData.score}を獲得した！`);
       return;
     }
 
@@ -518,7 +527,25 @@ export class MainScene extends Phaser.Scene {
 
     // 敵へのダメージ
     this.physics.overlap(hitArea, this.enemies, (_, target) => {
-      if (target instanceof Enemy) target.takeDamage(damage);
+      if (target instanceof Enemy) {
+        const enemyData: EnemyData = target.getEnemyData();
+
+        // ムテキてきには攻撃が効かない
+        const isInvincible: boolean = enemyData.isInvincible || false;
+        if (isInvincible) {
+          console.log(`攻撃が効かない！`);
+          return;
+        }
+
+        // 倒したら、スコア追加
+        const score: number = target.takeDamage(damage);
+        if (score > 0) {
+          this.player.addScore(score);
+          console.log(`${enemyData.name}を倒した！！`);
+        } else {
+          console.log(`${enemyData.name}に${damage}のダメージ！！`);
+        }
+      }
       // Todo:武器の耐久度を減らす
       // this.player.consumeWeaponCharge();
     });
@@ -646,9 +673,7 @@ export class MainScene extends Phaser.Scene {
     this.player.setTint(0x00ff00);
     // カメラを少しズーム
     this.cameras.main.zoomTo(1.2, 1000, "Power2");
-    // todo: スコア計算未対応　敵を撃破、障害物破壊など
-    let score = 12345;
-    this.game.events.emit(GAME_EVENTS.GAME_CLEAR, { score, timeLeft: this.timeLeft });
+    this.game.events.emit(GAME_EVENTS.GAME_CLEAR, { score: this.player.getScore(), timeLeft: this.timeLeft });
   }
 
   private checkGoalCondition() {
