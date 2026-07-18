@@ -1,11 +1,13 @@
 import * as Phaser from "phaser";
 import { AssetKey } from "@/game-core/master";
 import { EnemyData } from "@/game-core/types";
+import { MainScene } from "../scenes/MainScene";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveEvent!: Phaser.Time.TimerEvent;
   private enemyData: EnemyData;
   private animKeyPrefix: string;
+  private player?: Phaser.Physics.Arcade.Sprite; // プレイヤーの位置を把握
 
   constructor(scene: Phaser.Scene, x: number, y: number, texture: AssetKey, frame: number, enemyData: EnemyData) {
     super(scene, x, y, texture, frame);
@@ -183,6 +185,42 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         callbackScope: this,
         loop: true,
       });
+    } else if (this.enemyData.moveType === "CHASE") {
+      const mainScene = this.scene as MainScene;
+      const currentPlayer = mainScene.getPlayer();
+      if (!currentPlayer || !currentPlayer.active) {
+        this.setVelocity(0, 0);
+        return;
+      }
+      // プレイヤーとの距離・方向を計算
+      const diffX = currentPlayer.x - this.x;
+      const diffY = currentPlayer.y - this.y;
+      // 敵の移動速度
+      const speed = this.enemyData.speed || 50;
+      // 進みたい方向
+      let moveX = Math.sign(diffX);
+      let moveY = Math.sign(diffY);
+      // 物理ボディの衝突状態をチェック
+      const blocked = this.body.blocked;
+      // X軸方向の壁にぶつかっている場合
+      const isBlockedX = (moveX > 0 && blocked.right) || (moveX < 0 && blocked.left);
+      // Y軸方向の壁にぶつかっている場合
+      const isBlockedY = (moveY > 0 && blocked.down) || (moveY < 0 && blocked.up);
+      if (isBlockedX && !isBlockedY) {
+        // X軸が壁で詰まったら、強制的にY軸方向へ移動をシフト
+        moveX = 0;
+        if (moveY === 0) moveY = 1;
+      } else if (isBlockedY && !isBlockedX) {
+        // Y軸が壁で詰まったら、強制的にX軸方向へ移動をシフト
+        moveY = 0;
+        if (moveX === 0) moveX = 1;
+      }
+      if (moveX !== 0 && moveY !== 0) {
+        // 斜め移動の速度調整
+        this.setVelocity(moveX * speed * 0.5, moveY * speed * 0.5);
+      } else {
+        this.setVelocity(moveX * speed, moveY * speed);
+      }
     }
   }
 

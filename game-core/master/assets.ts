@@ -30,6 +30,7 @@ import slimeImg from "@/game-core/assets/enemies/slime.png";
 import slimeBA2Img from "@/game-core/assets/enemies/slime_bA2.png";
 import slimeBA3Img from "@/game-core/assets/enemies/slime_bA3.png";
 import blackManImg from "@/game-core/assets/enemies/blackMan.png";
+import chase1Img from "@/game-core/assets/enemies/chase1.png";
 
 export const ASSETS = {
   // core
@@ -64,6 +65,7 @@ export const ASSETS = {
   slimeBA2: slimeBA2Img.src,
   slimeBA3: slimeBA3Img.src,
   blackMan: blackManImg.src,
+  chase1: chase1Img.src,
 } as const;
 
 export type AssetKey = keyof typeof ASSETS;

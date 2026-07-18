@@ -101,6 +101,10 @@ export class MainScene extends Phaser.Scene {
     this.createTimerUI();
   }
 
+  public getPlayer() {
+    return this.player;
+  }
+
   private setupPhysics() {
     if (!this.player) return;
 
@@ -306,7 +310,7 @@ export class MainScene extends Phaser.Scene {
       const itemData = config.item;
       player.addScore(itemData.score || 0);
       itemSprite.destroy();
-      console.log(`${itemData.score}を獲得した！`);
+      console.log(`${itemData.name}を手に入れた！`);
       return;
     }
 
