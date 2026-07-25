@@ -294,8 +294,15 @@ export class MainScene extends Phaser.Scene {
       const nextX = currX + moveX;
       const nextY = currY + moveY;
 
-      // 移動先がブロックされているかチェック
+      // 移動先のマスに敵がいるかチェック
+      const isEnemyInNextGrid = this.enemies.getChildren().some((e) => {
+        const enemy = e as Phaser.Physics.Arcade.Sprite;
+        return Phaser.Math.Distance.Between(enemy.x, enemy.y, nextX, nextY) < 16;
+      });
+
+      // 移動先が障害物または敵でブロックされているかチェック
       const isBlocked =
+        isEnemyInNextGrid ||
         this.walls.getChildren().some((w) => (w as any).getBounds().contains(nextX, nextY)) ||
         this.breakableWalls.getChildren().some((w) => (w as any).getBounds().contains(nextX, nextY)) ||
         this.doors.getChildren().some((d) => (d as any).body.enable && (d as any).getBounds().contains(nextX, nextY)) ||
@@ -307,10 +314,10 @@ export class MainScene extends Phaser.Scene {
       currX = nextX;
       currY = nextY;
 
-      // 石の場合は1回でループ終了
+      // 通常の石の場合は1マス進んで終了
       if (!isIce) break;
 
-      // 無限ループ防止（マップ範囲外チェックなど）
+      // 無限ループ防止（マップ範囲外チェック）
       if (currX < 0 || currX > this.physics.world.bounds.width || currY < 0 || currY > this.physics.world.bounds.height)
         break;
     }
