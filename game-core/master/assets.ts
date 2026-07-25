@@ -24,6 +24,7 @@ import keySilverDoorImg from "@/game-core/assets/gimmicks/key-silver-door.png";
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
 import weaponSwordAttackEffectImg from "@/game-core/assets/items/weapon-sword-attack-effect.png";
 import jewel1Img from "@/game-core/assets/items/jewel_1.png";
+import jewel2Img from "@/game-core/assets/items/jewel_2.png";
 
 // enemies
 import slimeImg from "@/game-core/assets/enemies/slime.png";
@@ -32,6 +33,7 @@ import slimeBA3Img from "@/game-core/assets/enemies/slime_bA3.png";
 import blackManImg from "@/game-core/assets/enemies/blackMan.png";
 import flameRed1Img from "@/game-core/assets/enemies/flame_red1.png";
 import flameBlue1Img from "@/game-core/assets/enemies/flame_blue1.png";
+import doppel1Img from "@/game-core/assets/enemies/doppel1.png";
 
 export const ASSETS = {
   // core
@@ -60,6 +62,7 @@ export const ASSETS = {
   weaponSword: weaponSwordImg.src,
   weaponSwordAttackEffect: weaponSwordAttackEffectImg.src,
   jewel1: jewel1Img.src,
+  jewel2: jewel2Img.src,
 
   // enemies
   slime: slimeImg.src,
@@ -68,6 +71,7 @@ export const ASSETS = {
   blackMan: blackManImg.src,
   flameRed1: flameRed1Img.src,
   flameBlue1: flameBlue1Img.src,
+  doppel1: doppel1Img.src,
 } as const;
 
 export type AssetKey = keyof typeof ASSETS;

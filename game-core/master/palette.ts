@@ -38,7 +38,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "アイテム",
     subGroups: [
       {
-        items: [{ id: "S1" }, { id: "J1" }],
+        items: [{ id: "S1" }, { id: "J1" }, { id: "J2" }],
       },
     ],
   },
@@ -46,7 +46,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "エネミー",
     subGroups: [
       {
-        items: [{ id: "E1" }, { id: "E2" }, { id: "E3" }, { id: "EB1" }, { id: "EC1" }, { id: "EC2" }],
+        items: [{ id: "E1" }, { id: "E2" }, { id: "E3" }, { id: "EB1" }, { id: "EC1" }, { id: "EC2" }, { id: "ED1" }],
       },
     ],
   },

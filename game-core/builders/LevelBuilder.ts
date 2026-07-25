@@ -224,6 +224,8 @@ export class LevelBuilder {
     // Tween移動させるための物理無効化設定
     stone.setImmovable(true);
     stone.setPushable(false);
+    stone.setFriction(0, 0);
+    // stone.setAllowGravity(false);
 
     stone.body.setSize(32, 32);
     stone.setDepth(2);
