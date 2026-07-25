@@ -31,6 +31,7 @@ import slimeImg from "@/game-core/assets/enemies/slime.png";
 import slimeBA2Img from "@/game-core/assets/enemies/slime_bA2.png";
 import slimeBA3Img from "@/game-core/assets/enemies/slime_bA3.png";
 import blackManImg from "@/game-core/assets/enemies/blackMan.png";
+import redEyeDiceImg from "@/game-core/assets/enemies/red_eye_dice.png";
 import flameRed1Img from "@/game-core/assets/enemies/flame_red1.png";
 import flameBlue1Img from "@/game-core/assets/enemies/flame_blue1.png";
 import doppel1Img from "@/game-core/assets/enemies/doppel1.png";
@@ -69,6 +70,7 @@ export const ASSETS = {
   slimeBA2: slimeBA2Img.src,
   slimeBA3: slimeBA3Img.src,
   blackMan: blackManImg.src,
+  redEyeDice: redEyeDiceImg.src,
   flameRed1: flameRed1Img.src,
   flameBlue1: flameBlue1Img.src,
   doppel1: doppel1Img.src,

@@ -104,6 +104,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.body.blocked.left || this.body.touching.left || this.body.blocked.right || this.body.touching.right) {
         this.changeDirection();
       }
+    } else if (this.enemyData.moveType === "VERTICAL") {
+      if (this.body.blocked.down || this.body.touching.down || this.body.blocked.up || this.body.touching.up) {
+        this.changeDirection();
+      }
     }
   }
 
@@ -114,6 +118,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     switch (this.enemyData.moveType) {
       case "HORIZONTAL":
         this.moveHorizontal();
+        break;
+      case "VERTICAL":
+        this.moveVertical();
         break;
       case "RANDOM":
         this.moveRandom();
@@ -149,6 +156,45 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setData("isMovingLeft", isMovingLeft);
     this.setVelocity(isMovingLeft ? -speed : speed, 0);
+
+    this.setFlipX(!isMovingLeft);
+
+    const nextDelay = ((moveSteps * 32) / speed) * 1000 + 100;
+    this.moveEvent.reset({
+      delay: nextDelay,
+      callback: this.changeDirection,
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  private moveVertical() {
+    if (!this.active || !this.body) return;
+
+    const speed = this.enemyData.speed || 50;
+    const moveSteps = this.enemyData.moveSteps || 1;
+
+    if (this.getData("isMovingUp") === undefined) {
+      this.setData("isMovingUp", Phaser.Math.RND.pick([true, false]));
+    }
+
+    let isMovingUp = this.getData("isMovingUp");
+
+    if (this.body.blocked.up || this.body.touching.up) {
+      isMovingUp = false;
+    } else if (this.body.blocked.down || this.body.touching.down) {
+      isMovingUp = true;
+    } else {
+      const shouldTurn = Phaser.Math.RND.pick([true, false]);
+      if (shouldTurn) {
+        isMovingUp = !isMovingUp;
+      }
+    }
+
+    this.setData("isMovingUp", isMovingUp);
+    this.setVelocity(0, isMovingUp ? -speed : speed);
+
+    this.setFlipY(isMovingUp);
 
     const nextDelay = ((moveSteps * 32) / speed) * 1000 + 100;
     this.moveEvent.reset({
