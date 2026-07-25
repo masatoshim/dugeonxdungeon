@@ -113,9 +113,40 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.breakableWalls);
     this.physics.add.collider(this.enemies, this.walls);
     this.physics.add.collider(this.enemies, this.breakableWalls);
-    this.physics.add.collider(this.enemies, this.movableStones, (e, s) => {
-      this.stopStoneMovement(s as Phaser.Physics.Arcade.Sprite);
-    });
+    // 敵と石の衝突設定
+    this.physics.add.collider(
+      this.enemies,
+      this.movableStones,
+      // 進行方向に敵がいる時に石を止める
+      (enemyObj, stoneObj) => {
+        const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
+        this.handleEnemyStoneOverlap(enemyObj as Phaser.Physics.Arcade.Sprite, stone);
+      },
+      // 衝突計算を行うかどうかの判定
+      (enemyObj, stoneObj) => {
+        const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
+        // 石が移動中でない場合、衝突判定を行う
+        if (!stone.getData("isMoving")) {
+          return true;
+        }
+        // 石が移動中の場合、進行方向に敵がいる時だけ物理衝突をONにする
+        const targetX = stone.getData("targetX");
+        const targetY = stone.getData("targetY");
+        if (targetX === undefined || targetY === undefined) return false;
+
+        const dirX = Math.sign(targetX - stone.x);
+        const dirY = Math.sign(targetY - stone.y);
+        const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
+        const toEnemyX = enemy.x - stone.x;
+        const toEnemyY = enemy.y - stone.y;
+
+        const dotProduct = dirX * toEnemyX + dirY * toEnemyY;
+
+        // 進行方向側に敵がいる場合のみ物理コライダーを有効化する
+        return dotProduct > 8;
+      },
+      this,
+    );
     this.physics.add.collider(this.enemies, this.doors);
 
     // 石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
@@ -156,6 +187,15 @@ export class MainScene extends Phaser.Scene {
       undefined,
       this,
     );
+  }
+
+  /**
+   * 敵と石が進行方向で衝突した時の処理
+   */
+  private handleEnemyStoneOverlap(enemy: Phaser.Physics.Arcade.Sprite, stone: Phaser.Physics.Arcade.Sprite) {
+    if (stone.getData("isMoving")) {
+      this.stopStoneMovement(stone);
+    }
   }
 
   /**
