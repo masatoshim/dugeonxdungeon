@@ -114,39 +114,15 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.enemies, this.walls);
     this.physics.add.collider(this.enemies, this.breakableWalls);
     // 敵と石の衝突設定
-    this.physics.add.collider(
-      this.enemies,
-      this.movableStones,
-      // 進行方向に敵がいる時に石を止める
-      (enemyObj, stoneObj) => {
-        const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
-        this.handleEnemyStoneOverlap(enemyObj as Phaser.Physics.Arcade.Sprite, stone);
-      },
-      // 衝突計算を行うかどうかの判定
-      (enemyObj, stoneObj) => {
-        const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
-        // 石が移動中でない場合、衝突判定を行う
-        if (!stone.getData("isMoving")) {
-          return true;
-        }
-        // 石が移動中の場合、進行方向に敵がいる時だけ物理衝突をONにする
-        const targetX = stone.getData("targetX");
-        const targetY = stone.getData("targetY");
-        if (targetX === undefined || targetY === undefined) return false;
+    this.physics.add.collider(this.enemies, this.movableStones, (enemyObj, stoneObj) => {
+      const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
 
-        const dirX = Math.sign(targetX - stone.x);
-        const dirY = Math.sign(targetY - stone.y);
-        const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
-        const toEnemyX = enemy.x - stone.x;
-        const toEnemyY = enemy.y - stone.y;
-
-        const dotProduct = dirX * toEnemyX + dirY * toEnemyY;
-
-        // 進行方向側に敵がいる場合のみ物理コライダーを有効化する
-        return dotProduct > 8;
-      },
-      this,
-    );
+      // 石が移動中の場合のみ、衝突時に停止処理を行う
+      if (stone.getData("isMoving")) {
+        // 進行方向に敵がいるかチェックして止める（※後述のメソッド）
+        this.checkAndStopStoneOnEnemyCollision(enemyObj as Phaser.Physics.Arcade.Sprite, stone);
+      }
+    });
     this.physics.add.collider(this.enemies, this.doors);
 
     // 石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
@@ -192,8 +168,25 @@ export class MainScene extends Phaser.Scene {
   /**
    * 敵と石が進行方向で衝突した時の処理
    */
-  private handleEnemyStoneOverlap(enemy: Phaser.Physics.Arcade.Sprite, stone: Phaser.Physics.Arcade.Sprite) {
-    if (stone.getData("isMoving")) {
+  private checkAndStopStoneOnEnemyCollision(enemy: Phaser.Physics.Arcade.Sprite, stone: Phaser.Physics.Arcade.Sprite) {
+    const targetX = stone.getData("targetX");
+    const targetY = stone.getData("targetY");
+    if (targetX === undefined || targetY === undefined) return;
+
+    // 石の進行方向
+    const dirX = Math.sign(targetX - stone.x);
+    const dirY = Math.sign(targetY - stone.y);
+
+    // 衝突時の敵との位置関係
+    const toEnemyX = enemy.x - stone.x;
+    const toEnemyY = enemy.y - stone.y;
+
+    // 進行方向と同じ向きに敵がいるかチェック
+    const isFrontCollision =
+      (dirX !== 0 && Math.sign(toEnemyX) === dirX) || (dirY !== 0 && Math.sign(toEnemyY) === dirY);
+
+    if (isFrontCollision) {
+      // 正面でぶつかった場合は移動を停止する
       this.stopStoneMovement(stone);
     }
   }
@@ -244,20 +237,30 @@ export class MainScene extends Phaser.Scene {
     const duration = (distance / 32) * 300;
 
     stone.setData("isMoving", true);
+    stone.setData("targetX", targetPos.x);
+    stone.setData("targetY", targetPos.y);
+
     this.tweens.add({
       targets: stone,
       x: targetPos.x,
       y: targetPos.y,
       duration: duration,
-      ease: isIce ? "Linear" : "Cubic.easeOut", // 氷は等速、石は少し減速気味に
+      ease: isIce ? "Linear" : "Cubic.easeOut",
+      onUpdate: () => {
+        if (stone.body) {
+          (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
+        }
+      },
       onComplete: () => {
         stone.setData("isMoving", false);
+        stone.setData("targetX", undefined);
+        stone.setData("targetY", undefined);
         if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
       },
-      // 氷が滑っている途中で敵に当たり、Tweenが途中で kill された場合にも
-      // 正しく移動中フラグを落として物理ボディを同期するためのセーフティ
       onKill: () => {
         stone.setData("isMoving", false);
+        stone.setData("targetX", undefined);
+        stone.setData("targetY", undefined);
         if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
       },
     });
@@ -639,60 +642,62 @@ export class MainScene extends Phaser.Scene {
   private moveStoneByAttack(stone: Phaser.Physics.Arcade.Sprite, direction: { x: number; y: number }) {
     if (stone.getData("isMoving")) return;
 
-    const element = stone.getData("element") || "STONE";
+    const moveX = direction.x * 32;
+    const moveY = direction.y * 32;
 
-    const executeSlide = (currentStone: Phaser.Physics.Arcade.Sprite) => {
-      const targetX = currentStone.x + direction.x * 32;
-      const targetY = currentStone.y + direction.y * 32;
-      const sensor = this.add.rectangle(targetX, targetY, 28, 28, 0x000000, 0);
-      this.physics.add.existing(sensor, true);
+    // 押そうとした1マス先に敵がいるかチェック
+    const nextGridX = stone.x + moveX;
+    const nextGridY = stone.y + moveY;
+    let isEnemyAhead = false;
 
-      let isBlocked = false;
-
-      // 判定対象のグループ
-      const obstacleGroups = [this.walls, this.breakableWalls, this.doors, this.movableStones];
-
-      obstacleGroups.forEach((group) => {
-        if (!group) return;
-
-        this.physics.overlap(sensor, group, (_, overlappedObject: any) => {
-          if (overlappedObject === currentStone) return;
-          isBlocked = true;
-        });
-      });
-
-      sensor.destroy();
-
-      if (isBlocked) {
-        currentStone.setData("isMoving", false);
-        return;
+    this.enemies.getChildren().forEach((e) => {
+      const enemy = e as Phaser.Physics.Arcade.Sprite;
+      if (Phaser.Math.Distance.Between(enemy.x, enemy.y, nextGridX, nextGridY) < 16) {
+        isEnemyAhead = true;
       }
+    });
 
-      // 移動開始
-      currentStone.setData("isMoving", true);
+    // 目の前に敵がいる場合は動かさない
+    if (isEnemyAhead) return;
 
-      // 1マス分の移動
-      this.tweens.add({
-        targets: currentStone,
-        x: targetX,
-        y: targetY,
-        duration: 120,
-        ease: "Linear",
-        onComplete: () => {
-          if (currentStone.body instanceof Phaser.Physics.Arcade.Body) {
-            currentStone.body.reset(currentStone.x, currentStone.y);
-          }
+    const isIce = stone.getData("element") === "ICE";
 
-          if (element === "ICE") {
-            executeSlide(currentStone);
-          } else {
-            currentStone.setData("isMoving", false);
-          }
-        },
-      });
-    };
+    // 障害物にぶつかるまでの最終座標を計算
+    const targetPos = this.calculateTargetPosition(stone, moveX, moveY, isIce);
 
-    executeSlide(stone);
+    if (targetPos.x === stone.x && targetPos.y === stone.y) return;
+
+    const distance = Phaser.Math.Distance.Between(stone.x, stone.y, targetPos.x, targetPos.y);
+    const duration = isIce ? (distance / 32) * 120 : 120;
+
+    stone.setData("isMoving", true);
+    stone.setData("targetX", targetPos.x);
+    stone.setData("targetY", targetPos.y);
+
+    this.tweens.add({
+      targets: stone,
+      x: targetPos.x,
+      y: targetPos.y,
+      duration: duration,
+      ease: "Linear",
+      onUpdate: () => {
+        if (stone.body) {
+          (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
+        }
+      },
+      onComplete: () => {
+        stone.setData("isMoving", false);
+        stone.setData("targetX", undefined);
+        stone.setData("targetY", undefined);
+        if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
+      },
+      onKill: () => {
+        stone.setData("isMoving", false);
+        stone.setData("targetX", undefined);
+        stone.setData("targetY", undefined);
+        if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
+      },
+    });
   }
 
   /**
