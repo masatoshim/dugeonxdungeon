@@ -78,4 +78,16 @@ export const GIMMICK_TILES = {
     texture: "warpOut",
     linkConfig: { entityType: "WARP_OUT", linkGroup: "WARP", targetEntityType: "WARP_IN" },
   },
+  WT1: {
+    name: "ワープ1",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "warpTwoWay1",
+    linkConfig: { entityType: "WARP_TWO_WAY1", linkGroup: "WARP_TWO_WAY", targetEntityType: "WARP_TWO_WAY2" },
+  },
+  WT2: {
+    name: "ワープ2",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "warpTwoWay2",
+    linkConfig: { entityType: "WARP_TWO_WAY2", linkGroup: "WARP_TWO_WAY", targetEntityType: "WARP_TWO_WAY1" },
+  },
 } as const satisfies Record<string, TileConfig>;

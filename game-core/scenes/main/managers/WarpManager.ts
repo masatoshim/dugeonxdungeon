@@ -42,29 +42,26 @@ export class WarpManager {
 
     mapData.entities.forEach((entity: EntityData) => {
       const config = TILE_CONFIG[entity.tileId];
+      if (!config?.linkConfig) return;
 
-      if (
-        config?.linkConfig?.linkGroup === "WARP" ||
-        entity.tileId?.startsWith("WI") ||
-        entity.tileId?.startsWith("WO")
-      ) {
+      const { linkGroup, entityType } = config.linkConfig;
+
+      // ワープに関連するグループか判定
+      if (linkGroup === "WARP" || linkGroup === "WARP_TWO_WAY") {
         const worldX = entity.x * this.tileSize + this.tileSize / 2;
         const worldY = entity.y * this.tileSize + this.tileSize / 2;
 
-        // TILE_CONFIG に指定された texture を使用
-        const texture = config?.texture || entity.tileId;
+        const texture = config.texture || entity.tileId;
         const warpSprite = this.warps.create(worldX, worldY, texture) as Phaser.Physics.Arcade.Sprite;
 
         warpSprite.setDepth(1);
         (warpSprite.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
 
+        // エンティティデータと entityType を保持
         warpSprite.setData("id", entity.id);
         warpSprite.setData("targetId", entity.properties?.targetId);
+        warpSprite.setData("entityType", entityType);
 
-        const warpType = entity.tileId.startsWith("WO") ? "OUT" : "IN";
-        warpSprite.setData("type", warpType);
-
-        // ワープマップに登録
         this.warpMap.set(entity.id, warpSprite);
       }
     });
@@ -73,15 +70,17 @@ export class WarpManager {
   /**
    * 重なり検知時の処理
    */
-  public handleWarpOverlap(player: Player, warpObj: Phaser.Physics.Arcade.Sprite) {
+  public handleWarpOverlap(player: Player, warp: Phaser.Physics.Arcade.Sprite) {
     // ワープ処理中、または前回のワープからまだマスを離れていない場合は処理しない
     if (this.isWarping || this.isOverlappingWarp) return;
 
-    // 出口からのワープ進入を拒否
-    const warpType = warpObj.getData("type");
-    if (warpType === "OUT") return;
+    const entityType = warp.getData("entityType");
+    // 一方向ワープの出口（WARP_OUT）に踏み込んだ場合は何もしない
+    if (entityType === "WARP_OUT") {
+      return;
+    }
 
-    const targetId = warpObj.getData("targetId");
+    const targetId = warp.getData("targetId");
     if (!targetId) return;
 
     const targetWarp = this.warpMap.get(targetId);

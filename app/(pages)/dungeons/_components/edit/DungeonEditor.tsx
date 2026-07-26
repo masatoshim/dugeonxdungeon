@@ -38,6 +38,8 @@ const LINKING_GUIDE_MESSAGES: Record<string, string> = {
   BUTTON_DOOR: "「ボタン扉」を配置して、ボタンとペアリングさせてください",
   WARP_IN: "「ワープ入口」を配置して、ワープ出口とペアリングさせてください",
   WARP_OUT: "「ワープ出口」を配置して、ワープ入口とペアリングさせてください",
+  WARP_TWO_WAY1: "「ワープ2」を配置して、ワープ1とペアリングさせてください",
+  WARP_TWO_WAY2: "「ワープ1」を配置して、ワープ2とペアリングさせてください",
 };
 
 interface DungeonEditorProps {

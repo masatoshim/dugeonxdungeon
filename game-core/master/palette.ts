@@ -33,8 +33,12 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
         items: [{ id: "K1" }, { id: "KD1" }],
       },
       {
-        subLabel: "ワープ",
+        subLabel: "単方向ワープ",
         items: [{ id: "WI1" }, { id: "WO1" }],
+      },
+      {
+        subLabel: "双方向ワープ",
+        items: [{ id: "WT1" }, { id: "WT2" }],
       },
     ],
   },

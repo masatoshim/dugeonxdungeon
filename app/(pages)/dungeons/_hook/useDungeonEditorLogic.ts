@@ -6,8 +6,17 @@ import { toast } from "sonner";
 // 内部ロジック判定用
 interface LinkingStateType {
   active: boolean;
-  mode: "KEY_DOOR" | "BUTTON_DOOR" | "WARP" | null;
-  pendingType: "KEY" | "KEY_DOOR" | "BUTTON" | "BUTTON_DOOR" | "WARP_IN" | "WARP_OUT" | null;
+  mode: "KEY_DOOR" | "BUTTON_DOOR" | "WARP" | "WARP_TWO_WAY" | null;
+  pendingType:
+    | "KEY"
+    | "KEY_DOOR"
+    | "BUTTON"
+    | "BUTTON_DOOR"
+    | "WARP_IN"
+    | "WARP_OUT"
+    | "WARP_TWO_WAY1"
+    | "WARP_TWO_WAY2"
+    | null;
   firstEntityId: string | null;
 }
 

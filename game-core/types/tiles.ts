@@ -43,9 +43,25 @@ export interface TileConfig {
   category: TileCategory;
   texture: AssetKey;
   linkConfig?: {
-    entityType: "KEY" | "KEY_DOOR" | "BUTTON" | "BUTTON_DOOR" | "WARP_IN" | "WARP_OUT";
-    linkGroup: "KEY_DOOR" | "BUTTON_DOOR" | "WARP";
-    targetEntityType: "KEY" | "KEY_DOOR" | "BUTTON" | "BUTTON_DOOR" | "WARP_IN" | "WARP_OUT";
+    entityType:
+      | "KEY"
+      | "KEY_DOOR"
+      | "BUTTON"
+      | "BUTTON_DOOR"
+      | "WARP_IN"
+      | "WARP_OUT"
+      | "WARP_TWO_WAY1"
+      | "WARP_TWO_WAY2";
+    linkGroup: "KEY_DOOR" | "BUTTON_DOOR" | "WARP" | "WARP_TWO_WAY";
+    targetEntityType:
+      | "KEY"
+      | "KEY_DOOR"
+      | "BUTTON"
+      | "BUTTON_DOOR"
+      | "WARP_IN"
+      | "WARP_OUT"
+      | "WARP_TWO_WAY1"
+      | "WARP_TWO_WAY2";
   };
   openFrame?: number;
   isBreakable?: boolean;
