@@ -30,6 +30,16 @@ const dungeonSchema = z.object({
 });
 export type DungeonFormData = z.infer<typeof dungeonSchema>; // 子側で使うためexport
 
+// ガイドメッセージ用の定義辞書
+const LINKING_GUIDE_MESSAGES: Record<string, string> = {
+  KEY: "「鍵」を配置して、鍵扉とペアリングさせてください",
+  KEY_DOOR: "「鍵扉」を配置して、鍵とペアリングさせてください",
+  BUTTON: "「ボタン」を配置して、ボタン扉とペアリングさせてください",
+  BUTTON_DOOR: "「ボタン扉」を配置して、ボタンとペアリングさせてください",
+  WARP_IN: "「ワープ入口」を配置して、ワープ出口とペアリングさせてください",
+  WARP_OUT: "「ワープ出口」を配置して、ワープ入口とペアリングさせてください",
+};
+
 interface DungeonEditorProps {
   initialData?: DungeonResponse; // 編集時は既存データが入る
   isAdmin: boolean;
@@ -152,19 +162,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const { images, isLoaded } = useTileImages();
 
   const getLinkingGuideMessage = () => {
-    if (!linkingState.active) return null;
-
-    if (linkingState.mode === "KEY_DOOR") {
-      return linkingState.pendingType === "KEY_DOOR"
-        ? "「鍵扉」を配置して、鍵とペアリングさせてください"
-        : "「鍵」を配置して、鍵扉とペアリングさせてください";
-    }
-    if (linkingState.mode === "BUTTON_DOOR") {
-      return linkingState.pendingType === "BUTTON_DOOR"
-        ? "「ボタン扉」を配置して、ボタンとペアリングさせてください"
-        : "「ボタン」を配置して、ボタン扉とペアリングさせてください";
-    }
-    return "ペアとなるギミックを配置してください";
+    if (!linkingState.active || !linkingState.pendingType) return null;
+    return LINKING_GUIDE_MESSAGES[linkingState.pendingType] ?? "ペアとなるギミックを配置してください";
   };
 
   return (

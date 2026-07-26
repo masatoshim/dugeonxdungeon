@@ -2,10 +2,11 @@
 
 import { useDungeonCanvas } from "@/app/(pages)/dungeons/_hook";
 import { TileConfigKey } from "@/game-core/master";
+import { EntityData } from "@/game-core/types";
 
 interface Props {
   tiles: TileConfigKey[][];
-  entities: any[];
+  entities: EntityData[];
   rows: number;
   cols: number;
   images: any;

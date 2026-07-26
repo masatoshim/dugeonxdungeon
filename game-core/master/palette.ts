@@ -32,6 +32,10 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
         subLabel: "カギと扉",
         items: [{ id: "K1" }, { id: "KD1" }],
       },
+      {
+        subLabel: "ワープ",
+        items: [{ id: "WI1" }, { id: "WO1" }],
+      },
     ],
   },
   {

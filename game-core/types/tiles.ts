@@ -42,6 +42,11 @@ export interface TileConfig {
   name: string;
   category: TileCategory;
   texture: AssetKey;
+  linkConfig?: {
+    entityType: "KEY" | "KEY_DOOR" | "BUTTON" | "BUTTON_DOOR" | "WARP_IN" | "WARP_OUT";
+    linkGroup: "KEY_DOOR" | "BUTTON_DOOR" | "WARP";
+    targetEntityType: "KEY" | "KEY_DOOR" | "BUTTON" | "BUTTON_DOOR" | "WARP_IN" | "WARP_OUT";
+  };
   openFrame?: number;
   isBreakable?: boolean;
   isLocked?: boolean;

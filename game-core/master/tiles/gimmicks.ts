@@ -37,13 +37,26 @@ export const GIMMICK_TILES = {
     texture: "spikyStone",
     stoneData: { id: "S_SPIKY", stoneType: "SPIKE", element: "STONE" },
   },
-  B1: { name: "ボタン", category: TILE_CATEGORIES.GIMMICK, texture: "buttonTrigger", openFrame: 1 },
-  D1: { name: "ボタン扉", category: TILE_CATEGORIES.GIMMICK, texture: "buttonDoor", openFrame: 1 },
+  B1: {
+    name: "ボタン",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "buttonTrigger",
+    openFrame: 1,
+    linkConfig: { entityType: "BUTTON", linkGroup: "BUTTON_DOOR", targetEntityType: "BUTTON_DOOR" },
+  },
+  D1: {
+    name: "ボタン扉",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "buttonDoor",
+    openFrame: 1,
+    linkConfig: { entityType: "BUTTON_DOOR", linkGroup: "BUTTON_DOOR", targetEntityType: "BUTTON" },
+  },
   K1: {
     name: "鍵",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "keySilver",
     item: { id: "KEY_SILVER", name: "銀の鍵", type: "KEY", consumesOnUse: true },
+    linkConfig: { entityType: "KEY", linkGroup: "KEY_DOOR", targetEntityType: "KEY_DOOR" },
   },
   KD1: {
     name: "鍵扉",
@@ -51,15 +64,18 @@ export const GIMMICK_TILES = {
     texture: "keySilverDoor",
     openFrame: 1,
     isLocked: true,
+    linkConfig: { entityType: "KEY_DOOR", linkGroup: "KEY_DOOR", targetEntityType: "KEY" },
   },
   WI1: {
     name: "ワープ入口",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "warpIn",
+    linkConfig: { entityType: "WARP_IN", linkGroup: "WARP", targetEntityType: "WARP_OUT" },
   },
   WO1: {
     name: "ワープ出口",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "warpOut",
+    linkConfig: { entityType: "WARP_OUT", linkGroup: "WARP", targetEntityType: "WARP_IN" },
   },
 } as const satisfies Record<string, TileConfig>;
