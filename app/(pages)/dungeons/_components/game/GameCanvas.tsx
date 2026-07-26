@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as Phaser from "phaser";
-import { MainScene } from "@/game-core/scenes/MainScene";
+import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { GAME_EVENTS, MapData } from "@/game-core/types";
 
 interface GameCanvasProps {

@@ -35,6 +35,10 @@ export class MainScene extends Phaser.Scene {
 
   private gimmickConnections: GimmickConnection[] = [];
 
+  private warps!: Phaser.Physics.Arcade.StaticGroup;
+  private warpMap: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
+  private isWarping: boolean = false; // 連続ワープ防止用フラグ
+
   private isGameOver: boolean = false;
 
   constructor() {
@@ -72,6 +76,7 @@ export class MainScene extends Phaser.Scene {
     this.goalGroup = this.physics.add.staticGroup();
     this.movableStones = this.physics.add.group();
     this.doors = this.physics.add.staticGroup();
+    this.warps = this.physics.add.staticGroup();
 
     const levelGroups: LevelGroups = {
       walls: this.walls,
@@ -91,6 +96,9 @@ export class MainScene extends Phaser.Scene {
     // LevelManagerを使用してマップ配置
     this.levelBuilder.createLevel(this.tiles, levelGroups);
 
+    // ワープマスの生成と登録
+    this.setupWarps();
+
     // 次に createGimmicks を実行（鍵や扉が生成される）
     this.gimmickConnections = this.levelBuilder.createGimmicks(this, this.mapData.entities, levelGroups);
 
@@ -103,6 +111,30 @@ export class MainScene extends Phaser.Scene {
 
   public getPlayer() {
     return this.player;
+  }
+
+  /**
+   * ワープオブジェクトを生成
+   */
+  private setupWarps() {
+    this.warpMap.clear();
+
+    if (!this.mapData.entities) return;
+
+    this.mapData.entities.forEach((entity: any) => {
+      // ワープタイルの判定
+      if (entity.id && (entity.tileId?.startsWith("WI") || entity.tileId?.startsWith("WO"))) {
+        const worldX = entity.x * this.tileSize + this.tileSize / 2;
+        const worldY = entity.y * this.tileSize + this.tileSize / 2;
+
+        const warpSprite = this.warps.create(worldX, worldY, entity.tileId) as Phaser.Physics.Arcade.Sprite;
+        warpSprite.setData("id", entity.id);
+        warpSprite.setData("targetId", entity.properties?.targetId);
+
+        // IDをキーにして取得できるように保持
+        this.warpMap.set(entity.id, warpSprite);
+      }
+    });
   }
 
   private setupPhysics() {
@@ -160,6 +192,9 @@ export class MainScene extends Phaser.Scene {
         if (door.body) (door.body as Phaser.Physics.Arcade.StaticBody).enable = false;
       }
     });
+
+    // プレイヤーとワープマスの重ね合わせ判定
+    this.physics.add.overlap(this.player, this.warps, this.handleWarpOverlap, undefined, this);
 
     // 敵に接触したらゲームオーバー
     this.physics.add.overlap(
@@ -383,6 +418,51 @@ export class MainScene extends Phaser.Scene {
     //   itemSprite.destroy();
     //   return;
     // }
+  }
+
+  /**
+   * ワープ処理の実装
+   */
+  private handleWarpOverlap(_playerObj: any, warpObj: any) {
+    if (this.isWarping) return;
+
+    const currentWarp = warpObj as Phaser.Physics.Arcade.Sprite;
+    const tileId = currentWarp.texture.key; // または getData("tileId")
+
+    // 出口(WO)を踏んだ場合は何も実行しない（入口WIのみトリガー）
+    if (tileId.startsWith("WO")) return;
+
+    const targetId = currentWarp.getData("targetId");
+    if (!targetId) return;
+
+    // ターゲットのワープオブジェクトを取得
+    const targetWarp = this.warpMap.get(targetId);
+    if (!targetWarp) return;
+
+    this.isWarping = true;
+
+    // フェード & 移動処理
+    this.tweens.add({
+      targets: this.player,
+      alpha: 0,
+      duration: 150,
+      onComplete: () => {
+        // ワープ先（出口）の中心位置へ移動
+        this.player.setPosition(targetWarp.x, targetWarp.y);
+
+        this.tweens.add({
+          targets: this.player,
+          alpha: 1,
+          duration: 150,
+          onComplete: () => {
+            // ワープ先から離れる猶予時間を設ける
+            this.time.delayedCall(300, () => {
+              this.isWarping = false;
+            });
+          },
+        });
+      },
+    });
   }
 
   private createTimerUI() {

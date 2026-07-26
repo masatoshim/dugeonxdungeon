@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import { AssetKey } from "@/game-core/master";
 import { EnemyData } from "@/game-core/types";
-import { MainScene } from "../scenes/MainScene";
+import { MainScene } from "../scenes/main/MainScene";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveEvent!: Phaser.Time.TimerEvent;

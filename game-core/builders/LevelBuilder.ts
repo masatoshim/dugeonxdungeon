@@ -3,6 +3,18 @@ import { TILE_CATEGORIES, TileConfig, EntityData, GimmickConnection } from "@/ga
 import { Enemy } from "@/game-core/entities/Enemy";
 import { TileConfigKey } from "@/game-core/master";
 
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface WarpPoint {
+  id: string;
+  tileId: TileConfigKey;
+  position: Position;
+  targetPosition: Position | null; // ワープ先の座標
+}
+
 export interface LevelGroups {
   walls: Phaser.Physics.Arcade.StaticGroup;
   doors: Phaser.Physics.Arcade.StaticGroup;
@@ -17,6 +29,9 @@ export interface LevelGroups {
 export class LevelBuilder {
   private tileSize: number = 32;
   private doorMap = new Map<string, Phaser.GameObjects.Sprite | Phaser.GameObjects.Image>();
+
+  // ワープ管理用
+  private warpPositions = new Map<string, Position>();
 
   constructor(private scene: Phaser.Scene) {}
 
@@ -90,13 +105,14 @@ export class LevelBuilder {
   }
 
   /**
-   * エディタで配置された EntityData（鍵、扉、ボタン）を生成し、接続関係を構築する
+   * エディタで配置された EntityData（鍵、扉、ボタン、ワープ）を生成し、接続関係を構築する
    */
   public createGimmicks(scene: Phaser.Scene, entities: EntityData[] = [], groups: LevelGroups): GimmickConnection[] {
     if (!entities || !Array.isArray(entities)) return [];
 
     const connections: GimmickConnection[] = [];
     this.doorMap.clear();
+    this.warpPositions.clear(); // ワープマップの初期化
 
     // 扉の生成
     entities
@@ -167,7 +183,55 @@ export class LevelBuilder {
         (keyItem.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
       });
 
+    // ワープ処理
+    const entityMap = new Map<string, EntityData>();
+    entities.forEach((e) => entityMap.set(e.id, e));
+
+    entities
+      .filter((e) => {
+        const config = TILE_CONFIG[e.tileId];
+        return config?.linkConfig?.linkGroup === "WARP";
+      })
+      .forEach((e) => {
+        const config = TILE_CONFIG[e.tileId];
+
+        // スプライトを描画（背景床の上に表示）
+        const warpSprite = scene.add.image(e.x * 32 + 16, e.y * 32 + 16, config.texture!);
+        warpSprite.setDepth(1);
+
+        // リンク先ターゲットが登録されている場合、転送先ピクセル座標をマップに登録
+        const targetId = e.properties?.targetId;
+        if (targetId) {
+          const targetEntity = entityMap.get(targetId);
+          if (targetEntity) {
+            const sourceGridKey = `${e.x},${e.y}`;
+            const destPixelPos: Position = {
+              x: targetEntity.x * 32 + 16,
+              y: targetEntity.y * 32 + 16,
+            };
+            this.warpPositions.set(sourceGridKey, destPixelPos);
+          }
+        }
+      });
+
     return connections;
+  }
+
+  /**
+   * グリッド座標にワープが存在すれば、転送先ピクセル座標を返す
+   */
+  public getWarpDestination(gridX: number, gridY: number): Position | null {
+    const key = `${gridX},${gridY}`;
+    return this.warpPositions.get(key) ?? null;
+  }
+
+  /**
+   * ピクセル座標からグリッド変換してワープ先を取得する便利ヘルパー
+   */
+  public getWarpDestinationByPixel(pixelX: number, pixelY: number): Position | null {
+    const gridX = Math.floor(pixelX / this.tileSize);
+    const gridY = Math.floor(pixelY / this.tileSize);
+    return this.getWarpDestination(gridX, gridY);
   }
 
   /**
@@ -225,7 +289,6 @@ export class LevelBuilder {
     stone.setImmovable(true);
     stone.setPushable(false);
     stone.setFriction(0, 0);
-    // stone.setAllowGravity(false);
 
     stone.body.setSize(32, 32);
     stone.setDepth(2);
