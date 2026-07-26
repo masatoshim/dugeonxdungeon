@@ -24,6 +24,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       body.setSize(this.enemyData.xsize || this.width, this.enemyData.ysize || this.height);
       body.setOffset(this.enemyData.xoffset || 0, this.enemyData.yoffset || 0);
       this.setCollideWorldBounds(true);
+      this.setDepth(2);
     }
 
     // 初期ステータス設定
