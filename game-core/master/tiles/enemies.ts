@@ -58,7 +58,7 @@ export const ENEMY_TILES = {
       moveType: "RANDOM",
       animType: "SINGLE",
       animSize: 12,
-      frameRate: 18,
+      frameRate: 24,
     },
   },
   EB1: {
@@ -114,7 +114,7 @@ export const ENEMY_TILES = {
     texture: "flameRed1",
     enemyData: {
       id: "E_CHASE_1",
-      name: "追いかけるてき",
+      name: "ほのお",
       hp: 1,
       score: 500,
       xsize: 24,
@@ -131,13 +131,13 @@ export const ENEMY_TILES = {
     },
   },
   EC2: {
-    name: "あおいほのお",
+    name: "ムテキほのお",
     description: "じわじわと追いかけてくる。むてき",
     category: TILE_CATEGORIES.ENEMY,
     texture: "flameBlue1",
     enemyData: {
       id: "E_CHASE_2",
-      name: "追いかけるてき",
+      name: "ムテキほのお",
       hp: 1,
       score: 500,
       xsize: 24,

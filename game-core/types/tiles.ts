@@ -34,7 +34,7 @@ export interface EnemyData {
 
 export interface StoneData {
   id: string;
-  stoneType?: "NORMAL" | "BREAKABLE" | "HEAVY";
+  stoneType?: "NORMAL" | "BREAKABLE" | "HEAVY" | "SPIKE";
   element?: "STONE" | "ICE";
 }
 

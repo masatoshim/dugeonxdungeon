@@ -31,6 +31,12 @@ export const GIMMICK_TILES = {
     texture: "heavyStone",
     stoneData: { id: "S_HEAVY", stoneType: "HEAVY", element: "STONE" },
   },
+  R8: {
+    name: "とげとげ石",
+    category: TILE_CATEGORIES.STONE,
+    texture: "spikyStone",
+    stoneData: { id: "S_SPIKY", stoneType: "SPIKE", element: "STONE" },
+  },
   B1: { name: "ボタン", category: TILE_CATEGORIES.GIMMICK, texture: "buttonTrigger", openFrame: 1 },
   D1: { name: "ボタン扉", category: TILE_CATEGORIES.GIMMICK, texture: "buttonDoor", openFrame: 1 },
   K1: {

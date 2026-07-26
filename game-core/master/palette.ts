@@ -22,7 +22,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     subGroups: [
       {
         subLabel: "いろんな石",
-        items: [{ id: "R1" }, { id: "R3" }, { id: "R5" }, { id: "R6" }, { id: "R7" }],
+        items: [{ id: "R1" }, { id: "R3" }, { id: "R5" }, { id: "R6" }, { id: "R7" }, { id: "R8" }],
       },
       {
         subLabel: "ボタンと扉",
@@ -43,7 +43,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     ],
   },
   {
-    label: "エネミー",
+    label: "てき",
     subGroups: [
       {
         items: [

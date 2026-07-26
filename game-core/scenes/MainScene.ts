@@ -129,6 +129,12 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.movableStones, (p, stoneObject) => {
       const stone = stoneObject as Phaser.Physics.Arcade.Sprite;
       const stoneType = stone.getData("stoneType");
+
+      // とげとげの石は触れたら即ゲームオーバー
+      if (stoneType == "SPIKE") {
+        this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+        return;
+      }
       // 重い石は押して移動させない
       if (stoneType === "HEAVY") {
         return;
@@ -574,7 +580,7 @@ export class MainScene extends Phaser.Scene {
         return;
       }
 
-      if (stoneType === "NORMAL" || stoneType === "HEAVY") {
+      if (stoneType === "NORMAL" || stoneType === "HEAVY" || stoneType === "SPIKE") {
         this.moveStoneByAttack(stone, direction);
       }
     });
