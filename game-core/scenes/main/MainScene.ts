@@ -92,6 +92,7 @@ export class MainScene extends Phaser.Scene {
       enemies: this.enemies,
       goal: this.goalGroup,
       movableStones: this.movableStones,
+      warps: this.warps,
       onPlayerCreate: (x, y) => {
         this.player = new Player(this, x, y);
         this.player.setDepth(10);
@@ -195,8 +196,13 @@ export class MainScene extends Phaser.Scene {
     });
 
     // プレイヤーとワープマスの重ね合わせ判定
-    this.physics.add.overlap(this.player, this.warps, (_, w) =>
-      this.warpManager.handleWarpOverlap(this.player, w as Phaser.Physics.Arcade.Sprite),
+    this.physics.add.overlap(
+      this.player,
+      this.warps, // LevelBuilder が生成してグループに格納したワープ群
+      (_, warp) => {
+        // ワープ処理の発火
+        this.warpManager.handleWarpOverlap(this.player, warp as Phaser.Physics.Arcade.Sprite);
+      },
     );
 
     this.physics.add.overlap(this.player, this.enemies, () => this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER));
@@ -270,6 +276,10 @@ export class MainScene extends Phaser.Scene {
     this.enemies.getChildren().forEach((enemy) => enemy.update());
 
     this.updateGimmickConnections();
+
+    if (this.warpManager && this.player) {
+      this.warpManager.update(this.player);
+    }
   }
 
   private updateGimmickConnections() {

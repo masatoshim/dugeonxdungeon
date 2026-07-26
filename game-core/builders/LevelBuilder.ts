@@ -22,6 +22,7 @@ export interface LevelGroups {
   items: Phaser.Physics.Arcade.StaticGroup;
   enemies: Phaser.Physics.Arcade.Group;
   goal: Phaser.Physics.Arcade.StaticGroup;
+  warps: Phaser.Physics.Arcade.StaticGroup;
   movableStones: Phaser.Physics.Arcade.Group;
   onPlayerCreate: (x: number, y: number) => void;
 }
@@ -193,13 +194,6 @@ export class LevelBuilder {
         return config?.linkConfig?.linkGroup === "WARP";
       })
       .forEach((e) => {
-        const config = TILE_CONFIG[e.tileId];
-
-        // スプライトを描画（背景床の上に表示）
-        const warpSprite = scene.add.image(e.x * 32 + 16, e.y * 32 + 16, config.texture!);
-        warpSprite.setDepth(1);
-
-        // リンク先ターゲットが登録されている場合、転送先ピクセル座標をマップに登録
         const targetId = e.properties?.targetId;
         if (targetId) {
           const targetEntity = entityMap.get(targetId);
