@@ -20,6 +20,8 @@ import buttonDoorImg from "@/game-core/assets/gimmicks/button-door.png";
 import buttonTriggerImg from "@/game-core/assets/gimmicks/button-trigger.png";
 import keySilverImg from "@/game-core/assets/gimmicks/key-silver.png";
 import keySilverDoorImg from "@/game-core/assets/gimmicks/key-silver-door.png";
+import warpInImg from "@/game-core/assets/gimmicks/warp_in.png";
+import warpOutImg from "@/game-core/assets/gimmicks/warp_out.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
@@ -60,6 +62,8 @@ export const ASSETS = {
   buttonTrigger: buttonTriggerImg.src,
   keySilver: keySilverImg.src,
   keySilverDoor: keySilverDoorImg.src,
+  warpIn: warpInImg.src,
+  warpOut: warpOutImg.src,
 
   // items
   weaponSword: weaponSwordImg.src,

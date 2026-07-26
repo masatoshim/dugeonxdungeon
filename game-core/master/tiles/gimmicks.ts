@@ -52,4 +52,14 @@ export const GIMMICK_TILES = {
     openFrame: 1,
     isLocked: true,
   },
+  WI1: {
+    name: "ワープ入口",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "warpIn",
+  },
+  WO1: {
+    name: "ワープ出口",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "warpOut",
+  },
 } as const satisfies Record<string, TileConfig>;
