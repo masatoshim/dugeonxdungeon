@@ -37,6 +37,42 @@ export const GIMMICK_TILES = {
     texture: "spikyStone",
     stoneData: { id: "S_SPIKY", stoneType: "SPIKE", element: "STONE" },
   },
+  BR: {
+    name: "ブロック右",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockRight",
+    stoneData: { id: "B_RIGHT", stoneType: "NORMAL", element: "STONE", allowedDirection: "RIGHT" },
+  },
+  BL: {
+    name: "ブロック左",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockLeft",
+    stoneData: { id: "B_LEFT", stoneType: "NORMAL", element: "STONE", allowedDirection: "LEFT" },
+  },
+  BU: {
+    name: "ブロック上",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockUp",
+    stoneData: { id: "B_UP", stoneType: "NORMAL", element: "STONE", allowedDirection: "UP" },
+  },
+  BD: {
+    name: "ブロック下",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockDown",
+    stoneData: { id: "B_DOWN", stoneType: "NORMAL", element: "STONE", allowedDirection: "DOWN" },
+  },
+  BH: {
+    name: "ブロック左右",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockHorizontal",
+    stoneData: { id: "B_HORIZONTAL", stoneType: "NORMAL", element: "STONE", allowedDirection: "HORIZONTAL" },
+  },
+  BV: {
+    name: "ブロック上下",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockVertical",
+    stoneData: { id: "B_VERTICAL", stoneType: "NORMAL", element: "STONE", allowedDirection: "VERTICAL" },
+  },
   B1: {
     name: "ボタン",
     category: TILE_CATEGORIES.GIMMICK,

@@ -25,6 +25,10 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
         items: [{ id: "R1" }, { id: "R3" }, { id: "R5" }, { id: "R6" }, { id: "R7" }, { id: "R8" }],
       },
       {
+        subLabel: "いろんなブロック",
+        items: [{ id: "BR" }, { id: "BL" }, { id: "BU" }, { id: "BD" }, { id: "BH" }, { id: "BV" }],
+      },
+      {
         subLabel: "ボタンと扉",
         items: [{ id: "B1" }, { id: "D1" }],
       },

@@ -36,6 +36,7 @@ export interface StoneData {
   id: string;
   stoneType?: "NORMAL" | "BREAKABLE" | "HEAVY" | "SPIKE";
   element?: "STONE" | "ICE";
+  allowedDirection?: "RIGHT" | "LEFT" | "UP" | "DOWN" | "HORIZONTAL" | "VERTICAL" | "ALL";
 }
 
 export interface TileConfig {

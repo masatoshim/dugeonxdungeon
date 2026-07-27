@@ -24,6 +24,12 @@ import warpInImg from "@/game-core/assets/gimmicks/warp_in.png";
 import warpOutImg from "@/game-core/assets/gimmicks/warp_out.png";
 import warpTwoWay1Img from "@/game-core/assets/gimmicks/warp_two_way1.png";
 import warpTwoWay2Img from "@/game-core/assets/gimmicks/warp_two_way2.png";
+import blockRightImg from "@/game-core/assets/gimmicks/block_right.png";
+import blockLeftImg from "@/game-core/assets/gimmicks/block_left.png";
+import blockUpImg from "@/game-core/assets/gimmicks/block_up.png";
+import blockDownImg from "@/game-core/assets/gimmicks/block_down.png";
+import blockHorizontalImg from "@/game-core/assets/gimmicks/block_horizontal.png";
+import blockVerticalImg from "@/game-core/assets/gimmicks/block_vertical.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
@@ -68,6 +74,12 @@ export const ASSETS = {
   warpOut: warpOutImg.src,
   warpTwoWay1: warpTwoWay1Img.src,
   warpTwoWay2: warpTwoWay2Img.src,
+  blockRight: blockRightImg.src,
+  blockLeft: blockLeftImg.src,
+  blockUp: blockUpImg.src,
+  blockDown: blockDownImg.src,
+  blockHorizontal: blockHorizontalImg.src,
+  blockVertical: blockVerticalImg.src,
 
   // items
   weaponSword: weaponSwordImg.src,

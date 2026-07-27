@@ -53,6 +53,8 @@ export class StoneManager {
 
     if (targetPos.x === stone.x && targetPos.y === stone.y) return;
 
+    if (!this.canPushStone(moveX, moveY, stone)) return;
+
     this.moveStoneTween(stone, targetPos, isIce);
   }
 
@@ -89,6 +91,8 @@ export class StoneManager {
     );
 
     if (targetPos.x === stone.x && targetPos.y === stone.y) return;
+
+    if (!this.canPushStone(moveX, moveY, stone)) return;
 
     this.moveStoneTween(stone, targetPos, isIce, true);
   }
@@ -264,6 +268,26 @@ export class StoneManager {
         this.clearStoneData(stone);
       },
     });
+  }
+
+  private canPushStone(moveX: number, moveY: number, stone: Phaser.Physics.Arcade.Sprite): boolean {
+    const allowed: string = stone.getData("allowedDirection") || "ALL";
+
+    if (allowed.includes("ALL")) return true;
+
+    if (moveX > 0 && allowed === "RIGHT") return true;
+
+    if (moveX < 0 && allowed === "LEFT") return true;
+
+    if (moveY > 0 && allowed === "DOWN") return true;
+
+    if (moveY < 0 && allowed === "UP") return true;
+
+    if (allowed.includes("HORIZONTAL") && moveY === 0) return true;
+
+    if (allowed.includes("VERTICAL") && moveX === 0) return true;
+
+    return false;
   }
 
   /**
