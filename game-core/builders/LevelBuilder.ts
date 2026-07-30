@@ -229,16 +229,6 @@ export class LevelBuilder {
   }
 
   /**
-   * 扉生成用ヘルパー
-   */
-  private createDoorFromConfig(x: number, y: number, config: TileConfig, groups: LevelGroups) {
-    const door = this.scene.physics.add.staticSprite(x, y, config.texture, 0);
-    if (config.openFrame !== undefined) door.setData("openFrame", config.openFrame);
-    if (config.isLocked) door.setData("isLocked", true);
-    groups.doors.add(door);
-  }
-
-  /**
    * アイテム生成用ヘルパー
    */
   private createItemFromConfig(x: number, y: number, config: TileConfig, groups: LevelGroups) {

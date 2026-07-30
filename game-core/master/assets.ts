@@ -46,6 +46,7 @@ import redEyeDiceImg from "@/game-core/assets/enemies/red_eye_dice.png";
 import flameRed1Img from "@/game-core/assets/enemies/flame_red1.png";
 import flameBlue1Img from "@/game-core/assets/enemies/flame_blue1.png";
 import doppel1Img from "@/game-core/assets/enemies/doppel1.png";
+import ghost1Img from "@/game-core/assets/enemies/ghost1.png";
 
 export const ASSETS = {
   // core
@@ -96,6 +97,7 @@ export const ASSETS = {
   flameRed1: flameRed1Img.src,
   flameBlue1: flameBlue1Img.src,
   doppel1: doppel1Img.src,
+  ghost1: ghost1Img.src,
 } as const;
 
 export type AssetKey = keyof typeof ASSETS;

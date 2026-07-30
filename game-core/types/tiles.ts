@@ -26,10 +26,11 @@ export interface EnemyData {
   moveSteps?: number;
   speed?: number;
   moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE";
-  animType?: "SINGLE" | "DIRECTIONAL"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
+  animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
   frameRate?: number;
   isInvincible?: boolean;
+  isGhost?: boolean;
 }
 
 export interface StoneData {

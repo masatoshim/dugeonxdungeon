@@ -27,6 +27,20 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.setDepth(2);
     }
 
+    if (this.enemyData.isGhost) {
+      const body = this.body as Phaser.Physics.Arcade.Body;
+      if (body) {
+        this.setCollideWorldBounds(true);
+        this.setBounce(0, 0);
+        this.setDepth(5);
+
+        body.checkCollision.up = false;
+        body.checkCollision.down = false;
+        body.checkCollision.left = false;
+        body.checkCollision.right = false;
+      }
+    }
+
     // 初期ステータス設定
     this.setData("hp", this.enemyData.hp);
     this.setBounce(0, 0);
@@ -58,18 +72,26 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           repeat: -1,
         });
       }
-
       // シンクロを回避するロジック
       const totalFrames = anims.get(this.animKeyPrefix).frames.length;
       const randomStartFrame = Phaser.Math.Between(0, totalFrames - 1);
       this.play({ key: this.animKeyPrefix, startFrame: randomStartFrame });
-    } else if (this.enemyData.animType === "DIRECTIONAL") {
-      const directions = [
-        { suffix: "down", frames: [0, 1, 0, 2] },
-        { suffix: "left", frames: [3, 4, 3, 5] },
-        { suffix: "right", frames: [6, 7, 6, 8] },
-        { suffix: "up", frames: [9, 10, 9, 11] },
-      ];
+    } else if (this.enemyData.animType.startsWith("DIRECTIONAL")) {
+      const directionsMap: Record<string, { suffix: string; frames: number[] }[]> = {
+        DIRECTIONAL: [
+          { suffix: "down", frames: [0, 1, 0, 2] },
+          { suffix: "left", frames: [3, 4, 3, 5] },
+          { suffix: "right", frames: [6, 7, 6, 8] },
+          { suffix: "up", frames: [9, 10, 9, 11] },
+        ],
+        DIRECTIONAL_2: [
+          { suffix: "down", frames: [0, 1, 2, 1] },
+          { suffix: "left", frames: [3, 4, 5, 4] },
+          { suffix: "right", frames: [6, 7, 8, 7] },
+          { suffix: "up", frames: [9, 10, 11, 10] },
+        ],
+      };
+      const directions = directionsMap[this.enemyData.animType] || directionsMap["DIRECTIONAL"];
 
       directions.forEach((d) => {
         const key = `${this.animKeyPrefix}-${d.suffix}`;
@@ -94,11 +116,42 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     super.preUpdate(time, delta);
 
     if (!this.active || !this.body) return;
+
+    if (this.enemyData.isGhost) {
+      // 外壁の範囲を計算
+      const minX = 32 + this.width / 2;
+      const minY = 32 + this.height / 2;
+
+      const mapWidth = this.scene.physics.world.bounds.width;
+      const mapHeight = this.scene.physics.world.bounds.height;
+
+      const maxX = mapWidth - 32 - this.width / 2;
+      const maxY = mapHeight - 32 - this.height / 2;
+
+      // 範囲外に出そうになっているか判定
+      const isAtBoundaryX = this.x <= minX || this.x >= maxX;
+      const isAtBoundaryY = this.y <= minY || this.y >= maxY;
+
+      // 座標を枠内に固定
+      this.x = Phaser.Math.Clamp(this.x, minX, maxX);
+      this.y = Phaser.Math.Clamp(this.y, minY, maxY);
+
+      // 外枠に到達していて、かつその方向へ進もうとしている場合は方向転換を実行
+      if (
+        (isAtBoundaryX && Math.abs(this.body.velocity.x) > 0) ||
+        (isAtBoundaryY && Math.abs(this.body.velocity.y) > 0)
+      ) {
+        this.changeDirection();
+      }
+    }
+
     this.updateAnimationByVelocity(this.body.velocity.x, this.body.velocity.y);
   }
 
   public update() {
     if (!this.active || !this.body) return;
+
+    if (this.enemyData.isGhost) return;
 
     // 壁にぶつかった瞬間の緊急ターン
     if (this.enemyData.moveType === "HORIZONTAL") {
@@ -107,6 +160,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     } else if (this.enemyData.moveType === "VERTICAL") {
       if (this.body.blocked.down || this.body.touching.down || this.body.blocked.up || this.body.touching.up) {
+        this.changeDirection();
+      }
+    } else if (this.enemyData.moveType === "RANDOM") {
+      const b = this.body.blocked;
+      const t = this.body.touching;
+      if (b.left || t.left || b.right || t.right || b.up || t.up || b.down || t.down) {
         this.changeDirection();
       }
     }
@@ -207,18 +266,36 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private moveRandom() {
+    if (!this.active || !this.body) return;
+
     const speed = this.enemyData.speed || 50;
     const moveSteps = this.enemyData.moveSteps || 1;
 
-    const dir = Phaser.Math.RND.pick([
-      [-1, 0],
-      [1, 0],
-      [0, -1],
-      [0, 1],
-    ]);
+    // 現在ブロックされている方向以外の移動候補を抽出する
+    const b = this.body.blocked;
+    const t = this.body.touching;
+
+    const validDirections: [number, number][] = [];
+    if (!b.left && !t.left) validDirections.push([-1, 0]);
+    if (!b.right && !t.right) validDirections.push([1, 0]);
+    if (!b.up && !t.up) validDirections.push([0, -1]);
+    if (!b.down && !t.down) validDirections.push([0, 1]);
+
+    // 全方向塞がれている場合などのフォールバック
+    const dir =
+      validDirections.length > 0
+        ? Phaser.Math.RND.pick(validDirections)
+        : Phaser.Math.RND.pick([
+            [-1, 0],
+            [1, 0],
+            [0, -1],
+            [0, 1],
+          ]);
+
     this.setVelocity(dir[0] * speed, dir[1] * speed);
 
     const nextDelay = moveSteps > 0 ? ((moveSteps * 32) / speed) * 1000 : Phaser.Math.Between(1000, 2000);
+
     this.moveEvent.reset({
       delay: nextDelay,
       callback: this.changeDirection,
@@ -245,16 +322,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     let moveX = Math.abs(diffX) < 4 ? 0 : Math.sign(diffX);
     let moveY = Math.abs(diffY) < 4 ? 0 : Math.sign(diffY);
 
-    const blocked = this.body.blocked;
-    const isBlockedX = (moveX > 0 && blocked.right) || (moveX < 0 && blocked.left);
-    const isBlockedY = (moveY > 0 && blocked.down) || (moveY < 0 && blocked.up);
+    if (!this.enemyData.isGhost) {
+      const blocked = this.body.blocked;
+      const isBlockedX = (moveX > 0 && blocked.right) || (moveX < 0 && blocked.left);
+      const isBlockedY = (moveY > 0 && blocked.down) || (moveY < 0 && blocked.up);
 
-    if (isBlockedX && !isBlockedY) {
-      moveX = 0;
-      if (moveY === 0) moveY = 1;
-    } else if (isBlockedY && !isBlockedX) {
-      moveY = 0;
-      if (moveX === 0) moveX = 1;
+      if (isBlockedX && !isBlockedY) {
+        moveX = 0;
+        if (moveY === 0) moveY = 1;
+      } else if (isBlockedY && !isBlockedX) {
+        moveY = 0;
+        if (moveX === 0) moveX = 1;
+      }
     }
 
     const factor = moveX !== 0 && moveY !== 0 ? 0.707 : 1;
@@ -265,7 +344,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
    * 与えられた速度に基づいてアニメーションを変更する
    */
   private updateAnimationByVelocity(vx: number, vy: number) {
-    if (this.enemyData.animType !== "DIRECTIONAL") return;
+    if (!this.enemyData.animType?.startsWith("DIRECTIONAL")) return;
 
     const absX = Math.abs(vx);
     const absY = Math.abs(vy);

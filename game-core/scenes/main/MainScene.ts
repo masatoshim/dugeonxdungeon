@@ -3,6 +3,7 @@ import { GAME_EVENTS, MapData, TileConfig, GimmickConnection } from "@/game-core
 import { TileConfigKey } from "@/game-core/master";
 import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
+import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";
 import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
 import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
@@ -137,9 +138,42 @@ export class MainScene extends Phaser.Scene {
     // 静的オブジェクトとの衝突
     this.physics.add.collider(this.player, this.walls);
     this.physics.add.collider(this.player, this.breakableWalls);
-    this.physics.add.collider(this.enemies, this.walls);
-    this.physics.add.collider(this.enemies, this.breakableWalls);
-    this.physics.add.collider(this.enemies, this.doors);
+
+    // 敵と壁の衝突
+    this.physics.add.collider(
+      this.enemies,
+      this.walls,
+      undefined,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        return !enemy.getEnemyData().isGhost;
+      },
+      this,
+    );
+
+    // 壊せる壁との衝突
+    this.physics.add.collider(
+      this.enemies,
+      this.breakableWalls,
+      undefined,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        return !enemy.getEnemyData().isGhost;
+      },
+      this,
+    );
+
+    // 扉との衝突
+    this.physics.add.collider(
+      this.enemies,
+      this.doors,
+      undefined,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        return !enemy.getEnemyData().isGhost;
+      },
+      this,
+    );
 
     // 敵と石の衝突設定
     this.physics.add.collider(this.enemies, this.movableStones, (enemyObj, stoneObj) => {
