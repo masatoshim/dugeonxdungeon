@@ -25,7 +25,9 @@ export interface EnemyData {
   yoffset?: number;
   moveSteps?: number;
   speed?: number;
-  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE";
+  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2";
+  chaseDistance?: number; // moveTypeがCHASE_2専用のパラメータ
+  speedUp?: number; // chaseDistance専用パラメータ。
   animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
   frameRate?: number;

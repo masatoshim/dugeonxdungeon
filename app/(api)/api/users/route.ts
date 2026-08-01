@@ -7,6 +7,7 @@ import { UserResponse, UsersIndexResponse } from "@/app/_types";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 import { sendVerificationEmail, sendAdminAlertEmail } from "@/app/_libs/mail";
+import { nanoid } from "nanoid";
 
 /**
  * GET: ユーザー一覧取得
@@ -272,7 +273,7 @@ export async function POST(request: Request) {
 
     // パスワードハッシュ化とトークンの有効期限の設定
     const hashedPassword = await bcrypt.hash(password, 10);
-    const token = crypto.randomUUID();
+    const token = nanoid();
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 有効期限
 
     const now = new Date();

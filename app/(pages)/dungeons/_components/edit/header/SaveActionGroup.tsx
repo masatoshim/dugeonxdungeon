@@ -8,6 +8,7 @@ import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { TILE_CATEGORIES } from "@/game-core/types";
 import { DungeonResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
+import { nanoid } from "nanoid";
 
 type Props = {
   initialData?: DungeonResponse;
@@ -69,7 +70,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
       } else {
         savedDungeon = await create({
           ...rest,
-          code: `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+          code: `DN-${nanoid(8).toUpperCase()}`,
           userId: user.id,
           mapData: getCommonMapData(),
           mapSizeHeight: rows,
@@ -153,7 +154,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
       } else {
         savedDungeon = await create({
           ...rest,
-          code: `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+          code: `DN-${nanoid(8).toUpperCase()}`,
           userId: user.id,
           mapData: getCommonMapData(),
           mapSizeHeight: rows,

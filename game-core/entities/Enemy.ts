@@ -1,12 +1,17 @@
 import * as Phaser from "phaser";
 import { AssetKey } from "@/game-core/master";
 import { EnemyData } from "@/game-core/types";
-import { MainScene } from "../scenes/main/MainScene";
+import { MainScene } from "@/game-core/scenes/main/MainScene";
+import { Player } from "@/game-core/entities/Player";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveEvent!: Phaser.Time.TimerEvent;
   private enemyData: EnemyData;
   private animKeyPrefix: string;
+
+  // CHASE2用の追跡状態フラグと現在の向き
+  private isChasing2: boolean = false;
+  private currentFacing: { x: number; y: number } = { x: 0, y: 1 };
 
   constructor(scene: Phaser.Scene, x: number, y: number, texture: AssetKey, frame: number, enemyData: EnemyData) {
     super(scene, x, y, texture, frame);
@@ -151,6 +156,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public update() {
     if (!this.active || !this.body) return;
 
+    // 巡回中に視界内にプレイヤーが入ったかをチェック
+    if (this.enemyData.moveType === "CHASE_2") {
+      this.updateChase2State();
+    }
+
     if (this.enemyData.isGhost) return;
 
     // 壁にぶつかった瞬間の緊急ターン
@@ -162,7 +172,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.body.blocked.down || this.body.touching.down || this.body.blocked.up || this.body.touching.up) {
         this.changeDirection();
       }
-    } else if (this.enemyData.moveType === "RANDOM") {
+    } else if (this.enemyData.moveType === "RANDOM" || (this.enemyData.moveType === "CHASE_2" && !this.isChasing2)) {
       const b = this.body.blocked;
       const t = this.body.touching;
       if (b.left || t.left || b.right || t.right || b.up || t.up || b.down || t.down) {
@@ -187,6 +197,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         break;
       case "CHASE":
         this.moveChase();
+        break;
+      case "CHASE_2":
+        this.moveChase2();
         break;
     }
   }
@@ -304,12 +317,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  private moveChase() {
+  private moveChase(speedUp?: number) {
     if (!this.active || !this.body) return;
 
-    const speed = this.enemyData.speed || 50;
+    const speed = (this.enemyData.speed || 50) * (speedUp || 1);
     const mainScene = this.scene as MainScene;
-    const currentPlayer = mainScene.getPlayer();
+    const currentPlayer: Player = mainScene.getPlayer();
 
     if (!currentPlayer || !currentPlayer.active) {
       this.setVelocity(0, 0);
@@ -340,6 +353,98 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(moveX * speed * factor, moveY * speed * factor);
   }
 
+  private moveChase2() {
+    if (!this.active || !this.body) return;
+
+    if (this.isChasing2) {
+      // 追跡中の場合は moveChase と同じ移動を行う
+      this.moveChase(this.enemyData.speedUp);
+      // 追跡中はタイマーを頻繁に呼び出して追跡速度を維持
+      this.moveEvent.reset({
+        delay: 50,
+        callback: this.changeDirection,
+        callbackScope: this,
+        loop: true,
+      });
+    } else {
+      // 通常時はランダム移動
+      this.moveRandom();
+    }
+  }
+
+  /**
+   * CHASE2用の状態監視（視界判定・距離判定）
+   */
+  private updateChase2State() {
+    const mainScene = this.scene as MainScene;
+    const player: Player = mainScene.getPlayer();
+    if (!player || !player.active) {
+      if (this.isChasing2) {
+        this.isChasing2 = false;
+        this.changeDirection();
+      }
+      return;
+    }
+
+    const maxDistance = (this.enemyData.chaseDistance || 5) * 32;
+    const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+
+    if (this.isChasing2) {
+      // 追跡中：距離が一定以上離れたらランダム移動に戻る
+      if (dist > maxDistance) {
+        this.isChasing2 = false;
+        this.changeDirection();
+      }
+    } else {
+      // ランダム移動中：一定距離内 かつ 進行方向の視界内にプレイヤーがいるか確認
+      if (dist <= maxDistance && this.isLineOfSightBlocked(player)) {
+        this.isChasing2 = true;
+        this.changeDirection();
+      }
+    }
+  }
+
+  /**
+   * プレイヤーが敵の進行方向にいるか判定
+   */
+  private isLineOfSightBlocked(player: Player): boolean {
+    const mainScene = this.scene as MainScene;
+    const ray = new Phaser.Geom.Line(this.x, this.y, player.x, player.y);
+
+    // 視線チェックの対象とするグループ一覧を取得
+    const obstacleGroups: (Phaser.Physics.Arcade.Group | Phaser.Physics.Arcade.StaticGroup)[] = [
+      mainScene.getWalls(),
+      mainScene.getBreakableWalls(),
+      mainScene.getDoors(),
+      mainScene.getMovableStones(),
+    ];
+
+    for (const group of obstacleGroups) {
+      if (!group) continue;
+
+      const children = group.getChildren() as Phaser.Physics.Arcade.Sprite[];
+
+      for (const child of children) {
+        // 非アクティブなオブジェクトや物理ボディを持たないものはスキップ
+        if (!child.active || !child.body) continue;
+
+        // 閉じている扉や鍵がかかっている扉のみ遮蔽物とする場合のケア
+        if (group === mainScene.getDoors() && child.getData("isLocked") === false) {
+          continue;
+        }
+
+        const body = child.body as Phaser.Physics.Arcade.Body | Phaser.Physics.Arcade.StaticBody;
+        const rect = new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height);
+
+        // 視線と障害物の矩形が交差しているか判定
+        if (Phaser.Geom.Intersects.LineToRectangle(ray, rect)) {
+          return true; // 遮蔽物あり
+        }
+      }
+    }
+    return false; // 遮蔽物なし（プレイヤーが見える）
+  }
+
   /**
    * 与えられた速度に基づいてアニメーションを変更する
    */
@@ -356,8 +461,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // 縦移動が強い場合は縦を優先
     if (absY >= absX) {
       suffix = vy > 0 ? "down" : "up";
+      this.currentFacing = { x: 0, y: vy > 0 ? 1 : -1 };
     } else {
       suffix = vx > 0 ? "right" : "left";
+      this.currentFacing = { x: vx > 0 ? 1 : -1, y: 0 };
     }
 
     const targetKey = `${this.animKeyPrefix}-${suffix}`;

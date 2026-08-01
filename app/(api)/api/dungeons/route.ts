@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonResponse, DungeonsIndexResponse, CreateDungeonRequest } from "@/app/_types";
+import { DungeonResponse, CreateDungeonRequest } from "@/app/_types";
 import { DungeonStatus, PlayStatus, Prisma } from "@prisma/client";
 import { mapDataSchema } from "@/game-core/schemas/map";
+import { nanoid } from "nanoid";
 
 /**
  * GET: ダンジョン一覧取得
@@ -367,7 +368,7 @@ export async function POST(request: Request) {
     const newDungeon = await prisma.dungeon.create({
       data: {
         ...dungeonData,
-        code: dungeonData.code || `DN-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+        code: dungeonData.code || `DN-${nanoid(8).toUpperCase()}`,
         mapData: parsedMapData.data,
         user: { connect: { id: userId } },
         dungeonTags:

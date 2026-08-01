@@ -128,10 +128,6 @@ export class MainScene extends Phaser.Scene {
     this.timerUI = new TimerUI(this, this.timeLimit);
   }
 
-  public getPlayer() {
-    return this.player;
-  }
-
   private setupPhysics() {
     if (!this.player) return;
 
@@ -277,6 +273,26 @@ export class MainScene extends Phaser.Scene {
       MessageManager.getInstance().notify(`${config.name}を装備した！`);
       return;
     }
+  }
+
+  public getPlayer(): Player {
+    return this.player;
+  }
+
+  public getWalls(): Phaser.Physics.Arcade.StaticGroup {
+    return this.walls;
+  }
+
+  public getBreakableWalls(): Phaser.Physics.Arcade.StaticGroup {
+    return this.breakableWalls;
+  }
+
+  public getDoors(): Phaser.Physics.Arcade.StaticGroup {
+    return this.doors;
+  }
+
+  public getMovableStones(): Phaser.Physics.Arcade.Group {
+    return this.movableStones;
   }
 
   update() {

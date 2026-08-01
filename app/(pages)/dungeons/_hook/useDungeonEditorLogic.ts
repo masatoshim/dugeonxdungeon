@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { TILE_CATEGORIES, EntityData, DUNGEON_DEFAULT } from "@/game-core/types";
 import { toast } from "sonner";
+import { nanoid } from "nanoid";
 
 // 内部ロジック判定用
 interface LinkingStateType {
@@ -144,7 +145,7 @@ export function useDungeonEditorLogic(initialData?: any) {
         }
       }
 
-      const newId = `${selectedTile}_${crypto.randomUUID().slice(0, 8)}`;
+      const newId = `${selectedTile}_${nanoid(8)}`;
 
       let isPairingCompleteRoute = false;
       let currentFirstEntityId: string | null = null;
