@@ -397,7 +397,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     } else {
       // ランダム移動中：一定距離内 かつ 進行方向の視界内にプレイヤーがいるか確認
-      if (dist <= maxDistance && this.isLineOfSightBlocked(player)) {
+      if (dist <= maxDistance && !this.isLineOfSightBlocked(player)) {
         this.isChasing2 = true;
         this.changeDirection();
       }

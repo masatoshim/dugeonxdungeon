@@ -13,7 +13,12 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "壁",
     subGroups: [
       {
-        items: [{ id: "W" }, { id: "BW1" }, { id: "BW2" }, { id: "BW3" }],
+        items: [
+          { id: "W" },
+          // { id: "BW1" },
+          { id: "BW2" },
+          { id: "BW3" },
+        ],
       },
     ],
   },
@@ -22,7 +27,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     subGroups: [
       {
         subLabel: "いろんな石",
-        items: [{ id: "R1" }, { id: "R3" }, { id: "R5" }, { id: "R6" }, { id: "R7" }, { id: "R8" }],
+        items: [{ id: "R1" }, { id: "R5" }, { id: "R3" }, { id: "R6" }, { id: "R7" }, { id: "R8" }],
       },
       {
         subLabel: "いろんなブロック",
@@ -59,16 +64,18 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     subGroups: [
       {
         items: [
-          { id: "E1" },
+          // { id: "E1" },
           { id: "E2" },
           { id: "E3" },
-          { id: "EB1" },
-          { id: "ER1" },
           { id: "EC1" },
           { id: "EC2" },
-          { id: "ED1" },
+          { id: "EB1" },
+          { id: "ER1" },
           { id: "EG1" },
-          { id: "EKO" },
+          { id: "EO1" },
+          { id: "EO2" },
+          { id: "EDO" },
+          { id: "EDR" },
         ],
       },
     ],
