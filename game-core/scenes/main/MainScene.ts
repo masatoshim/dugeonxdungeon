@@ -110,6 +110,7 @@ export class MainScene extends Phaser.Scene {
             this.walls,
             this.breakableWalls,
             this.doors,
+            this.enemyBullets,
           ),
         );
       },

@@ -2,8 +2,9 @@ import * as Phaser from "phaser";
 import { WeaponData, EnemyData } from "@/game-core/types";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
-import { StoneManager } from "./StoneManager";
-import { MessageManager } from "./MessageManager";
+import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
+import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
+import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 
 export class CombatManager {
   private scene: Phaser.Scene;
@@ -28,6 +29,7 @@ export class CombatManager {
     walls: Phaser.Physics.Arcade.StaticGroup,
     breakableWalls: Phaser.Physics.Arcade.StaticGroup,
     doors: Phaser.Physics.Arcade.StaticGroup,
+    enemyBullets?: Phaser.Physics.Arcade.Group,
   ) {
     const range = weapon ? weapon.range : 24;
     const size = weapon ? weapon.size : 20;
@@ -99,6 +101,15 @@ export class CombatManager {
     this.scene.physics.overlap(hitArea, breakableWalls, (_, wall) => {
       this.handleObjectDamage(wall as Phaser.GameObjects.Sprite);
     });
+
+    // 敵の弾をかき消す判定
+    if (enemyBullets) {
+      this.scene.physics.overlap(hitArea, enemyBullets, (_, bulletObject) => {
+        if (bulletObject instanceof EnemyBullet) {
+          bulletObject.destroy();
+        }
+      });
+    }
 
     // 判定オブジェクトとエフェクト画像を一定時間（100ms）後に一緒に消去する
     this.scene.time.delayedCall(100, () => {
