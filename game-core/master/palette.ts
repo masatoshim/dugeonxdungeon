@@ -77,6 +77,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
           { id: "EDO" },
           { id: "EDR" },
           { id: "EDRR" },
+          { id: "ES" },
         ],
       },
     ],

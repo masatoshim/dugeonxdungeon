@@ -130,6 +130,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (!this.active || !this.body) return;
 
+    //　ゴースト制御
     if (this.enemyData.isGhost) {
       // 外壁の範囲を計算
       const minX = 32 + this.width / 2;
@@ -158,7 +159,35 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
+    // ステルス敵の視認性制御
+    this.updateStealthState();
+
     this.updateAnimationByVelocity(this.body.velocity.x, this.body.velocity.y);
+  }
+
+  /**
+   * プレイヤーとの距離に応じて透明度を更新
+   */
+  private updateStealthState() {
+    const enemyData = this.enemyData;
+    const mainScene = this.scene as MainScene;
+    const currentPlayer: Player = mainScene.getPlayer();
+    if (!enemyData.isStealth || !currentPlayer) return;
+
+    // プレイヤーと敵の距離を計算
+    const distance = Phaser.Math.Distance.Between(this.x, this.y, currentPlayer.x, currentPlayer.y);
+    // 視認距離
+    const detectDist = (enemyData.detectDistance || 3) * 32;
+
+    if (distance <= detectDist) {
+      // 透明度
+      const alpha = Phaser.Math.Clamp(1 - distance / detectDist, 0.2, 1.0);
+      this.setAlpha(alpha);
+      this.setVisible(true);
+    } else {
+      this.setAlpha(0);
+      this.setVisible(false); // 完全に隠す場合
+    }
   }
 
   public update() {

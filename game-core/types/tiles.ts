@@ -26,9 +26,9 @@ export interface EnemyData {
   moveSteps?: number;
   speed?: number;
   moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "RANGED";
-  // moveTypeがCHASE_2専用のパラメータ
+  // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知できる距離
   chaseDistance?: number;
-  // chaseDistance専用パラメータ
+  // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知後の加速度を設定
   speedUp?: number;
   // moveTypeがRANGED専用のパラメータ
   rangedData?: {
@@ -43,8 +43,10 @@ export interface EnemyData {
   animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
   frameRate?: number;
-  isInvincible?: boolean;
-  isGhost?: boolean;
+  isInvincible?: boolean; // 無敵判定
+  isGhost?: boolean; // 障害物すり抜け判定
+  isStealth?: boolean; //ステルス判定
+  detectDistance?: number; // 姿が見え始める距離。isStealthがtrueの時のみ適用
 }
 
 // EnemyDataの遠隔攻撃用クラス
