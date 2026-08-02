@@ -3,6 +3,10 @@ import { AssetKey } from "@/game-core/master";
 import { EnemyData } from "@/game-core/types";
 import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { Player } from "@/game-core/entities/Player";
+import { EnemyBullet } from "@/game-core/entities//EnemyBullet";
+
+// 状態定義
+type RangedState = "IDLE" | "PREPARE" | "ATTACK" | "COOLDOWN";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveEvent!: Phaser.Time.TimerEvent;
@@ -12,6 +16,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   // CHASE2用の追跡状態フラグと現在の向き
   private isChasing2: boolean = false;
   private currentFacing: { x: number; y: number } = { x: 0, y: 1 };
+
+  // 遠隔攻撃用の状態プロパティ
+  private rangedState: RangedState = "IDLE";
+  private lastRangedAttackTime: number = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, texture: AssetKey, frame: number, enemyData: EnemyData) {
     super(scene, x, y, texture, frame);
@@ -156,6 +164,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public update() {
     if (!this.active || !this.body) return;
 
+    if (this.enemyData.moveType === "RANGED") {
+      this.updateRangedState();
+      return;
+    }
+
     // 巡回中に視界内にプレイヤーが入ったかをチェック
     if (this.enemyData.moveType === "CHASE_2") {
       this.updateChase2State();
@@ -199,6 +212,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.moveChase();
         break;
       case "CHASE_2":
+      case "RANGED":
         this.moveChase2();
         break;
     }
@@ -370,6 +384,139 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       // 通常時はランダム移動
       this.moveRandom();
     }
+  }
+
+  /**
+   * 遠隔攻撃タイプの状態更新
+   */
+  private updateRangedState() {
+    if (!this.active || !this.body) return;
+
+    const mainScene = this.scene as MainScene;
+    const player = mainScene.getPlayer();
+    if (!player || !player.active) return;
+
+    const rData = this.enemyData.rangedData;
+    const maxDistance = (this.enemyData.chaseDistance || 6) * 32;
+    const prepareTime = rData?.prepareTime ?? 1000;
+    const cooldown = rData?.cooldown ?? 3000;
+
+    // 溜め中・攻撃中は完全に足止め
+    if (this.rangedState === "PREPARE" || this.rangedState === "ATTACK") {
+      this.setVelocity(0, 0);
+      return;
+    }
+
+    // プレイヤーの発見判定
+    const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+    const canSeePlayer = dist <= maxDistance && !this.isLineOfSightBlocked(player);
+    if (canSeePlayer && this.scene.time.now - this.lastRangedAttackTime > cooldown) {
+      // 攻撃シーケンス開始
+      this.startRangedAttackSequence(player, prepareTime, cooldown);
+    } else if (this.rangedState === "IDLE") {
+      if (this.body.velocity.x === 0 && this.body.velocity.y === 0) {
+        this.changeDirection();
+      }
+    }
+  }
+
+  /**
+   * 遠隔攻撃開始準備
+   */
+  private startRangedAttackSequence(player: Player, prepareTime: number, cooldown: number) {
+    this.rangedState = "PREPARE";
+    this.setVelocity(0, 0);
+
+    // プレイヤーの方向へ向き直る
+    const dirX = player.x - this.x;
+    const dirY = player.y - this.y;
+    this.updateAnimationByVelocity(dirX, dirY);
+
+    // 予兆演出
+    this.setTint(0xff8888);
+
+    // 溜め時間経過後に攻撃発射
+    this.scene.time.delayedCall(prepareTime, () => {
+      if (!this.active) return;
+      // 予兆演出の解除
+      this.clearTint();
+      this.rangedState = "ATTACK";
+
+      // 弾の発射
+      this.executeRangedShot(player, () => {
+        // 撃ち終わったらクールダウンへ移行
+        this.rangedState = "COOLDOWN";
+        this.lastRangedAttackTime = this.scene.time.now;
+
+        // クールタイム終了後にIDLEに戻って移動再開
+        this.scene.time.delayedCall(cooldown, () => {
+          if (this.active) {
+            this.rangedState = "IDLE";
+            this.changeDirection();
+          }
+        });
+      });
+    });
+  }
+
+  /**
+   * 弾を発射
+   */
+  private executeRangedShot(player: Player, onComplete: () => void) {
+    const mainScene = this.scene as MainScene;
+    const rData = this.enemyData.rangedData;
+
+    const bulletTexture = rData?.bulletTexture || ("bullet-default" as AssetKey);
+    const speed = rData?.bulletSpeed ?? 200;
+    const shotCount = rData?.shotCount ?? 1;
+    const shotInterval = rData?.shotInterval ?? 150;
+
+    let shotsFired = 0;
+
+    // 1発発射する共通処理関数
+    const fireSingleBullet = () => {
+      if (!this.active || !player.active) return false;
+
+      // 発射時点のプレイヤー位置に向けてベクトル計算
+      const dirX = player.x - this.x;
+      const dirY = player.y - this.y;
+
+      // 弾インスタンス生成時
+      const bullet = new EnemyBullet(this.scene, this.x, this.y, bulletTexture, dirX, dirY, speed, rData?.bulletAnim);
+
+      // シーンの物理グループに追加登録
+      mainScene.registerEnemyBullet(bullet);
+
+      // グループ追加時に速度がリセットされる場合があるため、登録後にも再度速度を保証
+      const body = bullet.body as Phaser.Physics.Arcade.Body;
+      if (body) {
+        const vec = new Phaser.Math.Vector2(dirX, dirY).normalize();
+        body.setVelocity(vec.x * speed, vec.y * speed);
+      }
+
+      shotsFired++;
+      return true;
+    };
+
+    // 1発目は即座に発射する
+    const success = fireSingleBullet();
+    if (!success || shotsFired >= shotCount) {
+      onComplete();
+      return;
+    }
+
+    // 2発目以降がある場合はタイマーで連射
+    const timer = this.scene.time.addEvent({
+      delay: shotInterval,
+      repeat: shotCount - 2,
+      callback: () => {
+        const continues = fireSingleBullet();
+        if (!continues || shotsFired >= shotCount) {
+          timer.destroy();
+          onComplete();
+        }
+      },
+    });
   }
 
   /**

@@ -10,6 +10,7 @@ import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
+import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -31,10 +32,10 @@ export class MainScene extends Phaser.Scene {
   private breakableWalls!: Phaser.Physics.Arcade.StaticGroup;
   private items!: Phaser.Physics.Arcade.StaticGroup;
   private enemies!: Phaser.Physics.Arcade.Group;
+  private enemyBullets!: Phaser.Physics.Arcade.Group;
   private movableStones!: Phaser.Physics.Arcade.Group;
   private goalGroup!: Phaser.Physics.Arcade.StaticGroup;
   private warps!: Phaser.Physics.Arcade.StaticGroup;
-
   private gimmickConnections: GimmickConnection[] = [];
 
   // ヘルパー・マネージャー
@@ -120,6 +121,24 @@ export class MainScene extends Phaser.Scene {
     this.warpManager.setupWarps(this.mapData);
     // 次に createGimmicks を実行
     this.gimmickConnections = this.levelBuilder.createGimmicks(this, this.mapData.entities, levelGroups);
+
+    // 敵の弾グループを作成
+    this.enemyBullets = this.physics.add.group({
+      runChildUpdate: true,
+    });
+    // 弾とプレイヤーのオーバーラップ
+    this.physics.add.overlap(this.player, this.enemyBullets, () =>
+      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
+    );
+    // 弾と障害物の衝突処理
+    const wallsToCheck = [this.walls, this.breakableWalls, this.doors];
+    wallsToCheck.forEach((obstacleGroup) => {
+      if (obstacleGroup) {
+        this.physics.add.collider(this.enemyBullets, obstacleGroup, (bullet) => {
+          bullet.destroy();
+        });
+      }
+    });
 
     this.setupItemCollisions(); // アイテム判定
     this.setupPhysics(); // 壁や敵との衝突判定
@@ -293,6 +312,11 @@ export class MainScene extends Phaser.Scene {
 
   public getMovableStones(): Phaser.Physics.Arcade.Group {
     return this.movableStones;
+  }
+
+  // Enemyから弾を受け取ってグループに追加するメソッド
+  public registerEnemyBullet(bullet: EnemyBullet) {
+    this.enemyBullets.add(bullet);
   }
 
   update() {

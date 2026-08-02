@@ -50,6 +50,7 @@ import ghost1Img from "@/game-core/assets/enemies/ghost1.png";
 import akaoniImg from "@/game-core/assets/enemies/akaoni.png";
 import aooniImg from "@/game-core/assets/enemies/aooni.png";
 import dragonImg from "@/game-core/assets/enemies/dragon.png";
+import fireBallImg from "@/game-core/assets/enemies/fire-ball.png";
 
 export const ASSETS = {
   // core
@@ -104,6 +105,7 @@ export const ASSETS = {
   akaoni: akaoniImg.src,
   aooni: aooniImg.src,
   dragon: dragonImg.src,
+  fireBall: fireBallImg.src,
 } as const;
 
 export type AssetKey = keyof typeof ASSETS;

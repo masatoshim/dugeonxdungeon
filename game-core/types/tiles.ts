@@ -25,14 +25,37 @@ export interface EnemyData {
   yoffset?: number;
   moveSteps?: number;
   speed?: number;
-  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2";
-  chaseDistance?: number; // moveTypeがCHASE_2専用のパラメータ
-  speedUp?: number; // chaseDistance専用パラメータ。
+  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "RANGED";
+  // moveTypeがCHASE_2専用のパラメータ
+  chaseDistance?: number;
+  // chaseDistance専用パラメータ
+  speedUp?: number;
+  // moveTypeがRANGED専用のパラメータ
+  rangedData?: {
+    bulletTexture?: AssetKey; // 使用する弾のアセットキー
+    bulletAnim?: BulletAnimConfig;
+    bulletSpeed?: number; // 弾速
+    prepareTime?: number; // 溜め時間 ms
+    cooldown?: number; // 攻撃後の再攻撃待ち時間 ms
+    shotCount?: number; // 1回の攻撃で撃つ弾数
+    shotInterval?: number; // 連射等の場合の弾間隔 ms
+  };
   animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
   frameRate?: number;
   isInvincible?: boolean;
   isGhost?: boolean;
+}
+
+// EnemyDataの遠隔攻撃用クラス
+export interface BulletAnimConfig {
+  key?: AssetKey;
+  animSize?: number;
+  frameRate?: number;
+  bodyRadius?: number; // 円形当たり判定の半径
+  bodySize?: { width: number; height: number }; // 矩形当たり判定のサイズ
+  offsetX?: number;
+  offsetY?: number;
 }
 
 export interface StoneData {

@@ -268,7 +268,15 @@ export const ENEMY_TILES = {
       yoffset: 4,
       speed: 60,
       moveSteps: 3,
-      moveType: "CHASE_2",
+      moveType: "RANGED",
+      rangedData: {
+        bulletAnim: { key: "fireBall", animSize: 4, frameRate: 30, bodyRadius: 10, offsetX: 0, offsetY: 6 },
+        bulletSpeed: 120,
+        prepareTime: 1000,
+        cooldown: 1000,
+        shotCount: 1,
+        // shotInterval: 300,
+      },
       animType: "DIRECTIONAL",
       animSize: 12,
       frameRate: 6,
@@ -277,5 +285,12 @@ export const ENEMY_TILES = {
       chaseDistance: 5,
       speedUp: 1.1,
     },
+  },
+  // 画像の読み込み用宣言
+  EFB: {
+    name: "ファイアーボール",
+    description: "ドラゴンの炎",
+    category: TILE_CATEGORIES.ENEMY,
+    texture: "fireBall",
   },
 } as const satisfies Record<string, TileConfig>;
