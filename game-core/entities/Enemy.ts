@@ -38,6 +38,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       body.setOffset(this.enemyData.xoffset || 0, this.enemyData.yoffset || 0);
       this.setCollideWorldBounds(true);
       this.setDepth(2);
+
+      // プレイヤーに押されないように固定
+      this.setImmovable(true);
+      body.pushable = false;
     }
 
     if (this.enemyData.isGhost) {
@@ -102,6 +106,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           { suffix: "left", frames: [3, 4, 5, 4] },
           { suffix: "right", frames: [6, 7, 8, 7] },
           { suffix: "up", frames: [9, 10, 11, 10] },
+        ],
+        DIRECTIONAL_3: [
+          { suffix: "down", frames: [0] },
+          { suffix: "left", frames: [1] },
+          { suffix: "right", frames: [2] },
+          { suffix: "up", frames: [3] },
         ],
       };
       const directions = directionsMap[this.enemyData.animType] || directionsMap["DIRECTIONAL"];
@@ -177,7 +187,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // プレイヤーと敵の距離を計算
     const distance = Phaser.Math.Distance.Between(this.x, this.y, currentPlayer.x, currentPlayer.y);
     // 視認距離
-    const detectDist = (enemyData.detectDistance || 3) * 32;
+    const detectDist = (enemyData.detectDistance ?? 3) * 32;
 
     if (distance <= detectDist) {
       // 透明度
@@ -250,8 +260,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveHorizontal() {
     if (!this.active || !this.body) return;
 
-    const speed = this.enemyData.speed || 50;
-    const moveSteps = this.enemyData.moveSteps || 1;
+    const speed = this.enemyData.speed ?? 50;
+    const moveSteps = this.enemyData.moveSteps ?? 1;
 
     if (this.getData("isMovingLeft") === undefined) {
       this.setData("isMovingLeft", Phaser.Math.RND.pick([true, false]));
@@ -287,8 +297,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveVertical() {
     if (!this.active || !this.body) return;
 
-    const speed = this.enemyData.speed || 50;
-    const moveSteps = this.enemyData.moveSteps || 1;
+    const speed = this.enemyData.speed ?? 50;
+    const moveSteps = this.enemyData.moveSteps ?? 1;
 
     if (this.getData("isMovingUp") === undefined) {
       this.setData("isMovingUp", Phaser.Math.RND.pick([true, false]));
@@ -324,8 +334,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveRandom() {
     if (!this.active || !this.body) return;
 
-    const speed = this.enemyData.speed || 50;
-    const moveSteps = this.enemyData.moveSteps || 1;
+    const speed = this.enemyData.speed ?? 50;
+    const moveSteps = this.enemyData.moveSteps ?? 1;
 
     // 現在ブロックされている方向以外の移動候補を抽出する
     const b = this.body.blocked;
@@ -363,7 +373,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveChase(speedUp?: number) {
     if (!this.active || !this.body) return;
 
-    const speed = (this.enemyData.speed || 50) * (speedUp || 1);
+    const speed = (this.enemyData.speed ?? 50) * (speedUp ?? 1);
     const mainScene = this.scene as MainScene;
     const currentPlayer: Player = mainScene.getPlayer();
 
@@ -426,7 +436,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (!player || !player.active) return;
 
     const rData = this.enemyData.rangedData;
-    const maxDistance = (this.enemyData.chaseDistance || 6) * 32;
+    const maxDistance = (this.enemyData.chaseDistance ?? 6) * 32;
     const prepareTime = rData?.prepareTime ?? 1000;
     const cooldown = rData?.cooldown ?? 3000;
 
@@ -466,7 +476,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // 溜め時間経過後に攻撃発射
     this.scene.time.delayedCall(prepareTime, () => {
-      if (!this.active) return;
+      if (!this.active || !this.scene) return;
       // 予兆演出の解除
       this.clearTint();
       this.rangedState = "ATTACK";
@@ -479,7 +489,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         // クールタイム終了後にIDLEに戻って移動再開
         this.scene.time.delayedCall(cooldown, () => {
-          if (this.active) {
+          if (this.active || !this.scene) {
             this.rangedState = "IDLE";
             this.changeDirection();
           }
@@ -562,7 +572,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    const maxDistance = (this.enemyData.chaseDistance || 5) * 32;
+    const maxDistance = (this.enemyData.chaseDistance ?? 5) * 32;
     const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
 
     if (this.isChasing2) {

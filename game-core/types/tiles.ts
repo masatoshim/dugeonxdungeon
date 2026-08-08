@@ -40,13 +40,14 @@ export interface EnemyData {
     shotCount?: number; // 1回の攻撃で撃つ弾数
     shotInterval?: number; // 連射等の場合の弾間隔 ms
   };
-  animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
+  animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
   frameRate?: number;
   isInvincible?: boolean; // 無敵判定
   isGhost?: boolean; // 障害物すり抜け判定
   isStealth?: boolean; //ステルス判定
   detectDistance?: number; // 姿が見え始める距離。isStealthがtrueの時のみ適用
+  isObstacle?: boolean; // 障害物判定。触れてもダメージを負わない
 }
 
 // EnemyDataの遠隔攻撃用クラス

@@ -53,6 +53,10 @@ import dragonImg from "@/game-core/assets/enemies/dragon.png";
 import dragonRedImg from "@/game-core/assets/enemies/dragon_red.png";
 import fireBallImg from "@/game-core/assets/enemies/fire-ball.png";
 import shadowImg from "@/game-core/assets/enemies/shadow.png";
+import munchkinImg from "@/game-core/assets/enemies/munchkin.png";
+import golemImg from "@/game-core/assets/enemies/golem.png";
+import cannonImg from "@/game-core/assets/enemies/cannon.png";
+import cannonBallImg from "@/game-core/assets/enemies/cannon_ball.png";
 
 export const ASSETS = {
   // core
@@ -110,6 +114,10 @@ export const ASSETS = {
   dragonRed: dragonRedImg.src,
   fireBall: fireBallImg.src,
   shadow: shadowImg.src,
+  munchkin: munchkinImg.src,
+  golem: golemImg.src,
+  cannon: cannonImg.src,
+  cannonBall: cannonBallImg.src,
 } as const;
 
 export type AssetKey = keyof typeof ASSETS;

@@ -132,7 +132,7 @@ export class MainScene extends Phaser.Scene {
       this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
     );
     // 弾と障害物の衝突処理
-    const wallsToCheck = [this.walls, this.breakableWalls, this.doors];
+    const wallsToCheck = [this.walls, this.breakableWalls, this.doors, this.movableStones];
     wallsToCheck.forEach((obstacleGroup) => {
       if (obstacleGroup) {
         this.physics.add.collider(this.enemyBullets, obstacleGroup, (bullet) => {
@@ -255,7 +255,28 @@ export class MainScene extends Phaser.Scene {
       },
     );
 
-    this.physics.add.overlap(this.player, this.enemies, () => this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER));
+    this.physics.add.collider(
+      this.player,
+      this.enemies,
+      (player, enemies) => {
+        // 通常の敵（障害物タイプでない）の場合、触れたら即ゲームオーバー
+      },
+      (player, enemies) => {
+        const enemy = enemies as Enemy;
+        // 障害物タイプの敵だけ物理的な衝突を有効にする
+        return !!enemy.getEnemyData().isObstacle;
+      },
+    );
+
+    this.physics.add.overlap(this.player, this.enemies, (player, enemyObj) => {
+      const enemy = enemyObj as Enemy;
+
+      // 障害物タイプ（isObstacle: true）ならダメージを与えない
+      if (enemy.getEnemyData().isObstacle || false) {
+        return;
+      }
+      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+    });
   }
 
   private setupItemCollisions() {
