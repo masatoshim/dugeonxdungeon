@@ -193,8 +193,24 @@ export class MainScene extends Phaser.Scene {
 
     // 敵と石の衝突設定
     this.physics.add.collider(this.enemies, this.movableStones, (enemyObj, stoneObj) => {
+      const enemy = enemyObj as Enemy;
       const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
+      const stoneType = stone.getData("stoneType");
 
+      // MIRRORタイプの敵のみ石を押せるように判定
+      if (enemy.getEnemyData().moveType === "MIRROR") {
+        if (stoneType === "HEAVY" || stoneType === "SPIKE") return;
+        this.stoneManager.handleStonePush(
+          enemy,
+          stone,
+          this.enemies,
+          this.walls,
+          this.breakableWalls,
+          this.doors,
+          this.movableStones,
+        );
+        return;
+      }
       // 石が移動中の場合のみ、衝突時に停止処理を行う
       if (stone.getData("isMoving")) {
         // 進行方向に敵がいるかチェックして止める
@@ -254,6 +270,16 @@ export class MainScene extends Phaser.Scene {
         this.warpManager.handleWarpOverlap(this.player, warp as Phaser.Physics.Arcade.Sprite);
       },
     );
+
+    // 敵とワープマスの重ね合わせ判定
+    this.physics.add.overlap(this.enemies, this.warps, (enemyObj, warp) => {
+      const enemy = enemyObj as Enemy;
+      // MIRRORタイプの敵のみワープ可能
+      if (enemy.getEnemyData().moveType === "MIRROR") {
+        // ワープ処理の発火
+        this.warpManager.handleWarpOverlap(enemy, warp as Phaser.Physics.Arcade.Sprite);
+      }
+    });
 
     this.physics.add.collider(
       this.player,
@@ -383,7 +409,13 @@ export class MainScene extends Phaser.Scene {
       const { button, door } = conn;
       if (door.getData("isLocked") === true) return;
 
-      const isPressed = this.physics.overlap(this.player, button) || this.physics.overlap(this.movableStones, button);
+      const isPressed =
+        this.physics.overlap(button, this.player) ||
+        this.physics.overlap(button, this.movableStones) ||
+        this.physics.overlap(button, this.enemies, undefined, (_, enemyObj) => {
+          const enemy = enemyObj as Enemy;
+          return enemy.getEnemyData().moveType === "MIRROR";
+        });
 
       const dOpen = door.getData("openFrame") ?? 0;
       const dClosed = door.getData("closedFrame") ?? 1;

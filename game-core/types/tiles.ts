@@ -25,7 +25,7 @@ export interface EnemyData {
   yoffset?: number;
   moveSteps?: number;
   speed?: number;
-  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "RANGED";
+  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "RANGED" | "MIRROR";
   // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知できる距離
   chaseDistance?: number;
   // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知後の加速度を設定
@@ -40,6 +40,8 @@ export interface EnemyData {
     shotCount?: number; // 1回の攻撃で撃つ弾数
     shotInterval?: number; // 連射等の場合の弾間隔 ms
   };
+  // moveTypeがMIRROR専用のパラメータ
+  mirrorAxis?: "BOTH" | "HORIZONTAL_ONLY" | "VERTICAL_ONLY";
   animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize?: number;
   frameRate?: number;

@@ -12,7 +12,7 @@ export class StoneManager {
    * 石または氷を押した時の移動ロジック
    */
   public handleStonePush(
-    player: Player,
+    pusher: Phaser.Physics.Arcade.Sprite,
     stone: Phaser.Physics.Arcade.Sprite,
     enemies: Phaser.Physics.Arcade.Group,
     walls: Phaser.Physics.Arcade.StaticGroup,
@@ -23,8 +23,8 @@ export class StoneManager {
     if (stone.getData("isMoving")) return;
 
     // 向きの決定
-    const dx = stone.x - player.x;
-    const dy = stone.y - player.y;
+    const dx = stone.x - pusher.x;
+    const dy = stone.y - pusher.y;
     let moveX = 0;
     let moveY = 0;
 

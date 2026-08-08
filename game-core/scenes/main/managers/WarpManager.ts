@@ -70,7 +70,7 @@ export class WarpManager {
   /**
    * 重なり検知時の処理
    */
-  public handleWarpOverlap(player: Player, warp: Phaser.Physics.Arcade.Sprite) {
+  public handleWarpOverlap(lapyer: Phaser.Physics.Arcade.Sprite, warp: Phaser.Physics.Arcade.Sprite) {
     // ワープ処理中、または前回のワープからまだマスを離れていない場合は処理しない
     if (this.isWarping || this.isOverlappingWarp) return;
 
@@ -91,15 +91,15 @@ export class WarpManager {
     this.isOverlappingWarp = true;
 
     this.scene.tweens.add({
-      targets: player,
+      targets: lapyer,
       alpha: 0,
       duration: 150,
       onComplete: () => {
         // 移動先へ配置
-        player.setPosition(targetWarp.x, targetWarp.y);
+        lapyer.setPosition(targetWarp.x, targetWarp.y);
 
         this.scene.tweens.add({
-          targets: player,
+          targets: lapyer,
           alpha: 1,
           duration: 150,
           onComplete: () => {

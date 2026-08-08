@@ -156,12 +156,12 @@ export const ENEMY_TILES = {
   },
   EDO: {
     name: "ドッペル",
-    description: "追いかけてくる。むてき",
+    description: "動きをまねしてくる。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "doppel1",
     enemyData: {
       id: "E_CHASE_3",
-      name: "追いかけるてき",
+      name: "ドッペル",
       hp: 1,
       score: 800,
       xsize: 24,
@@ -170,7 +170,7 @@ export const ENEMY_TILES = {
       yoffset: 4,
       speed: 60,
       moveSteps: 3,
-      moveType: "CHASE",
+      moveType: "MIRROR",
       animType: "DIRECTIONAL",
       animSize: 12,
       frameRate: 12,

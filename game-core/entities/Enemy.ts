@@ -44,6 +44,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       body.pushable = false;
     }
 
+    // GHOSTタイプの敵は障害物の当たり判定を無効化
     if (this.enemyData.isGhost) {
       const body = this.body as Phaser.Physics.Arcade.Body;
       if (body) {
@@ -55,6 +56,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         body.checkCollision.down = false;
         body.checkCollision.left = false;
         body.checkCollision.right = false;
+      }
+
+      // MIRRORタイプの場合は自発的なランダム移動タイマーを無効化・停止
+      if (this.enemyData.moveType === "MIRROR") {
+        if (this.moveEvent) {
+          this.moveEvent.destroy();
+        }
       }
     }
 
@@ -202,6 +210,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   public update() {
     if (!this.active || !this.body) return;
+
+    if (this.enemyData.moveType === "MIRROR") {
+      this.updateMirrorMovement();
+      return;
+    }
 
     if (this.enemyData.moveType === "RANGED") {
       this.updateRangedState();
@@ -422,6 +435,53 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     } else {
       // 通常時はランダム移動
       this.moveRandom();
+    }
+  }
+
+  /**
+   * 鏡像型の移動制御
+   */
+  private updateMirrorMovement() {
+    const mainScene = this.scene as MainScene;
+    const player = mainScene.getPlayer();
+    if (!player || !player.active || !player.body) return;
+
+    const playerBody = player.body as Phaser.Physics.Arcade.Body;
+    const speed = this.enemyData.speed || 100; // プレイヤーの移動に合わせる速度
+
+    // プレイヤーの移動方向（-1, 0, 1）を取得
+    const pDirX = Math.sign(playerBody.velocity.x);
+    const pDirY = Math.sign(playerBody.velocity.y);
+
+    // 反転設定の取得
+    const axis = this.enemyData.mirrorAxis || "BOTH";
+
+    // プレイヤーの動く方向に応じて敵の移動方向を反転決定
+    let targetDirX = 0;
+    let targetDirY = 0;
+
+    if (axis === "BOTH" || axis === "HORIZONTAL_ONLY") {
+      targetDirX = -pDirX; // 左右反転
+    } else {
+      targetDirX = pDirX;
+    }
+
+    if (axis === "BOTH" || axis === "VERTICAL_ONLY") {
+      targetDirY = -pDirY; // 上下反転
+    } else {
+      targetDirY = pDirY;
+    }
+
+    // 敵の速度を適用
+    this.setVelocity(targetDirX * speed, targetDirY * speed);
+
+    // 壁などでブロックされている場合はその方向の速度をゼロにする
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    if ((targetDirX < 0 && body.blocked.left) || (targetDirX > 0 && body.blocked.right)) {
+      this.setVelocityX(0);
+    }
+    if ((targetDirY < 0 && body.blocked.up) || (targetDirY > 0 && body.blocked.down)) {
+      this.setVelocityY(0);
     }
   }
 
