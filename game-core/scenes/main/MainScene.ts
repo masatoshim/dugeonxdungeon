@@ -276,14 +276,21 @@ export class MainScene extends Phaser.Scene {
     );
 
     // 敵とワープマスの重ね合わせ判定
-    this.physics.add.overlap(this.enemies, this.warps, (enemyObj, warp) => {
-      const enemy = enemyObj as Enemy;
-      // MIRRORタイプの敵のみワープ可能
-      if (enemy.getEnemyData().moveType === "MIRROR") {
-        // ワープ処理の発火
-        this.warpManager.handleWarpOverlap(enemy, warp as Phaser.Physics.Arcade.Sprite);
-      }
-    });
+    this.physics.add.overlap(
+      this.enemies,
+      this.warps,
+      // 実際に接触した時の処理
+      (enemyObj, warpObj) => {
+        const enemy = enemyObj as Enemy;
+        this.warpManager.handleWarpOverlap(enemy, warpObj as Phaser.Physics.Arcade.Sprite);
+      },
+      // 物理的な接触判定を行うかどうかの判定
+      (enemyObj, _warpObj) => {
+        const enemy = enemyObj as Enemy;
+        return enemy.getEnemyData().moveType === "MIRROR";
+      },
+      this,
+    );
 
     this.physics.add.collider(
       this.player,
