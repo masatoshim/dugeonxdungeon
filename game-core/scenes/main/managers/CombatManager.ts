@@ -3,6 +3,7 @@ import { WeaponData, EnemyData } from "@/game-core/types";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
+import { FootstompTrap } from "@/game-core/entities/FootstompTrap";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 
@@ -30,6 +31,7 @@ export class CombatManager {
     breakableWalls: Phaser.Physics.Arcade.StaticGroup,
     doors: Phaser.Physics.Arcade.StaticGroup,
     enemyBullets?: Phaser.Physics.Arcade.Group,
+    footstompTraps?: Phaser.Physics.Arcade.StaticGroup,
   ) {
     const range = weapon ? weapon.range : 24;
     const size = weapon ? weapon.size : 20;
@@ -111,7 +113,17 @@ export class CombatManager {
       });
     }
 
-    // 判定オブジェクトとエフェクト画像を一定時間（100ms）後に一緒に消去する
+    // 足跡トラップの消去判定
+    if (footstompTraps && weapon) {
+      this.scene.physics.overlap(hitArea, footstompTraps, (_, trapObj) => {
+        if (trapObj instanceof FootstompTrap) {
+          // 装備している武器のIDで足跡が消去可能かチェック
+          trapObj.tryClearWithItem(weapon.id);
+        }
+      });
+    }
+
+    // 判定オブジェクトとエフェクト画像を一定時間後に一緒に消去する
     this.scene.time.delayedCall(100, () => {
       hitArea.destroy();
       if (effect) effect.destroy();

@@ -4,10 +4,20 @@ import { MainScene } from "@/game-core/scenes/main/MainScene";
 export class FootstompTrap extends Phaser.Physics.Arcade.Sprite {
   private mainScene: MainScene;
   private timerEvent?: Phaser.Time.TimerEvent;
+  private validItemId?: string;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, texture: string, rotationAngle: number, duration: number) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    texture: string,
+    rotationAngle: number,
+    duration: number,
+    validItemId?: string,
+  ) {
     super(scene, x, y, texture);
     this.mainScene = scene as MainScene;
+    this.validItemId = validItemId;
 
     // スプライトの原点を中央に設定
     this.setOrigin(0.5, 0.5);
@@ -42,6 +52,21 @@ export class FootstompTrap extends Phaser.Physics.Arcade.Sprite {
         this.destroyTrap();
       });
     }
+  }
+
+  /**
+   * 指定されたアイテムIDでこのトラップを消去できるかチェック、可能であれば消去
+   */
+  public tryClearWithItem(itemId: string): boolean {
+    if (this.validItemId && this.validItemId === itemId) {
+      this.destroyTrap();
+      return true;
+    }
+    return false;
+  }
+
+  public getValidItemId(): string | undefined {
+    return this.validItemId;
   }
 
   public destroyTrap() {

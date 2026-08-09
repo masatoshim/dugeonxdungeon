@@ -438,4 +438,9 @@ export const ENEMY_TILES = {
     category: TILE_CATEGORIES.ENEMY,
     texture: "cannonBall",
   },
+  EFS: {
+    name: "足跡",
+    category: TILE_CATEGORIES.ENEMY,
+    texture: "step",
+  },
 } as const satisfies Record<string, TileConfig>;

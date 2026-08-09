@@ -901,6 +901,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.enemyData.footstompData.footstompTexture,
         rotationAngle,
         duration,
+        this.enemyData.footstompData.validItemId,
       );
 
       this.lastFootstompTileX = currentTileX;
