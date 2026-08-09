@@ -287,7 +287,13 @@ export class MainScene extends Phaser.Scene {
       // 物理的な接触判定を行うかどうかの判定
       (enemyObj, _warpObj) => {
         const enemy = enemyObj as Enemy;
-        return enemy.getEnemyData().moveType === "MIRROR";
+        // MIRRORタイプ以外の敵はすり抜け
+        if (enemy.getEnemyData().moveType !== "MIRROR") return false;
+
+        // すでにワープ中または移動先マス上に留まっている場合は判定スキップ
+        if (enemy.getData("isWarping") || enemy.getData("isOverlappingWarp")) return false;
+
+        return true;
       },
       this,
     );
@@ -415,7 +421,7 @@ export class MainScene extends Phaser.Scene {
     this.updateGimmickConnections();
 
     if (this.warpManager && this.player) {
-      this.warpManager.update(this.player);
+      this.warpManager.update(this.player, this.enemies);
     }
   }
 
