@@ -19,17 +19,19 @@ export interface EnemyData {
   name: string;
   hp?: number;
   score: number;
-  xsize?: number;
-  ysize?: number;
-  xoffset?: number;
-  yoffset?: number;
-  moveSteps?: number;
-  speed?: number;
-  moveType?: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "RANGED" | "MIRROR";
+  xsize: number;
+  ysize: number;
+  xoffset: number;
+  yoffset: number;
+  moveSteps: number;
+  speed: number;
+  moveType: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "CHASE_3" | "RANGED" | "MIRROR";
   // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知できる距離
   chaseDistance?: number;
   // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知後の加速度を設定
   speedUp?: number;
+  // moveTypeがCHASE_3専用のパラメータ。壁衝突後の索敵待機時間 ms
+  chaseCooldown?: number;
   // moveTypeがRANGED専用のパラメータ
   rangedData?: {
     bulletTexture?: AssetKey; // 使用する弾のアセットキー
@@ -42,8 +44,8 @@ export interface EnemyData {
   };
   // moveTypeがMIRROR専用のパラメータ
   mirrorAxis?: "BOTH" | "HORIZONTAL_ONLY" | "VERTICAL_ONLY";
-  animType?: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
-  animSize?: number;
+  animType: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
+  animSize: number;
   frameRate?: number;
   isInvincible?: boolean; // 無敵判定
   isGhost?: boolean; // 障害物すり抜け判定

@@ -3,7 +3,7 @@ import { AssetKey } from "@/game-core/master";
 import { EnemyData } from "@/game-core/types";
 import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { Player } from "@/game-core/entities/Player";
-import { EnemyBullet } from "@/game-core/entities//EnemyBullet";
+import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 
 // 状態定義
 type RangedState = "IDLE" | "PREPARE" | "ATTACK" | "COOLDOWN";
@@ -13,11 +13,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private enemyData: EnemyData;
   private animKeyPrefix: string;
 
-  // CHASE2用の追跡状態フラグと現在の向き
+  // CHASE_2（感知・追尾）用の追跡状態フラグと現在の向き
   private isChasing2: boolean = false;
   private currentFacing: { x: number; y: number } = { x: 0, y: 1 };
 
-  // 遠隔攻撃用の状態プロパティ
+  // CHASE_3（感知・直進）用のフラグと方向ベクトル（正規化された正確な方向ベクトル）
+  private isChasing3: boolean = false;
+  private chase3Direction: { x: number; y: number } = { x: 0, y: 0 };
+  private nextSearchableTime: number = 0; // 再索敵が可能になる時刻 ms
+
+  // RANGED（感知・遠隔攻撃）用の遠隔攻撃用の状態プロパティ
   private rangedState: RangedState = "IDLE";
   private lastRangedAttackTime: number = 0;
 
@@ -86,6 +91,31 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
+   * 指定した方向（dx, dy）に向き直し、アニメーションと視界ベクトルを更新する
+   */
+  private setFacingDirection(dx: number, dy: number) {
+    if (dx === 0 && dy === 0) return;
+
+    // 正規化して視界ベクトルを設定
+    const len = Math.hypot(dx, dy);
+    this.currentFacing = { x: dx / len, y: dy / len };
+
+    if (!this.enemyData.animType?.startsWith("DIRECTIONAL")) return;
+
+    let suffix = "down";
+    if (Math.abs(dy) >= Math.abs(dx)) {
+      suffix = dy > 0 ? "down" : "up";
+    } else {
+      suffix = dx > 0 ? "right" : "left";
+    }
+
+    const targetKey = `${this.animKeyPrefix}-${suffix}`;
+    if (this.anims.currentAnim?.key !== targetKey) {
+      this.anims.play(targetKey, true);
+    }
+  }
+
+  /**
    * 敵固有のアニメーション設定
    */
   private setupAnimations() {
@@ -151,7 +181,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (!this.active || !this.body) return;
 
-    //　ゴースト制御
+    // ゴースト制御
     if (this.enemyData.isGhost) {
       // 外壁の範囲を計算
       const minX = 32 + this.width / 2;
@@ -212,7 +242,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   public update() {
-    if (!this.active || !this.body) return;
+    if (!this.active || !this.body || this.isStunned()) return;
 
     if (this.enemyData.moveType === "MIRROR") {
       this.updateMirrorMovement();
@@ -224,9 +254,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    // 巡回中に視界内にプレイヤーが入ったかをチェック
     if (this.enemyData.moveType === "CHASE_2") {
       this.updateChase2State();
+    }
+
+    if (this.enemyData.moveType === "CHASE_3") {
+      this.updateChase3State();
     }
 
     if (this.enemyData.isGhost) return;
@@ -240,10 +273,27 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.body.blocked.down || this.body.touching.down || this.body.blocked.up || this.body.touching.up) {
         this.changeDirection();
       }
-    } else if (this.enemyData.moveType === "RANDOM" || (this.enemyData.moveType === "CHASE_2" && !this.isChasing2)) {
+    } else if (
+      this.enemyData.moveType === "RANDOM" ||
+      (this.enemyData.moveType === "CHASE_2" && !this.isChasing2) ||
+      this.enemyData.moveType === "CHASE_3"
+    ) {
       const b = this.body.blocked;
       const t = this.body.touching;
       if (b.left || t.left || b.right || t.right || b.up || t.up || b.down || t.down) {
+        if (this.enemyData.moveType === "CHASE_3" && this.isChasing3) {
+          this.isChasing3 = false; // 壁衝突で突進解除
+
+          // クールダウン設定
+          const cooldown = this.enemyData.chaseCooldown ?? 0;
+          this.nextSearchableTime = this.scene.time.now + cooldown;
+
+          // 壁の反対側へ向き直す
+          if (b.left || t.left) this.setFacingDirection(1, 0);
+          else if (b.right || t.right) this.setFacingDirection(-1, 0);
+          else if (b.up || t.up) this.setFacingDirection(0, 1);
+          else if (b.down || t.down) this.setFacingDirection(0, -1);
+        }
         this.changeDirection();
       }
     }
@@ -269,6 +319,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       case "CHASE_2":
       case "RANGED":
         this.moveChase2();
+        break;
+      case "CHASE_3":
+        this.moveChase3();
         break;
     }
   }
@@ -301,7 +354,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setFlipX(!isMovingLeft);
 
-    const nextDelay = ((moveSteps * 32) / speed) * 1000 + 100;
+    const nextDelay = speed > 0 ? ((moveSteps * 32) / speed) * 1000 + 100 : 1000;
     this.moveEvent.reset({
       delay: nextDelay,
       callback: this.changeDirection,
@@ -338,7 +391,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setFlipY(isMovingUp);
 
-    const nextDelay = ((moveSteps * 32) / speed) * 1000 + 100;
+    const nextDelay = speed > 0 ? ((moveSteps * 32) / speed) * 1000 + 100 : 1000;
     this.moveEvent.reset({
       delay: nextDelay,
       callback: this.changeDirection,
@@ -350,10 +403,32 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveRandom() {
     if (!this.active || !this.body) return;
 
-    const speed = this.enemyData.speed ?? 50;
-    const moveSteps = this.enemyData.moveSteps ?? 1;
+    const speed = this.enemyData.speed ?? 0;
+    const moveSteps = this.enemyData.moveSteps ?? 0;
 
-    // 現在ブロックされている方向以外の移動候補を抽出する
+    // moveSteps: 0 または speed: 0 の場合は停止しつつ、ランダムに向きを変えて視界を更新
+    if (moveSteps === 0 || speed === 0) {
+      this.setVelocity(0, 0);
+
+      if (this.enemyData.animType?.startsWith("DIRECTIONAL")) {
+        const randomDir = Phaser.Math.RND.pick([
+          [0, 1],
+          [0, -1],
+          [-1, 0],
+          [1, 0],
+        ]);
+        this.setFacingDirection(randomDir[0], randomDir[1]);
+      }
+
+      this.moveEvent.reset({
+        delay: 1000,
+        callback: this.changeDirection,
+        callbackScope: this,
+        loop: true,
+      });
+      return;
+    }
+
     const b = this.body.blocked;
     const t = this.body.touching;
 
@@ -376,7 +451,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setVelocity(dir[0] * speed, dir[1] * speed);
 
-    const nextDelay = moveSteps > 0 ? ((moveSteps * 32) / speed) * 1000 : Phaser.Math.Between(1000, 2000);
+    const nextDelay = ((moveSteps * 32) / speed) * 1000;
 
     this.moveEvent.reset({
       delay: nextDelay,
@@ -389,7 +464,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private moveChase(speedUp?: number) {
     if (!this.active || !this.body) return;
 
-    const speed = (this.enemyData.speed ?? 50) * (speedUp ?? 1);
+    const baseSpeed = this.enemyData.speed && this.enemyData.speed > 0 ? this.enemyData.speed : 50;
+    const speed = baseSpeed * (speedUp ?? 1);
     const mainScene = this.scene as MainScene;
     const currentPlayer: Player = mainScene.getPlayer();
 
@@ -437,6 +513,33 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       });
     } else {
       // 通常時はランダム移動
+      this.moveRandom();
+    }
+  }
+
+  /**
+   * CHASE_3 の移動制御
+   */
+  private moveChase3() {
+    if (!this.active || !this.body) return;
+
+    if (this.isChasing3) {
+      const baseSpeed = this.enemyData.speed && this.enemyData.speed > 0 ? this.enemyData.speed : 50;
+      const speed = baseSpeed * (this.enemyData.speedUp ?? 1);
+
+      // 感知時に固定した方向ベクトルで正確に突進
+      this.setVelocity(this.chase3Direction.x * speed, this.chase3Direction.y * speed);
+
+      // 突進方向に向けてアニメーションと向きを設定
+      this.setFacingDirection(this.chase3Direction.x, this.chase3Direction.y);
+
+      this.moveEvent.reset({
+        delay: 50,
+        callback: this.changeDirection,
+        callbackScope: this,
+        loop: true,
+      });
+    } else {
       this.moveRandom();
     }
   }
@@ -532,7 +635,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // プレイヤーの方向へ向き直る
     const dirX = player.x - this.x;
     const dirY = player.y - this.y;
-    this.updateAnimationByVelocity(dirX, dirY);
+    this.setFacingDirection(dirX, dirY);
 
     // 予兆演出
     this.setTint(0xff8888);
@@ -654,9 +757,64 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * プレイヤーが敵の進行方向にいるか判定
+   * CHASE_3用の状態監視
+   */
+  private updateChase3State() {
+    const mainScene = this.scene as MainScene;
+    const player: Player = mainScene.getPlayer();
+
+    if (!player || !player.active) {
+      if (this.isChasing3) {
+        this.isChasing3 = false;
+        this.changeDirection();
+      }
+      return;
+    }
+
+    if (this.scene.time.now < this.nextSearchableTime) {
+      return;
+    }
+
+    const maxDistance = (this.enemyData.chaseDistance ?? 5) * 32;
+    const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+
+    if (!this.isChasing3) {
+      if (dist <= maxDistance && !this.isLineOfSightBlocked(player)) {
+        this.isChasing3 = true;
+
+        // 敵からプレイヤーへ向かう単位ベクトルを算出
+        const diffX = player.x - this.x;
+        const diffY = player.y - this.y;
+        const len = Math.hypot(diffX, diffY);
+
+        if (len > 0) {
+          this.chase3Direction = { x: diffX / len, y: diffY / len };
+        } else {
+          this.chase3Direction = { x: 0, y: 1 };
+        }
+
+        this.changeDirection();
+      }
+    }
+  }
+
+  /**
+   * 視界判定（DIRECTIONAL の場合は内積判定）
    */
   private isLineOfSightBlocked(player: Player): boolean {
+    const isDirectional = this.enemyData.animType?.startsWith("DIRECTIONAL");
+
+    if (isDirectional) {
+      const toPlayerX = player.x - this.x;
+      const toPlayerY = player.y - this.y;
+
+      const dotProduct = toPlayerX * this.currentFacing.x + toPlayerY * this.currentFacing.y;
+
+      if (dotProduct <= 0) {
+        return true;
+      }
+    }
+
     const mainScene = this.scene as MainScene;
     const ray = new Phaser.Geom.Line(this.x, this.y, player.x, player.y);
 
@@ -705,32 +863,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (absX < 1 && absY < 1) return;
 
-    let suffix = "";
-
-    // 縦移動が強い場合は縦を優先
-    if (absY >= absX) {
-      suffix = vy > 0 ? "down" : "up";
-      this.currentFacing = { x: 0, y: vy > 0 ? 1 : -1 };
-    } else {
-      suffix = vx > 0 ? "right" : "left";
-      this.currentFacing = { x: vx > 0 ? 1 : -1, y: 0 };
-    }
-
-    const targetKey = `${this.animKeyPrefix}-${suffix}`;
-
-    if (this.anims.currentAnim?.key !== targetKey) {
-      this.anims.play(targetKey, true);
-    }
+    this.setFacingDirection(vx, vy);
   }
 
-  /**
-   * ダメージ処理
-   */
   public takeDamage(amount: number) {
-    // 攻撃を受けてから復帰するまでは攻撃無効化
-    if (this.stunTimer !== undefined && !this.stunTimer.hasDispatched) {
+    if (this.isStunned()) {
       return 0;
     }
+
     const hp = this.getData("hp") - amount;
     this.setData("hp", hp);
 
@@ -768,6 +908,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
       return 0;
     }
+  }
+
+  public isStunned(): boolean {
+    return this.stunTimer !== undefined && !this.stunTimer.hasDispatched;
   }
 
   public getEnemyData() {
