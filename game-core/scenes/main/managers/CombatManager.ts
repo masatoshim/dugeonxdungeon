@@ -44,9 +44,12 @@ export class CombatManager {
     const hitArea = this.scene.add.rectangle(attackX, attackY, size, size, 0xffff00, 0);
     this.scene.physics.add.existing(hitArea);
 
+    // 空振りか命中かを判定するフラグ
+    let hasHit = false;
+
     // エフェクトを画面に表示
     let effect: Phaser.GameObjects.Sprite | null = null;
-    if (weapon?.id === "SWORD") {
+    if (weapon?.id === "SWORD" || weapon?.id === "BROKEN_SWORD") {
       effect = this.scene.add.sprite(attackX, attackY, "weaponSwordAttackEffect");
     }
     if (effect) {
@@ -62,18 +65,19 @@ export class CombatManager {
     // 石への攻撃
     this.scene.physics.overlap(hitArea, movableStones, (_, stoneObject) => {
       const stone = stoneObject as Phaser.Physics.Arcade.Sprite;
-      // すでに移動中なら重ねて処理しない
       if (stone.getData("isMoving")) return;
 
       const stoneType = stone.getData("stoneType");
       const element = stone.getData("element");
 
       if (stoneType === "BREAKABLE") {
+        hasHit = true;
         this.stoneManager.breakStone(stone, element, movableStones);
         return;
       }
 
       if (["NORMAL", "HEAVY", "SPIKE"].includes(stoneType)) {
+        hasHit = true;
         this.stoneManager.moveStoneByAttack(stone, direction, enemies, walls, breakableWalls, doors, movableStones);
       }
     });
@@ -81,6 +85,7 @@ export class CombatManager {
     // 敵へのダメージ
     this.scene.physics.overlap(hitArea, enemies, (_, target) => {
       if (target instanceof Enemy) {
+        hasHit = true;
         const enemyData: EnemyData = target.getEnemyData();
         // ムテキてきには攻撃が効かない
         if (enemyData.isInvincible) {
@@ -101,6 +106,7 @@ export class CombatManager {
 
     // 壊れる壁へのダメージ
     this.scene.physics.overlap(hitArea, breakableWalls, (_, wall) => {
+      hasHit = true;
       this.handleObjectDamage(wall as Phaser.GameObjects.Sprite);
     });
 
@@ -108,6 +114,7 @@ export class CombatManager {
     if (enemyBullets) {
       this.scene.physics.overlap(hitArea, enemyBullets, (_, bulletObject) => {
         if (bulletObject instanceof EnemyBullet) {
+          hasHit = true;
           bulletObject.destroy();
         }
       });
@@ -118,9 +125,16 @@ export class CombatManager {
       this.scene.physics.overlap(hitArea, footstompTraps, (_, trapObj) => {
         if (trapObj instanceof FootstompTrap) {
           // 装備している武器のIDで足跡が消去可能かチェック
-          trapObj.tryClearWithItem(weapon.id);
+          if (trapObj.tryClearWithItem(weapon.id)) {
+            hasHit = true;
+          }
         }
       });
+    }
+
+    // 何かに命中した場合のみ、耐久度を減らす（耐久度設定がある武器のみ）
+    if (hasHit) {
+      player.consumeWeaponDurability();
     }
 
     // 判定オブジェクトとエフェクト画像を一定時間後に一緒に消去する

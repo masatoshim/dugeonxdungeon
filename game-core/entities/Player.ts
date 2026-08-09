@@ -1,5 +1,6 @@
 import * as Phaser from "phaser";
 import { WeaponData, PlayerInventory } from "@/game-core/types";
+import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private arcadeBody: Phaser.Physics.Arcade.Body;
@@ -74,11 +75,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       { key: "player-sword-walk-right", texture: "playerSword", frames: [6, 7, 6, 8] },
       { key: "player-sword-walk-up", texture: "playerSword", frames: [9, 10, 9, 11] },
 
-      // 攻撃時
+      // 剣攻撃時
       { key: "player-sword-attack-down", texture: "playerSword", frames: [12], rate: 1, loop: 0 },
       { key: "player-sword-attack-left", texture: "playerSword", frames: [13], rate: 1, loop: 0 },
       { key: "player-sword-attack-right", texture: "playerSword", frames: [14], rate: 1, loop: 0 },
       { key: "player-sword-attack-up", texture: "playerSword", frames: [15], rate: 1, loop: 0 },
+
+      // ぼろぼろの剣装備状態
+      { key: "player-broken_sword-walk-down", texture: "playerBrokenSword", frames: [0, 1, 0, 2] },
+      { key: "player-broken_sword-walk-left", texture: "playerBrokenSword", frames: [3, 4, 3, 5] },
+      { key: "player-broken_sword-walk-right", texture: "playerBrokenSword", frames: [6, 7, 6, 8] },
+      { key: "player-broken_sword-walk-up", texture: "playerBrokenSword", frames: [9, 10, 9, 11] },
+
+      // ぼろぼろの剣攻撃時
+      { key: "player-broken_sword-attack-down", texture: "playerBrokenSword", frames: [12], rate: 1, loop: 0 },
+      { key: "player-broken_sword-attack-left", texture: "playerBrokenSword", frames: [13], rate: 1, loop: 0 },
+      { key: "player-broken_sword-attack-right", texture: "playerBrokenSword", frames: [14], rate: 1, loop: 0 },
+      { key: "player-broken_sword-attack-up", texture: "playerBrokenSword", frames: [15], rate: 1, loop: 0 },
     ];
 
     animsConfig.forEach((cfg) => {
@@ -216,7 +229,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // クールダウン後に攻撃状態を解除し、正しい向きの静止フレームに戻す
-    this.scene.time.delayedCall(this.currentWeapon.cooldown, () => {
+    const attackCooldown = this.currentWeapon?.cooldown ?? 300;
+    this.scene.time.delayedCall(attackCooldown, () => {
       this.isAttacking = false;
       if (this.active) {
         this.anims.stop();
@@ -237,6 +251,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       type: "WEAPON",
       weaponData: weapon,
     };
+  }
+
+  /**
+   * 武器を破壊/解除する
+   */
+  public breakWeapon() {
+    const weaponName = this.currentWeapon?.name;
+    this.currentWeapon = null;
+    this.inventory.weapon = null;
+    MessageManager.getInstance().notify(`${weaponName}が壊れてしまった！`);
+  }
+
+  /**
+   * 武器の耐久値を減らし、0になったら破壊する
+   */
+  public consumeWeaponDurability() {
+    if (!this.currentWeapon || this.currentWeapon.durability === undefined) return;
+
+    this.currentWeapon.durability -= 1;
+    if (this.currentWeapon.durability <= 0) {
+      this.breakWeapon();
+    }
   }
 
   // プレイヤーが現在向いている正規化ベクトルを返す

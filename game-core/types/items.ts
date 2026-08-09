@@ -4,7 +4,8 @@ export interface WeaponData {
   range: number;
   size: number;
   damage: number;
-  cooldown: number;
+  cooldown?: number;
+  durability?: number;
 }
 
 export interface Item {

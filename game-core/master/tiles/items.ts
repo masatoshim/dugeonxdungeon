@@ -5,7 +5,13 @@ export const ITEM_TILES = {
     name: "剣",
     category: TILE_CATEGORIES.ITEM,
     texture: "weaponSword",
-    weaponData: { id: "SWORD", name: "剣", range: 28, size: 10, damage: 1, cooldown: 300 },
+    weaponData: { id: "SWORD", name: "剣", range: 28, size: 10, damage: 1 },
+  },
+  S2: {
+    name: "ボロボロの剣",
+    category: TILE_CATEGORIES.ITEM,
+    texture: "weaponBrokenSword",
+    weaponData: { id: "BROKEN_SWORD", name: "ボロボロの剣", range: 28, size: 10, damage: 1, durability: 1 },
   },
   J1: {
     name: "あかい宝石",

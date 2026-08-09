@@ -55,7 +55,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
     label: "アイテム",
     subGroups: [
       {
-        items: [{ id: "S1" }, { id: "J1" }, { id: "J2" }],
+        items: [{ id: "S1" }, { id: "S2" }, { id: "J1" }, { id: "J2" }],
       },
     ],
   },

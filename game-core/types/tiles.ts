@@ -61,14 +61,13 @@ export interface EnemyData {
   isStealth?: boolean; //ステルス判定
   detectDistance?: number; // 姿が見え始める距離。isStealthがtrueの時のみ適用
   isObstacle?: boolean; // 障害物判定。触れてもダメージを負わない
-  stunDuration?: number; // 攻撃を受けてから復帰するまでの定期時間 ms
-  isFootstomp?: boolean; // 床設置スキルの有無
-  // isFootstomp:true専用のパラメータ
+  stunDuration?: number; // 攻撃を受けてから復帰するまでの待機時間 ms
+  // 足跡のパラメータ
   footstompData?: {
-    footstompTexture: AssetKey; // 設置するテクスチャのキー
-    hasDirection?: boolean; // footstompの方向性判定
-    duration?: number; // footstompの寿命 ms
-    validItemId?: string; // footstomp解除用のアイテムのID
+    footstompTexture: AssetKey; // 足跡のテクスチャのキー
+    hasDirection?: boolean; // 足跡の方向性判定
+    duration?: number; // 足跡の寿命 ms
+    validItemId?: string; // 足跡解除用のアイテムのID
   };
 }
 

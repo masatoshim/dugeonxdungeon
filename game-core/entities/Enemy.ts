@@ -27,7 +27,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private rangedState: RangedState = "IDLE";
   private lastRangedAttackTime: number = 0;
 
-  // isFootstomp（足跡）用のプロパティ
+  // 足跡用のプロパティ
   private lastFootstompTileX: number | null = null;
   private lastFootstompTileY: number | null = null;
 
@@ -856,9 +856,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
    * footstomp用の状態監視
    */
   private updateFootstomp() {
-    if (!this.active || !this.enemyData.isFootstomp || !this.enemyData.footstompData || !this.body) return;
+    if (!this.active || !this.enemyData.footstompData || !this.body) return;
 
-    const mainScene = this.scene as MainScene;
     const tileSize = 32;
 
     // 現在のマス座標を計算

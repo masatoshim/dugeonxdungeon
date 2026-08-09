@@ -1,6 +1,7 @@
 // core
 import playerImg from "@/game-core/assets/core/player.png";
 import playerSwordImg from "@/game-core/assets/core/player-sword.png";
+import playerBrokenSwordImg from "@/game-core/assets/core/player-broken_sword.png";
 import goalImg from "@/game-core/assets/core/goal.png";
 import wallImg from "@/game-core/assets/core/wall.png";
 import wallbreakable1Img from "@/game-core/assets/core/wall-breakable-1.png";
@@ -33,6 +34,7 @@ import blockVerticalImg from "@/game-core/assets/gimmicks/block_vertical.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
+import weaponBrokenSwordImg from "@/game-core/assets/items/weapon-broken_sword.png";
 import weaponSwordAttackEffectImg from "@/game-core/assets/items/weapon-sword-attack-effect.png";
 import jewel1Img from "@/game-core/assets/items/jewel_1.png";
 import jewel2Img from "@/game-core/assets/items/jewel_2.png";
@@ -63,6 +65,7 @@ export const ASSETS = {
   // core
   player: playerImg.src,
   playerSword: playerSwordImg.src,
+  playerBrokenSword: playerBrokenSwordImg.src,
   goal: goalImg.src,
   wall: wallImg.src,
   wallbreakable1: wallbreakable1Img.src,
@@ -95,6 +98,7 @@ export const ASSETS = {
 
   // items
   weaponSword: weaponSwordImg.src,
+  weaponBrokenSword: weaponBrokenSwordImg.src,
   weaponSwordAttackEffect: weaponSwordAttackEffectImg.src,
   jewel1: jewel1Img.src,
   jewel2: jewel2Img.src,
