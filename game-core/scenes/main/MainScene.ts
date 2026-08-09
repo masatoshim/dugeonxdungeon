@@ -37,6 +37,7 @@ export class MainScene extends Phaser.Scene {
   private goalGroup!: Phaser.Physics.Arcade.StaticGroup;
   private warps!: Phaser.Physics.Arcade.StaticGroup;
   private gimmickConnections: GimmickConnection[] = [];
+  private footstompTraps!: Phaser.Physics.Arcade.StaticGroup;
 
   // ヘルパー・マネージャー
   private timerUI!: TimerUI;
@@ -83,6 +84,7 @@ export class MainScene extends Phaser.Scene {
     this.movableStones = this.physics.add.group();
     this.doors = this.physics.add.staticGroup();
     this.warps = this.physics.add.staticGroup();
+    this.footstompTraps = this.physics.add.staticGroup();
 
     this.warpManager = new WarpManager(this, this.warps);
 
@@ -151,9 +153,10 @@ export class MainScene extends Phaser.Scene {
   private setupPhysics() {
     if (!this.player) return;
 
-    // 静的オブジェクトとの衝突
+    // プレイヤーと静的オブジェクトとの衝突
     this.physics.add.collider(this.player, this.walls);
     this.physics.add.collider(this.player, this.breakableWalls);
+    this.physics.add.collider(this.player, this.footstompTraps);
 
     // 敵と壁の衝突
     this.physics.add.collider(
@@ -167,7 +170,7 @@ export class MainScene extends Phaser.Scene {
       this,
     );
 
-    // 壊せる壁との衝突
+    // 敵と壊せる壁との衝突
     this.physics.add.collider(
       this.enemies,
       this.breakableWalls,
@@ -179,7 +182,7 @@ export class MainScene extends Phaser.Scene {
       this,
     );
 
-    // 扉との衝突
+    // 敵と扉との衝突
     this.physics.add.collider(
       this.enemies,
       this.doors,
@@ -218,7 +221,7 @@ export class MainScene extends Phaser.Scene {
       }
     });
 
-    // 石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
+    // プレイヤーと石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
     this.physics.add.collider(this.player, this.movableStones, (p, stoneObject) => {
       const stone = stoneObject as Phaser.Physics.Arcade.Sprite;
       const stoneType = stone.getData("stoneType");
@@ -246,7 +249,7 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.movableStones, this.walls);
     this.physics.add.collider(this.movableStones, this.movableStones);
 
-    // 扉の衝突判定
+    // プレイヤーと扉の衝突判定
     this.physics.add.collider(this.player, this.doors, (_, d) => {
       const door = d as Phaser.Physics.Arcade.Sprite;
       const doorId = door.getData("id");
@@ -360,6 +363,10 @@ export class MainScene extends Phaser.Scene {
 
   public getMovableStones(): Phaser.Physics.Arcade.Group {
     return this.movableStones;
+  }
+
+  public getFootstompTraps(): Phaser.Physics.Arcade.StaticGroup {
+    return this.footstompTraps;
   }
 
   // Enemyから弾を受け取ってグループに追加するメソッド

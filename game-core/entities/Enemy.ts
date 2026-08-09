@@ -4,6 +4,7 @@ import { EnemyData } from "@/game-core/types";
 import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { Player } from "@/game-core/entities/Player";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
+import { FootstompTrap } from "@/game-core/entities/FootstompTrap";
 
 // 状態定義
 type RangedState = "IDLE" | "PREPARE" | "ATTACK" | "COOLDOWN";
@@ -25,6 +26,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   // RANGED（感知・遠隔攻撃）用の遠隔攻撃用の状態プロパティ
   private rangedState: RangedState = "IDLE";
   private lastRangedAttackTime: number = 0;
+
+  // isFootstomp（足跡）用のプロパティ
+  private lastFootstompTileX: number | null = null;
+  private lastFootstompTileY: number | null = null;
 
   // ダメージ復帰タイマー
   private stunTimer?: Phaser.Time.TimerEvent;
@@ -301,6 +306,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.changeDirection();
       }
     }
+    // 床設置スキルの実行
+    this.updateFootstomp();
   }
 
   /**
@@ -842,6 +849,62 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         this.changeDirection();
       }
+    }
+  }
+
+  /**
+   * footstomp用の状態監視
+   */
+  private updateFootstomp() {
+    if (!this.active || !this.enemyData.isFootstomp || !this.enemyData.footstompData || !this.body) return;
+
+    const mainScene = this.scene as MainScene;
+    const tileSize = 32;
+
+    // 現在のマス座標を計算
+    const currentTileX = Math.floor(this.x / tileSize);
+    const currentTileY = Math.floor(this.y / tileSize);
+
+    // 初期化
+    if (this.lastFootstompTileX === null || this.lastFootstompTileY === null) {
+      this.lastFootstompTileX = currentTileX;
+      this.lastFootstompTileY = currentTileY;
+      return;
+    }
+
+    // 1マス分移動したか判定
+    if (currentTileX !== this.lastFootstompTileX || currentTileY !== this.lastFootstompTileY) {
+      // 離れた直前のマスの中心座標を算出
+      const trapWorldX = this.lastFootstompTileX * tileSize + tileSize / 2;
+      const trapWorldY = this.lastFootstompTileY * tileSize + tileSize / 2;
+
+      // 移動方向から回転角度を計算
+      let rotationAngle = 0;
+      if (this.enemyData.footstompData.hasDirection) {
+        const vx = this.body.velocity.x;
+        const vy = this.body.velocity.y;
+
+        if (Math.abs(vx) > Math.abs(vy)) {
+          rotationAngle = vx > 0 ? 90 : 270; // 右:90度, 左:270度
+        } else {
+          rotationAngle = vy > 0 ? 180 : 0; // 下:180度, 上:0度
+        }
+      }
+
+      const duration = this.enemyData.footstompData.duration ?? 10000;
+
+      // トラップ生成
+      new FootstompTrap(
+        this.scene,
+        trapWorldX,
+        trapWorldY,
+        this.enemyData.footstompData.footstompTexture,
+        rotationAngle,
+        duration,
+      );
+
+      this.lastFootstompTileX = currentTileX;
+      this.lastFootstompTileY = currentTileY;
     }
   }
 

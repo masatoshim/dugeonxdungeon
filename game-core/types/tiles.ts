@@ -62,6 +62,14 @@ export interface EnemyData {
   detectDistance?: number; // 姿が見え始める距離。isStealthがtrueの時のみ適用
   isObstacle?: boolean; // 障害物判定。触れてもダメージを負わない
   stunDuration?: number; // 攻撃を受けてから復帰するまでの定期時間 ms
+  isFootstomp?: boolean; // 床設置スキルの有無
+  // isFootstomp:true専用のパラメータ
+  footstompData?: {
+    footstompTexture: AssetKey; // 設置するテクスチャのキー
+    hasDirection?: boolean; // footstompの方向性判定
+    duration?: number; // footstompの寿命 ms
+    validItemId?: string; // footstomp解除用のアイテムのID
+  };
 }
 
 // EnemyDataの遠隔攻撃用クラス
