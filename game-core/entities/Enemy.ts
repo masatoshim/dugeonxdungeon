@@ -21,6 +21,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private rangedState: RangedState = "IDLE";
   private lastRangedAttackTime: number = 0;
 
+  // ダメージ復帰タイマー
+  private stunTimer?: Phaser.Time.TimerEvent;
+
   constructor(scene: Phaser.Scene, x: number, y: number, texture: AssetKey, frame: number, enemyData: EnemyData) {
     super(scene, x, y, texture, frame);
 
@@ -724,11 +727,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
    * ダメージ処理
    */
   public takeDamage(amount: number) {
+    // 攻撃を受けてから復帰するまでは攻撃無効化
+    if (this.stunTimer !== undefined && !this.stunTimer.hasDispatched) {
+      return 0;
+    }
     const hp = this.getData("hp") - amount;
     this.setData("hp", hp);
 
     if (hp <= 0) {
-      this.moveEvent.destroy();
+      if (this.stunTimer) this.stunTimer.destroy();
+      if (this.moveEvent) this.moveEvent.destroy();
       this.destroy();
       return this.enemyData.score;
     } else {
@@ -736,6 +744,28 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.scene.time.delayedCall(100, () => {
         if (this.active) this.clearTint();
       });
+
+      // 敵の停止処理
+      if (this.body) {
+        this.body.velocity.set(0, 0);
+      }
+      if (this.moveEvent) {
+        this.moveEvent.paused = true;
+      }
+
+      // 連続被弾時は前の復帰タイマーをキャンセルしてスタン時間を上書き
+      if (this.stunTimer) {
+        this.stunTimer.destroy();
+      }
+
+      const duration = this.enemyData.stunDuration ?? 500;
+      this.stunTimer = this.scene.time.delayedCall(duration, () => {
+        if (!this.active) return;
+        if (this.moveEvent) {
+          this.moveEvent.paused = false;
+        }
+      });
+
       return 0;
     }
   }

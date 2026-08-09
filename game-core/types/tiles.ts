@@ -50,6 +50,7 @@ export interface EnemyData {
   isStealth?: boolean; //ステルス判定
   detectDistance?: number; // 姿が見え始める距離。isStealthがtrueの時のみ適用
   isObstacle?: boolean; // 障害物判定。触れてもダメージを負わない
+  stunDuration?: number; // 攻撃を受けてから復帰するまでの定期時間 ms
 }
 
 // EnemyDataの遠隔攻撃用クラス
