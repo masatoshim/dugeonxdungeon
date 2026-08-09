@@ -25,7 +25,16 @@ export interface EnemyData {
   yoffset: number;
   moveSteps: number;
   speed: number;
-  moveType: "RANDOM" | "HORIZONTAL" | "VERTICAL" | "CHASE" | "CHASE_2" | "CHASE_3" | "RANGED" | "MIRROR";
+  moveType:
+    | "RANDOM" // ランダム移動
+    | "HORIZONTAL" // 横移動のみ
+    | "VERTICAL" // 縦移動のみ
+    | "CHASE" // プレイヤーの位置を常に把握して追跡
+    | "CHASE_2" // プレイヤーを感知してから追跡
+    | "CHASE_3" // プレイヤーを感知したら直進して追跡
+    | "CHASE_4" // プレイヤーの視界に入っている場合停止
+    | "RANGED" // プレイヤーを感知して遠隔攻撃
+    | "MIRROR"; // プレイヤーの動きを模倣
   // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知できる距離
   chaseDistance?: number;
   // moveTypeがCHASE_2専用のパラメータ。プレイヤーを感知後の加速度を設定

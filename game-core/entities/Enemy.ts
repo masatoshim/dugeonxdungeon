@@ -262,6 +262,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.updateChase3State();
     }
 
+    if (this.enemyData.moveType === "CHASE_4") {
+      this.moveChase4();
+    }
+
     if (this.enemyData.isGhost) return;
 
     // 壁にぶつかった瞬間の緊急ターン
@@ -322,6 +326,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         break;
       case "CHASE_3":
         this.moveChase3();
+        break;
+      case "CHASE_4":
+        this.moveChase4();
         break;
     }
   }
@@ -542,6 +549,46 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     } else {
       this.moveRandom();
     }
+  }
+
+  /**
+   * CHASE_4 の移動制御
+   */
+  private moveChase4() {
+    if (!this.active || !this.body) return;
+
+    const mainScene = this.scene as MainScene;
+    const currentPlayer: Player = mainScene.getPlayer();
+
+    if (!currentPlayer || !currentPlayer.active) {
+      this.setVelocity(0, 0);
+      if (this.anims.isPlaying) {
+        this.anims.pause();
+      }
+      return;
+    }
+
+    // プレイヤーが敵の方向を見ている場合は追跡停止
+    if (this.isPlayerLookingAtMe(currentPlayer)) {
+      this.setVelocity(0, 0);
+
+      // アニメーションが再生中であれば一時停止
+      if (this.anims.isPlaying) {
+        this.anims.pause();
+        if (this.anims.currentAnim) {
+          this.anims.setCurrentFrame(this.anims.currentAnim.frames[0]);
+        }
+      }
+      return;
+    }
+
+    // 見られていない場合はアニメーションを再開
+    if (this.anims.isPaused) {
+      this.anims.resume();
+    }
+
+    // 通常の追尾移動
+    this.moveChase(this.enemyData.speedUp);
   }
 
   /**
@@ -850,6 +897,31 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     }
     return false; // 遮蔽物なし（プレイヤーが見える）
+  }
+
+  /**
+   * プレイヤーが敵の方向を見ているかを判定する（だるまさんがころんだ判定）
+   */
+  private isPlayerLookingAtMe(player: Player): boolean {
+    // プレイヤーから見た敵の方向を計算
+    const toEnemyX = this.x - player.x;
+    const toEnemyY = this.y - player.y;
+
+    const len = Math.hypot(toEnemyX, toEnemyY);
+    if (len === 0) return true; // プレイヤーと重なっている場合は見ている扱い
+
+    // プレイヤーから敵へ向かう単位ベクトル
+    const dirToEnemyX = toEnemyX / len;
+    const dirToEnemyY = toEnemyY / len;
+
+    // プレイヤーの視界ベクトルを取得
+    const playerFacing = player.getFacingVector();
+
+    // 内積を計算
+    const dot = dirToEnemyX * playerFacing.x + dirToEnemyY * playerFacing.y;
+
+    // 正面90度
+    return dot > 0.707;
   }
 
   /**

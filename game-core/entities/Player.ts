@@ -4,6 +4,9 @@ import { WeaponData, PlayerInventory } from "@/game-core/types";
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private arcadeBody: Phaser.Physics.Arcade.Body;
 
+  // プレイヤーの方向を示すプロパティ
+  private lastFacing: { x: number; y: number } = { x: 0, y: 1 };
+
   // インベントリの初期化
   private inventory: PlayerInventory = {
     weapon: null,
@@ -234,5 +237,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       type: "WEAPON",
       weaponData: weapon,
     };
+  }
+
+  // プレイヤーが現在向いている正規化ベクトルを返す
+  public getFacingVector(): { x: number; y: number } {
+    if (this.body && (this.body.velocity.x !== 0 || this.body.velocity.y !== 0)) {
+      const len = Math.hypot(this.body.velocity.x, this.body.velocity.y);
+      this.lastFacing = {
+        x: this.body.velocity.x / len,
+        y: this.body.velocity.y / len,
+      };
+    }
+    return this.lastFacing;
   }
 }
