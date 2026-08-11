@@ -31,6 +31,8 @@ import blockUpImg from "@/game-core/assets/gimmicks/block_up.png";
 import blockDownImg from "@/game-core/assets/gimmicks/block_down.png";
 import blockHorizontalImg from "@/game-core/assets/gimmicks/block_horizontal.png";
 import blockVerticalImg from "@/game-core/assets/gimmicks/block_vertical.png";
+import colorBlockRedImg from "@/game-core/assets/gimmicks/color_block_red.png";
+import colorBlockBlueImg from "@/game-core/assets/gimmicks/color_block_blue.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
@@ -95,6 +97,8 @@ export const ASSETS = {
   blockDown: blockDownImg.src,
   blockHorizontal: blockHorizontalImg.src,
   blockVertical: blockVerticalImg.src,
+  colorBlockRed: colorBlockRedImg.src,
+  colorBlockBlue: colorBlockBlueImg.src,
 
   // items
   weaponSword: weaponSwordImg.src,

@@ -85,7 +85,7 @@ export interface BulletAnimConfig {
 export interface StoneData {
   id: string;
   stoneType?: "NORMAL" | "BREAKABLE" | "HEAVY" | "SPIKE";
-  element?: "STONE" | "ICE";
+  element?: "STONE" | "ICE" | "BLOCK";
   allowedDirection?: "RIGHT" | "LEFT" | "UP" | "DOWN" | "HORIZONTAL" | "VERTICAL" | "ALL";
 }
 
@@ -114,6 +114,7 @@ export interface TileConfig {
       | "WARP_TWO_WAY1"
       | "WARP_TWO_WAY2";
   };
+  color?: "RED" | "BLUE" | "YELLOW" | "BLACK";
   openFrame?: number;
   isBreakable?: boolean;
   isLocked?: boolean;

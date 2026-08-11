@@ -20,7 +20,7 @@ export class StoneManager {
     doors: Phaser.Physics.Arcade.StaticGroup,
     movableStones: Phaser.Physics.Arcade.Group,
   ) {
-    if (stone.getData("isMoving")) return;
+    if (stone.getData("isMoving") || stone.getData("isDisappearing")) return;
 
     // 向きの決定
     const dx = stone.x - pusher.x;
@@ -51,11 +51,13 @@ export class StoneManager {
       movableStones,
     );
 
-    if (targetPos.x === stone.x && targetPos.y === stone.y) return;
+    if (targetPos.x === stone.x && targetPos.y === stone.y && !targetPos.hitObject) {
+      return;
+    }
 
     if (!this.canPushStone(moveX, moveY, stone)) return;
 
-    this.moveStoneTween(stone, targetPos, isIce);
+    this.moveStoneTween(stone, targetPos, isIce, true, movableStones, walls);
   }
 
   /**
@@ -70,7 +72,7 @@ export class StoneManager {
     doors: Phaser.Physics.Arcade.StaticGroup,
     movableStones: Phaser.Physics.Arcade.Group,
   ) {
-    if (stone.getData("isMoving")) return;
+    if (stone.getData("isMoving") || stone.getData("isDisappearing")) return;
 
     const moveX = direction.x * 32;
     const moveY = direction.y * 32;
@@ -90,11 +92,109 @@ export class StoneManager {
       movableStones,
     );
 
-    if (targetPos.x === stone.x && targetPos.y === stone.y) return;
+    if (targetPos.x === stone.x && targetPos.y === stone.y && !targetPos.hitObject) {
+      return;
+    }
 
     if (!this.canPushStone(moveX, moveY, stone)) return;
 
-    this.moveStoneTween(stone, targetPos, isIce, true);
+    this.moveStoneTween(stone, targetPos, isIce, true, movableStones, walls);
+  }
+
+  /**
+   * 色ブロック✕色ブロックの衝突ハンドラ
+   */
+  public handleStoneToStoneCollision = (
+    stone1: Phaser.Physics.Arcade.Sprite,
+    stone2: Phaser.Physics.Arcade.Sprite,
+    movableStones?: Phaser.Physics.Arcade.Group,
+  ) => {
+    console.log("stone:", stone1);
+    if (stone1.getData("color") == "NONE" || stone2.getData("color") == "NONE") return;
+
+    const isBlock1 = stone1.getData("element") === "BLOCK";
+    const isBlock2 = stone2.getData("element") === "BLOCK";
+    const color1 = stone1.getData("color");
+    const color2 = stone2.getData("color");
+
+    if (
+      isBlock1 &&
+      isBlock2 &&
+      color1 &&
+      color1 === color2 &&
+      !stone1.getData("isDisappearing") &&
+      !stone2.getData("isDisappearing")
+    ) {
+      // 同色ブロック同士の消滅処理
+      this.disappearObject(stone1, movableStones);
+      this.disappearObject(stone2, movableStones);
+    }
+  };
+
+  /**
+   * 色ブロック✕色付き壁の衝突ハンドラ
+   */
+  public handleStoneToWallCollision = (
+    stone: Phaser.Physics.Arcade.Sprite,
+    wall: Phaser.GameObjects.GameObject,
+    movableStones?: Phaser.Physics.Arcade.Group,
+    wallsGroup?: Phaser.Physics.Arcade.StaticGroup,
+  ) => {
+    console.log("stone:", stone);
+    if (stone.getData("color") == "NONE" || wall.getData("color") == "NONE") return;
+
+    const isBlock = stone.getData("element") === "BLOCK";
+    const isColorWall = wall.getData("element") === "WALL";
+    const stoneColor = stone.getData("color");
+    const wallColor = wall.getData("color");
+
+    if (
+      isBlock &&
+      isColorWall &&
+      stoneColor &&
+      stoneColor === wallColor &&
+      !stone.getData("isDisappearing") &&
+      !wall.getData("isDisappearing")
+    ) {
+      // 同色のブロックと壁を消滅させる
+      this.disappearObject(stone, movableStones);
+      this.disappearObject(wall, wallsGroup);
+    }
+  };
+
+  /**
+   * 消滅処理
+   */
+  public disappearObject(
+    target: Phaser.GameObjects.GameObject,
+    group?: Phaser.Physics.Arcade.Group | Phaser.Physics.Arcade.StaticGroup,
+  ) {
+    if (target.getData("isDisappearing")) return;
+    target.setData("isDisappearing", true);
+
+    // 進行中のTween移動があれば強制終了
+    this.scene.tweens.killTweensOf(target);
+
+    // 物理判定をオフにして連鎖・誤判定を防止
+    if (target.body instanceof Phaser.Physics.Arcade.Body || target.body instanceof Phaser.Physics.Arcade.StaticBody) {
+      target.body.enable = false;
+    }
+
+    this.scene.tweens.add({
+      targets: target,
+      alpha: 0,
+      scaleX: 0.7,
+      scaleY: 0.7,
+      duration: 500,
+      ease: "Power2",
+      onComplete: () => {
+        if (group) {
+          group.remove(target, true, true);
+        } else {
+          target.destroy();
+        }
+      },
+    });
   }
 
   /**
@@ -190,47 +290,83 @@ export class StoneManager {
     breakableWalls: Phaser.Physics.Arcade.StaticGroup,
     doors: Phaser.Physics.Arcade.StaticGroup,
     movableStones: Phaser.Physics.Arcade.Group,
-  ): { x: number; y: number } {
+  ): { x: number; y: number; hitObject?: Phaser.GameObjects.GameObject } {
     let currX = stone.x;
     let currY = stone.y;
+    let hitObject: Phaser.GameObjects.GameObject | undefined = undefined;
 
+    const TOLERANCE = 8; // グリッド中心からの許容誤差
+
+    // 指定座標にあるオブジェクトを探すヘルパー
+    const findObjectAt = (
+      group: Phaser.Physics.Arcade.Group | Phaser.Physics.Arcade.StaticGroup | undefined,
+      targetX: number,
+      targetY: number,
+    ) => {
+      if (!group) return undefined;
+      return group.getChildren().find((obj: any) => {
+        if (obj === stone) return false;
+        if (obj.getData && obj.getData("isDisappearing")) return false;
+        return Phaser.Math.Distance.Between(obj.x, obj.y, targetX, targetY) < TOLERANCE;
+      });
+    };
+
+    // 現在地の1マス先にオブジェクトがすでにあるか確認
+    const immediateNextX = currX + moveX;
+    const immediateNextY = currY + moveY;
+
+    const adjacentStone = findObjectAt(movableStones, immediateNextX, immediateNextY);
+    const adjacentWall = findObjectAt(walls, immediateNextX, immediateNextY);
+
+    if (adjacentStone || adjacentWall) {
+      // 既に目の前に石や壁がある状態で押し込んだ場合
+      return {
+        x: currX,
+        y: currY,
+        hitObject: adjacentStone || adjacentWall,
+      };
+    }
+
+    // 目の前が空いている場合
     while (true) {
       const nextX = currX + moveX;
       const nextY = currY + moveY;
 
-      // 移動先のマスに敵がいるかチェック
-      const isEnemyInNextGrid = enemies.getChildren().some((e) => {
-        const enemy = e as Phaser.Physics.Arcade.Sprite;
-        return Phaser.Math.Distance.Between(enemy.x, enemy.y, nextX, nextY) < 16;
-      });
+      // 移動先の障害物をチェック
+      const nextStone = findObjectAt(movableStones, nextX, nextY);
+      const nextWall = findObjectAt(walls, nextX, nextY);
+      const nextEnemy = findObjectAt(enemies, nextX, nextY);
+      const nextBreakable = findObjectAt(breakableWalls, nextX, nextY);
+      const nextDoor = doors
+        ?.getChildren()
+        .find((d: any) => d.body?.enable && Phaser.Math.Distance.Between(d.x, d.y, nextX, nextY) < TOLERANCE);
 
-      // 移動先が障害物または敵でブロックされているかチェック
-      const isBlocked =
-        isEnemyInNextGrid ||
-        walls.getChildren().some((w) => (w as any).getBounds().contains(nextX, nextY)) ||
-        breakableWalls.getChildren().some((w) => (w as any).getBounds().contains(nextX, nextY)) ||
-        doors.getChildren().some((d) => (d as any).body.enable && (d as any).getBounds().contains(nextX, nextY)) ||
-        movableStones.getChildren().some((s) => s !== stone && (s as any).getBounds().contains(nextX, nextY));
+      // 障害物があれば、それ以上進めないので手前でループ終了
+      if (nextStone || nextWall || nextEnemy || nextBreakable || nextDoor) {
+        break;
+      }
 
-      if (isBlocked) break;
-
-      // 座標を更新
+      // 障害物がなければ 1マス進める
       currX = nextX;
       currY = nextY;
 
-      // 通常の石の場合は1マス進んで終了
-      if (!isIce) break;
+      // 氷でないなら1マス進んで終了
+      if (!isIce) {
+        break;
+      }
 
-      // 無限ループ防止（マップ範囲外チェック）
+      // 画面外チェック（氷用）
       if (
         currX < 0 ||
         currX > this.scene.physics.world.bounds.width ||
         currY < 0 ||
         currY > this.scene.physics.world.bounds.height
-      )
+      ) {
         break;
+      }
     }
-    return { x: currX, y: currY };
+
+    return { x: currX, y: currY, hitObject: undefined };
   }
 
   /**
@@ -238,24 +374,28 @@ export class StoneManager {
    */
   private moveStoneTween(
     stone: Phaser.Physics.Arcade.Sprite,
-    targetPos: { x: number; y: number },
+    targetResult: { x: number; y: number; hitObject?: Phaser.GameObjects.GameObject },
     isIce: boolean,
     isAttack: boolean = false,
+    movableStones?: Phaser.Physics.Arcade.Group,
+    walls?: Phaser.Physics.Arcade.StaticGroup,
   ) {
-    const distance = Phaser.Math.Distance.Between(stone.x, stone.y, targetPos.x, targetPos.y);
+    const { x: targetX, y: targetY, hitObject } = targetResult;
+    const distance = Phaser.Math.Distance.Between(stone.x, stone.y, targetX, targetY);
+
     let duration = (distance / 32) * 300;
     if (isAttack) {
       duration = isIce ? (distance / 32) * 120 : 120;
     }
 
     stone.setData("isMoving", true);
-    stone.setData("targetX", targetPos.x);
-    stone.setData("targetY", targetPos.y);
+    stone.setData("targetX", targetX);
+    stone.setData("targetY", targetY);
 
     this.scene.tweens.add({
       targets: stone,
-      x: targetPos.x,
-      y: targetPos.y,
+      x: targetX,
+      y: targetY,
       duration: duration,
       ease: isIce || isAttack ? "Linear" : "Cubic.easeOut",
       onUpdate: () => {
@@ -263,6 +403,15 @@ export class StoneManager {
       },
       onComplete: () => {
         this.clearStoneData(stone);
+
+        // 移動完了時に衝突対象との消滅判定をロジックで直接実行
+        if (hitObject) {
+          if (movableStones && hitObject.getData("element") === "BLOCK") {
+            this.handleStoneToStoneCollision(stone, hitObject as Phaser.Physics.Arcade.Sprite, movableStones);
+          } else if (walls && hitObject.getData("element") === "WALL") {
+            this.handleStoneToWallCollision(stone, hitObject, movableStones, walls);
+          }
+        }
       },
       onKill: () => {
         this.clearStoneData(stone);

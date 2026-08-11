@@ -248,6 +248,8 @@ export class LevelBuilder {
     if (config.isBreakable) {
       wall.setData("hp", config.hp);
     }
+    wall.setData("color", config.color);
+    wall.setData("isDisappearing", false); // 消滅中か判定用
     wall.setMass(9999);
 
     const body = wall.body as Phaser.Physics.Arcade.StaticBody;
@@ -261,11 +263,14 @@ export class LevelBuilder {
     const stone = this.scene.physics.add.sprite(x, y, config.texture, 0);
 
     stone.setData("config", config);
+    stone.setData("color", config.color || "NONE");
     stone.setData("isMoving", false);
+    stone.setData("isDisappearing", false); // 消滅中か判定用
 
     stone.setData("stoneType", config.stoneData?.stoneType || "NORMAL");
     stone.setData("element", config.stoneData?.element || "STONE");
     stone.setData("allowedDirection", config.stoneData?.allowedDirection || "ALL");
+
     if (config.hp !== undefined) stone.setData("hp", config.hp);
 
     groups.movableStones.add(stone);
