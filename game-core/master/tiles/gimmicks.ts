@@ -156,6 +156,27 @@ export const GIMMICK_TILES = {
     openFrame: 1,
     allowedDirection: "LEFT",
   },
+  GDDR: {
+    name: "右扉",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "doorDirectionRight",
+    openFrame: 1,
+    allowedDirection: "RIGHT",
+  },
+  GDDU: {
+    name: "上扉",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "doorDirectionUp",
+    openFrame: 1,
+    allowedDirection: "UP",
+  },
+  GDDD: {
+    name: "下扉",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "doorDirectionDown",
+    openFrame: 1,
+    allowedDirection: "DOWN",
+  },
   GWI: {
     name: "ワープ入口",
     category: TILE_CATEGORIES.GIMMICK,

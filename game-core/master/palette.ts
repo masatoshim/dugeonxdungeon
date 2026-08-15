@@ -62,7 +62,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
       },
       {
         subLabel: "いろんな扉",
-        items: [{ id: "GDDL" }],
+        items: [{ id: "GDDL" }, { id: "GDDR" }, { id: "GDDU" }, { id: "GDDD" }],
       },
       {
         subLabel: "単方向ワープ",

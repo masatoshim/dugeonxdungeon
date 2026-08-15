@@ -46,7 +46,7 @@ export class DoorManager {
 
     // 一方通行扉の生成
     entities
-      .filter((e) => e.tileId === "GDDL")
+      .filter((e) => e.tileId === "GDDL" || e.tileId === "GDDR" || e.tileId === "GDDU" || e.tileId === "GDDD")
       .forEach((e) => {
         const config = TILE_CONFIG[e.tileId];
         const direction = config.allowedDirection ?? "DOWN";

@@ -42,6 +42,9 @@ import colorBlockGreenImg from "@/game-core/assets/gimmicks/color_block_green.pn
 import leverSwitchImg from "@/game-core/assets/gimmicks/lever_switch.png";
 import leverSwitchDoorImg from "@/game-core/assets/gimmicks/lever_switch_door.png";
 import doorDirectionLeftImg from "@/game-core/assets/gimmicks/door_direction_left.png";
+import doorDirectionRightImg from "@/game-core/assets/gimmicks/door_direction_right.png";
+import doorDirectionUpImg from "@/game-core/assets/gimmicks/door_direction_up.png";
+import doorDirectionDownImg from "@/game-core/assets/gimmicks/door_direction_down.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
@@ -117,6 +120,9 @@ export const ASSETS = {
   leverSwitch: leverSwitchImg.src,
   leverSwitchDoor: leverSwitchDoorImg.src,
   doorDirectionLeft: doorDirectionLeftImg.src,
+  doorDirectionRight: doorDirectionRightImg.src,
+  doorDirectionUp: doorDirectionUpImg.src,
+  doorDirectionDown: doorDirectionDownImg.src,
 
   // items
   weaponSword: weaponSwordImg.src,

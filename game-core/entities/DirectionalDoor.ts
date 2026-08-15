@@ -41,18 +41,21 @@ export class DirectionalDoor extends Phaser.Physics.Arcade.Sprite {
     if (!this.isOpened) {
       let canOpen = false;
 
+      const openMargin = TILE_SIZE + 8;
+      const alignMargin = 20; // 軸のズレ許容値
+
       switch (this.allowedDirection) {
         case "LEFT":
-          canOpen = dx > 0 && dx < TILE_SIZE && Math.abs(dy) < 20;
+          canOpen = dx > 0 && dx < openMargin && Math.abs(dy) < alignMargin;
           break;
         case "RIGHT":
-          canOpen = dx < 0 && dx > -TILE_SIZE && Math.abs(dy) < 20;
+          canOpen = dx < 0 && dx > -openMargin && Math.abs(dy) < alignMargin;
           break;
         case "UP":
-          canOpen = dy > 0 && dy < TILE_SIZE && Math.abs(dx) < 20;
+          canOpen = dy > 0 && dy < openMargin && Math.abs(dx) < alignMargin;
           break;
         case "DOWN":
-          canOpen = dy < 0 && dy > -TILE_SIZE && Math.abs(dx) < 20;
+          canOpen = dy < 8 && dy > -openMargin && Math.abs(dx) < alignMargin;
           break;
       }
 
@@ -66,22 +69,18 @@ export class DirectionalDoor extends Phaser.Physics.Arcade.Sprite {
         case "LEFT":
           hasPassed = dx < -TILE_SIZE / 2 || dx > TILE_SIZE;
           break;
-
         case "RIGHT":
           hasPassed = dx > TILE_SIZE / 2 || dx < -TILE_SIZE;
           break;
-
         case "UP":
           hasPassed = dy < -TILE_SIZE / 2 || dy > TILE_SIZE;
           break;
-
         case "DOWN":
           hasPassed = dy > TILE_SIZE / 2 || dy < -TILE_SIZE;
           break;
       }
 
       if (hasPassed) {
-        console.log(`[DirectionalDoor] Door Closed! id:${this.id}`);
         this.closeDoor();
       }
     }
