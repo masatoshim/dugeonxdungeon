@@ -4,6 +4,7 @@ import { TILE_CONFIG } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Door } from "@/game-core/entities/Door";
 import { Button } from "@/game-core/entities/Button";
+import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
 
 export class DoorManager {
   private targets = new Map<string, Door>();
@@ -57,6 +58,24 @@ export class DoorManager {
         button.setDepth(1);
 
         groups.buttonsGroup.add(button);
+      });
+
+    // レバースイッチの生成
+    entities
+      .filter((e) => e.tileId === "GLS")
+      .forEach((e) => {
+        const config = TILE_CONFIG[e.tileId];
+        const targetId = e.properties?.targetId ?? "";
+
+        const lever = new LeverSwitch(scene, e.x * 32 + 16, e.y * 32 + 16, config.texture!, e.id, this, {
+          targetId: targetId,
+          activeFrame: config.openFrame ?? 1,
+          inactiveFrame: 0,
+        });
+
+        lever.setDepth(1);
+
+        groups.leversGroup.add(lever, true);
       });
 
     // カギの生成

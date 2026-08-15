@@ -56,5 +56,6 @@ export interface LevelGroups {
   movableStones: Phaser.Physics.Arcade.Group;
   warps: Phaser.Physics.Arcade.StaticGroup;
   buttonsGroup: Phaser.Physics.Arcade.StaticGroup;
+  leversGroup: Phaser.Physics.Arcade.StaticGroup;
   onPlayerCreate: (x: number, y: number) => void;
 }

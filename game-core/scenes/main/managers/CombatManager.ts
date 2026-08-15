@@ -6,6 +6,7 @@ import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 import { FootstompTrap } from "@/game-core/entities/FootstompTrap";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
+import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
 
 export class CombatManager {
   private scene: Phaser.Scene;
@@ -32,6 +33,7 @@ export class CombatManager {
     doors: Phaser.Physics.Arcade.StaticGroup,
     enemyBullets?: Phaser.Physics.Arcade.Group,
     footstompTraps?: Phaser.Physics.Arcade.StaticGroup,
+    leversGroup?: Phaser.Physics.Arcade.StaticGroup,
   ) {
     const range = weapon ? weapon.range : 24;
     const size = weapon ? weapon.size : 20;
@@ -79,6 +81,14 @@ export class CombatManager {
       if (["NORMAL", "HEAVY", "SPIKE"].includes(stoneType)) {
         hasHit = true;
         this.stoneManager.moveStoneByAttack(stone, direction, enemies, walls, breakableWalls, doors, movableStones);
+      }
+    });
+
+    this.scene.physics.overlap(hitArea, leversGroup, (_, leverObject) => {
+      console.log("HIT!!");
+      if (leverObject instanceof LeverSwitch) {
+        hasHit = true;
+        leverObject.invertState();
       }
     });
 

@@ -13,6 +13,7 @@ import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 import { Button } from "@/game-core/entities/Button";
+import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
 import { Door } from "@/game-core/entities/Door";
 
 export class MainScene extends Phaser.Scene {
@@ -41,6 +42,7 @@ export class MainScene extends Phaser.Scene {
   private warps!: Phaser.Physics.Arcade.StaticGroup;
   private footstompTraps!: Phaser.Physics.Arcade.StaticGroup;
   private buttonsGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private leversGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   // ヘルパー・マネージャー
   private timerUI!: TimerUI;
@@ -91,6 +93,7 @@ export class MainScene extends Phaser.Scene {
     this.warps = this.physics.add.staticGroup();
     this.footstompTraps = this.physics.add.staticGroup();
     this.buttonsGroup = this.physics.add.staticGroup();
+    this.leversGroup = this.physics.add.staticGroup();
 
     this.warpManager = new WarpManager(this, this.warps);
 
@@ -104,6 +107,7 @@ export class MainScene extends Phaser.Scene {
       movableStones: this.movableStones,
       warps: this.warps,
       buttonsGroup: this.buttonsGroup,
+      leversGroup: this.leversGroup,
       onPlayerCreate: (x, y) => {
         this.player = new Player(this, x, y);
         this.player.setDepth(10);
@@ -121,6 +125,7 @@ export class MainScene extends Phaser.Scene {
             this.doors,
             this.enemyBullets,
             this.footstompTraps,
+            this.leversGroup,
           ),
         );
       },
@@ -163,6 +168,17 @@ export class MainScene extends Phaser.Scene {
 
     // プレイヤーと静的オブジェクトとの衝突
     this.physics.add.collider(this.player, this.walls);
+    this.physics.add.collider(this.player, this.breakableWalls);
+    this.physics.add.collider(this.player, this.footstompTraps);
+    this.physics.add.collider(
+      this.player,
+      this.doors,
+      (player, door) => {
+        this.doorManager.handleDoorCollision(player as Player, door as Door);
+      },
+      undefined,
+      this,
+    );
     this.physics.add.overlap(
       this.player,
       this.buttonsGroup,
@@ -172,14 +188,11 @@ export class MainScene extends Phaser.Scene {
       undefined,
       this,
     );
-    this.physics.add.collider(this.player, this.breakableWalls);
-    this.physics.add.collider(this.player, this.footstompTraps);
-
-    this.physics.add.collider(
+    this.physics.add.overlap(
       this.player,
-      this.doors,
-      (player, door) => {
-        this.doorManager.handleDoorCollision(player as Player, door as Door);
+      this.leversGroup,
+      (player, lever) => {
+        (lever as LeverSwitch).onOverlap();
       },
       undefined,
       this,
@@ -191,6 +204,16 @@ export class MainScene extends Phaser.Scene {
       this.buttonsGroup,
       (stone, button) => {
         (button as Button).onOverlap();
+      },
+      undefined,
+      this,
+    );
+    // 石とレバースイッチの接触判定
+    this.physics.add.overlap(
+      this.movableStones,
+      this.leversGroup,
+      (stone, lever) => {
+        (lever as LeverSwitch).onOverlap();
       },
       undefined,
       this,
