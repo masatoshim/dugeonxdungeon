@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { Player } from "@/game-core/entities/Player";
+import { TILE_SIZE } from "@/game-core/types";
 
 export class StoneManager {
   private scene: Phaser.Scene;
@@ -29,9 +29,9 @@ export class StoneManager {
     let moveY = 0;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      moveX = dx > 0 ? 32 : -32;
+      moveX = dx > 0 ? TILE_SIZE : -TILE_SIZE;
     } else {
-      moveY = dy > 0 ? 32 : -32;
+      moveY = dy > 0 ? TILE_SIZE : -TILE_SIZE;
     }
 
     // 進行方向に敵がいたら動かさない
@@ -74,8 +74,8 @@ export class StoneManager {
   ) {
     if (stone.getData("isMoving") || stone.getData("isDisappearing")) return;
 
-    const moveX = direction.x * 32;
-    const moveY = direction.y * 32;
+    const moveX = direction.x * TILE_SIZE;
+    const moveY = direction.y * TILE_SIZE;
 
     if (this.isEnemyAhead(stone, moveX, moveY, enemies)) return;
 
@@ -256,8 +256,8 @@ export class StoneManager {
     // 実行中の移動Tweenを強制終了
     this.scene.tweens.killTweensOf(stone);
     // 中途半端な座標で止まらないよう、グリッドの中心にスナップ
-    const snappedX = Math.floor(stone.x / 32) * 32 + 16;
-    const snappedY = Math.floor(stone.y / 32) * 32 + 16;
+    const snappedX = Math.floor(stone.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+    const snappedY = Math.floor(stone.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
     stone.setPosition(snappedX, snappedY);
   }
 
@@ -383,9 +383,9 @@ export class StoneManager {
     const { x: targetX, y: targetY, hitObject } = targetResult;
     const distance = Phaser.Math.Distance.Between(stone.x, stone.y, targetX, targetY);
 
-    let duration = (distance / 32) * 300;
+    let duration = (distance / TILE_SIZE) * 300;
     if (isAttack) {
-      duration = isIce ? (distance / 32) * 120 : 120;
+      duration = isIce ? (distance / TILE_SIZE) * 120 : 120;
     }
 
     stone.setData("isMoving", true);

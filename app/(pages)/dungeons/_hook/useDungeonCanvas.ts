@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from "react";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { EntityData } from "@/game-core/types";
+import { TILE_SIZE } from "@/game-core/types";
 
 interface UseDungeonCanvasProps {
   tiles: TileConfigKey[][];
@@ -24,7 +25,6 @@ export function useDungeonCanvas({
   isLoaded,
   linkingState,
 }: UseDungeonCanvasProps) {
-  const TILE_SIZE = 32;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const draw = useCallback(() => {

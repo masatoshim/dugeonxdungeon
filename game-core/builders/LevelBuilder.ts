@@ -2,10 +2,9 @@ import { TILE_CONFIG } from "@/game-core/master";
 import { TILE_CATEGORIES, TileConfig, EntityData, LevelGroups } from "@/game-core/types";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { TileConfigKey } from "@/game-core/master";
+import { TILE_SIZE } from "@/game-core/types";
 
 export class LevelBuilder {
-  private tileSize: number = 32;
-
   constructor(private scene: Phaser.Scene) {}
 
   /**
@@ -16,8 +15,8 @@ export class LevelBuilder {
     // 地面を描画
     mapData.forEach((row, y) => {
       row.forEach((_, x) => {
-        const posX = x * this.tileSize + this.tileSize / 2;
-        const posY = y * this.tileSize + this.tileSize / 2;
+        const posX = x * TILE_SIZE + TILE_SIZE / 2;
+        const posY = y * TILE_SIZE + TILE_SIZE / 2;
         const floor = this.scene.add.image(posX, posY, "floor", 0);
 
         floor.setDepth(0);
@@ -33,8 +32,8 @@ export class LevelBuilder {
         if (!config || config.category === TILE_CATEGORIES.EMPTY) return;
 
         // タイルの中央座標を計算
-        const posX = x * this.tileSize + this.tileSize / 2;
-        const posY = y * this.tileSize + this.tileSize / 2;
+        const posX = x * TILE_SIZE + TILE_SIZE / 2;
+        const posY = y * TILE_SIZE + TILE_SIZE / 2;
 
         switch (config.category) {
           case TILE_CATEGORIES.PLAYER:
@@ -130,7 +129,7 @@ export class LevelBuilder {
     stone.setPushable(false);
     stone.setFriction(0, 0);
 
-    stone.body.setSize(32, 32);
+    stone.body.setSize(TILE_SIZE, TILE_SIZE);
     stone.setDepth(2);
   }
 }

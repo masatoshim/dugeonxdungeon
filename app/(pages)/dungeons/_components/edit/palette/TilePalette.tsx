@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TILE_CONFIG, TILE_PALETTE_SCHEMA } from "@/game-core/master";
 import { TileConfigKey } from "@/game-core/master";
 import { TileIconForm } from "./TileIconForm";
+import { TILE_SIZE } from "@/game-core/types";
 import { ChevronDown, Eraser, Play } from "lucide-react";
 
 type Props = {
@@ -187,7 +188,7 @@ const PaletteSubGroupSection = ({
                   }`}
                 >
                   <div className="shrink-0 p-0.5 rounded bg-black/20 border border-black/10 group-hover/tile:border-black/30 transition-colors">
-                    <TileIconForm tileId={item.id} size={32} />
+                    <TileIconForm tileId={item.id} size={TILE_SIZE} />
                   </div>
 
                   <span className="text-[9px] font-medium truncate w-full text-center tracking-tight leading-none opacity-90 group-hover/tile:opacity-100 transition-opacity">

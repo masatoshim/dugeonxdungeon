@@ -1,6 +1,7 @@
 "use client";
 
 import { useDungeonCanvas } from "@/app/(pages)/dungeons/_hook";
+import { TILE_SIZE } from "@/game-core/types";
 import { TileConfigKey } from "@/game-core/master";
 import { EntityData } from "@/game-core/types";
 
@@ -25,7 +26,6 @@ export function DungeonCanvasView({
   linkingState,
   onCanvasAction,
 }: Props) {
-  const TILE_SIZE = 32;
   const { canvasRef } = useDungeonCanvas({
     tiles,
     entities,

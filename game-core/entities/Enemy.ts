@@ -5,6 +5,7 @@ import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { Player } from "@/game-core/entities/Player";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 import { FootstompTrap } from "@/game-core/entities/FootstompTrap";
+import { TILE_SIZE } from "@/game-core/types";
 
 // 状態定義
 type RangedState = "IDLE" | "PREPARE" | "ATTACK" | "COOLDOWN";
@@ -189,14 +190,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // ゴースト制御
     if (this.enemyData.isGhost) {
       // 外壁の範囲を計算
-      const minX = 32 + this.width / 2;
-      const minY = 32 + this.height / 2;
+      const minX = TILE_SIZE + this.width / 2;
+      const minY = TILE_SIZE + this.height / 2;
 
       const mapWidth = this.scene.physics.world.bounds.width;
       const mapHeight = this.scene.physics.world.bounds.height;
 
-      const maxX = mapWidth - 32 - this.width / 2;
-      const maxY = mapHeight - 32 - this.height / 2;
+      const maxX = mapWidth - TILE_SIZE - this.width / 2;
+      const maxY = mapHeight - TILE_SIZE - this.height / 2;
 
       // 範囲外に出そうになっているか判定
       const isAtBoundaryX = this.x <= minX || this.x >= maxX;
@@ -233,7 +234,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // プレイヤーと敵の距離を計算
     const distance = Phaser.Math.Distance.Between(this.x, this.y, currentPlayer.x, currentPlayer.y);
     // 視認距離
-    const detectDist = (enemyData.detectDistance ?? 3) * 32;
+    const detectDist = (enemyData.detectDistance ?? 3) * TILE_SIZE;
 
     if (distance <= detectDist) {
       // 透明度
@@ -368,7 +369,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setFlipX(!isMovingLeft);
 
-    const nextDelay = speed > 0 ? ((moveSteps * 32) / speed) * 1000 + 100 : 1000;
+    const nextDelay = speed > 0 ? ((moveSteps * TILE_SIZE) / speed) * 1000 + 100 : 1000;
     this.moveEvent.reset({
       delay: nextDelay,
       callback: this.changeDirection,
@@ -405,7 +406,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setFlipY(isMovingUp);
 
-    const nextDelay = speed > 0 ? ((moveSteps * 32) / speed) * 1000 + 100 : 1000;
+    const nextDelay = speed > 0 ? ((moveSteps * TILE_SIZE) / speed) * 1000 + 100 : 1000;
     this.moveEvent.reset({
       delay: nextDelay,
       callback: this.changeDirection,
@@ -465,7 +466,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setVelocity(dir[0] * speed, dir[1] * speed);
 
-    const nextDelay = ((moveSteps * 32) / speed) * 1000;
+    const nextDelay = ((moveSteps * TILE_SIZE) / speed) * 1000;
 
     this.moveEvent.reset({
       delay: nextDelay,
@@ -656,7 +657,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (!player || !player.active) return;
 
     const rData = this.enemyData.rangedData;
-    const maxDistance = (this.enemyData.chaseDistance ?? 6) * 32;
+    const maxDistance = (this.enemyData.chaseDistance ?? 6) * TILE_SIZE;
     const prepareTime = rData?.prepareTime ?? 1000;
     const cooldown = rData?.cooldown ?? 3000;
 
@@ -792,7 +793,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    const maxDistance = (this.enemyData.chaseDistance ?? 5) * 32;
+    const maxDistance = (this.enemyData.chaseDistance ?? 5) * TILE_SIZE;
     const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
 
     if (this.isChasing2) {
@@ -829,7 +830,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    const maxDistance = (this.enemyData.chaseDistance ?? 5) * 32;
+    const maxDistance = (this.enemyData.chaseDistance ?? 5) * TILE_SIZE;
     const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
 
     if (!this.isChasing3) {
@@ -858,11 +859,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private updateFootstomp() {
     if (!this.active || !this.enemyData.footstompData || !this.body) return;
 
-    const tileSize = 32;
-
     // 現在のマス座標を計算
-    const currentTileX = Math.floor(this.x / tileSize);
-    const currentTileY = Math.floor(this.y / tileSize);
+    const currentTileX = Math.floor(this.x / TILE_SIZE);
+    const currentTileY = Math.floor(this.y / TILE_SIZE);
 
     // 初期化
     if (this.lastFootstompTileX === null || this.lastFootstompTileY === null) {
@@ -874,8 +873,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // 1マス分移動したか判定
     if (currentTileX !== this.lastFootstompTileX || currentTileY !== this.lastFootstompTileY) {
       // 離れた直前のマスの中心座標を算出
-      const trapWorldX = this.lastFootstompTileX * tileSize + tileSize / 2;
-      const trapWorldY = this.lastFootstompTileY * tileSize + tileSize / 2;
+      const trapWorldX = this.lastFootstompTileX * TILE_SIZE + TILE_SIZE / 2;
+      const trapWorldY = this.lastFootstompTileY * TILE_SIZE + TILE_SIZE / 2;
 
       // 移動方向から回転角度を計算
       let rotationAngle = 0;

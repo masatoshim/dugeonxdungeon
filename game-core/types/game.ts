@@ -8,6 +8,8 @@ export const GAME_EVENTS = {
   TIME_OVER: "time-over",
 } as const;
 
+export const TILE_SIZE = 32;
+
 export const DUNGEON_DEFAULT = {
   ROWS: 10,
   COLS: 10,

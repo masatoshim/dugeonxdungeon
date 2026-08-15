@@ -2,12 +2,12 @@ import * as Phaser from "phaser";
 import { MapData, EntityData } from "@/game-core/types";
 import { Player } from "@/game-core/entities/Player";
 import { TILE_CONFIG } from "@/game-core/master";
+import { TILE_SIZE } from "@/game-core/types";
 
 export class WarpManager {
   private scene: Phaser.Scene;
   private warps: Phaser.Physics.Arcade.StaticGroup;
   private warpMap: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
-  private tileSize: number = 32;
 
   constructor(scene: Phaser.Scene, warpsGroup: Phaser.Physics.Arcade.StaticGroup) {
     this.scene = scene;
@@ -58,8 +58,8 @@ export class WarpManager {
 
       // ワープに関連するグループか判定
       if (linkGroup === "WARP" || linkGroup === "WARP_TWO_WAY") {
-        const worldX = entity.x * this.tileSize + this.tileSize / 2;
-        const worldY = entity.y * this.tileSize + this.tileSize / 2;
+        const worldX = entity.x * TILE_SIZE + TILE_SIZE / 2;
+        const worldY = entity.y * TILE_SIZE + TILE_SIZE / 2;
 
         const texture = config.texture || entity.tileId;
         const warpSprite = this.warps.create(worldX, worldY, texture) as Phaser.Physics.Arcade.Sprite;

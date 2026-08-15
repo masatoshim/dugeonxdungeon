@@ -109,7 +109,7 @@ export const GIMMICK_TILES = {
     linkConfig: { entityType: "BUTTON", linkGroup: "BUTTON_DOOR", targetEntityType: "BUTTON_DOOR" },
   },
   GBD: {
-    name: "ボタン扉",
+    name: "扉",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "buttonDoor",
     openFrame: 1,
@@ -123,7 +123,7 @@ export const GIMMICK_TILES = {
     linkConfig: { entityType: "KEY", linkGroup: "KEY_DOOR", targetEntityType: "KEY_DOOR" },
   },
   GKD: {
-    name: "鍵扉",
+    name: "扉",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "keySilverDoor",
     openFrame: 1,
@@ -138,7 +138,7 @@ export const GIMMICK_TILES = {
     linkConfig: { entityType: "LEVER_SWITCH", linkGroup: "LEVER_SWITCH_DOOR", targetEntityType: "LEVER_SWITCH_DOOR" },
   },
   GLSD: {
-    name: "レバースイッチ扉",
+    name: "扉",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "leverSwitchDoor",
     openFrame: 1,

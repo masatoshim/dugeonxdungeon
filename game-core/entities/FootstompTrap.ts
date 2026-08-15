@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { MainScene } from "@/game-core/scenes/main/MainScene";
+import { TILE_SIZE } from "@/game-core/types";
 
 export class FootstompTrap extends Phaser.Physics.Arcade.Sprite {
   private mainScene: MainScene;
@@ -35,7 +36,7 @@ export class FootstompTrap extends Phaser.Physics.Arcade.Sprite {
     // 物理ボディのサイズと位置を中心座標に合わせて手動調整
     const body = this.body as Phaser.Physics.Arcade.StaticBody;
     if (body) {
-      body.setSize(32, 32);
+      body.setSize(TILE_SIZE, TILE_SIZE);
       // 物理ボディの中心座標を指定して再配置
       body.center.set(x, y);
       body.position.x = x - body.halfWidth;

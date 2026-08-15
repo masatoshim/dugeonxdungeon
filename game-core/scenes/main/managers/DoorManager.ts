@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { EntityData, LevelGroups } from "@/game-core/types";
 import { TILE_CONFIG } from "@/game-core/master";
+import { TILE_SIZE } from "@/game-core/types";
 import { Player } from "@/game-core/entities/Player";
 import { Door } from "@/game-core/entities/Door";
 import { Button } from "@/game-core/entities/Button";
@@ -25,8 +26,8 @@ export class DoorManager {
 
         const door = new Door(
           scene,
-          e.x * 32 + 16,
-          e.y * 32 + 16,
+          e.x * TILE_SIZE + TILE_SIZE / 2,
+          e.y * TILE_SIZE + TILE_SIZE / 2,
           config.texture!,
           e.id, // targetId（扉自体のID）
           {
@@ -48,12 +49,20 @@ export class DoorManager {
         const config = TILE_CONFIG[e.tileId];
         const targetId = e.properties?.targetId ?? "";
 
-        const button = new Button(scene, e.x * 32 + 16, e.y * 32 + 16, config.texture!, e.id, this, {
-          targetId: targetId,
-          activeFrame: config.openFrame ?? 1,
-          inactiveFrame: 0,
-          isOneTime: false,
-        });
+        const button = new Button(
+          scene,
+          e.x * TILE_SIZE + TILE_SIZE / 2,
+          e.y * TILE_SIZE + TILE_SIZE / 2,
+          config.texture!,
+          e.id,
+          this,
+          {
+            targetId: targetId,
+            activeFrame: config.openFrame ?? 1,
+            inactiveFrame: 0,
+            isOneTime: false,
+          },
+        );
 
         button.setDepth(1);
 
@@ -67,11 +76,19 @@ export class DoorManager {
         const config = TILE_CONFIG[e.tileId];
         const targetId = e.properties?.targetId ?? "";
 
-        const lever = new LeverSwitch(scene, e.x * 32 + 16, e.y * 32 + 16, config.texture!, e.id, this, {
-          targetId: targetId,
-          activeFrame: config.openFrame ?? 1,
-          inactiveFrame: 0,
-        });
+        const lever = new LeverSwitch(
+          scene,
+          e.x * TILE_SIZE + TILE_SIZE / 2,
+          e.y * TILE_SIZE + TILE_SIZE / 2,
+          config.texture!,
+          e.id,
+          this,
+          {
+            targetId: targetId,
+            activeFrame: config.openFrame ?? 1,
+            inactiveFrame: 0,
+          },
+        );
 
         lever.setDepth(1);
 
@@ -84,7 +101,12 @@ export class DoorManager {
       .forEach((e) => {
         const config = TILE_CONFIG[e.tileId];
 
-        const keyItem = scene.physics.add.staticSprite(e.x * 32 + 16, e.y * 32 + 16, config.texture!, 0);
+        const keyItem = scene.physics.add.staticSprite(
+          e.x * TILE_SIZE + TILE_SIZE / 2,
+          e.y * TILE_SIZE + TILE_SIZE / 2,
+          config.texture!,
+          0,
+        );
 
         keyItem.setData("config", {
           ...config,

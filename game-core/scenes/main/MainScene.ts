@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { GAME_EVENTS, MapData, TileConfig, LevelGroups } from "@/game-core/types";
 import { TileConfigKey } from "@/game-core/master";
+import { TILE_SIZE } from "@/game-core/types";
 import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
@@ -24,7 +25,6 @@ export class MainScene extends Phaser.Scene {
   private isGameOver: boolean = false;
 
   private tiles!: TileConfigKey[][];
-  private tileSize: number = 32;
 
   private player!: Player;
   private levelBuilder!: LevelBuilder;
@@ -71,16 +71,16 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // すべてのアセットを一律で 32x32 のスプライトシートとして全自動ロード
+    // すべてのアセットを一律で TILE_SIZExTILE_SIZE のスプライトシートとして全自動ロード
     Object.entries(ASSETS).forEach(([key, path]) => {
-      this.load.spritesheet(key, path, { frameWidth: 32, frameHeight: 32 });
+      this.load.spritesheet(key, path, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
     });
   }
 
   create() {
     this.physics.world.setFPS(60);
     this.physics.world.OVERLAP_BIAS = 4;
-    this.physics.world.TILE_BIAS = 32;
+    this.physics.world.TILE_BIAS = TILE_SIZE;
 
     // 各グループの作成
     this.walls = this.physics.add.staticGroup();
@@ -519,8 +519,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setupCamera() {
-    const mapWidth = this.tiles[0].length * this.tileSize;
-    const mapHeight = this.tiles.length * this.tileSize;
+    const mapWidth = this.tiles[0].length * TILE_SIZE;
+    const mapHeight = this.tiles.length * TILE_SIZE;
     this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
     if (mapWidth > this.scale.width || mapHeight > this.scale.height) {
       // プレイヤーの追従（マップが画面より大きい場合のみ有効に機能する）
