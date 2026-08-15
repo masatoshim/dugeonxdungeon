@@ -86,8 +86,9 @@ export interface StoneData {
   id: string;
   stoneType?: "NORMAL" | "BREAKABLE" | "HEAVY" | "SPIKE";
   element?: "STONE" | "ICE" | "BLOCK";
-  allowedDirection?: "RIGHT" | "LEFT" | "UP" | "DOWN" | "HORIZONTAL" | "VERTICAL" | "ALL";
 }
+
+export type AllowedDirection = "RIGHT" | "LEFT" | "UP" | "DOWN" | "HORIZONTAL" | "VERTICAL" | "ALL";
 
 export interface TileConfig {
   name: string;
@@ -118,6 +119,7 @@ export interface TileConfig {
       | "LEVER_SWITCH"
       | "LEVER_SWITCH_DOOR";
   };
+  allowedDirection?: AllowedDirection;
   color?: "RED" | "BLUE" | "YELLOW" | "GREEN";
   openFrame?: number;
   isBreakable?: boolean;

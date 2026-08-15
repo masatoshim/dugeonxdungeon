@@ -11,6 +11,7 @@ import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
 import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
+import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 import { Button } from "@/game-core/entities/Button";
@@ -174,9 +175,16 @@ export class MainScene extends Phaser.Scene {
       this.player,
       this.doors,
       (player, door) => {
-        this.doorManager.handleDoorCollision(player as Player, door as Door);
+        if (!(door instanceof DirectionalDoor)) {
+          this.doorManager.handleDoorCollision(player as Player, door as Door);
+        }
       },
-      undefined,
+      (_player, door) => {
+        if (door instanceof DirectionalDoor && door.isOpened) {
+          return false;
+        }
+        return true;
+      },
       this,
     );
     this.physics.add.overlap(
@@ -480,6 +488,15 @@ export class MainScene extends Phaser.Scene {
 
     if (this.warpManager && this.player) {
       this.warpManager.update(this.player, this.enemies);
+    }
+
+    // 一方通行扉の毎フレーム通過・距離チェック
+    if (this.player && this.doors) {
+      this.doors.getChildren().forEach((door) => {
+        if (door instanceof DirectionalDoor) {
+          door.updatePassCheck(this.player);
+        }
+      });
     }
   }
 

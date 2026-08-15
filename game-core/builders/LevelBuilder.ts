@@ -118,7 +118,7 @@ export class LevelBuilder {
 
     stone.setData("stoneType", config.stoneData?.stoneType || "NORMAL");
     stone.setData("element", config.stoneData?.element || "STONE");
-    stone.setData("allowedDirection", config.stoneData?.allowedDirection || "ALL");
+    stone.setData("allowedDirection", config.allowedDirection || "ALL");
 
     if (config.hp !== undefined) stone.setData("hp", config.hp);
 

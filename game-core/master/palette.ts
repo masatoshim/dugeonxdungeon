@@ -61,6 +61,10 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
         items: [{ id: "GLS" }, { id: "GLSD" }],
       },
       {
+        subLabel: "いろんな扉",
+        items: [{ id: "GDDL" }],
+      },
+      {
         subLabel: "単方向ワープ",
         items: [{ id: "GWI" }, { id: "GWO" }],
       },

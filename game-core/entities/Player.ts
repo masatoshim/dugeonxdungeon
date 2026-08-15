@@ -286,4 +286,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
     return this.lastFacing;
   }
+
+  /**
+   * 現在押されている移動キーの方向ベクトルを取得
+   */
+  public getInputDirection(): { x: number; y: number } {
+    let x = 0;
+    let y = 0;
+
+    if (this.cursors) {
+      if (this.cursors.left.isDown) x = -1;
+      else if (this.cursors.right.isDown) x = 1;
+
+      if (this.cursors.up.isDown) y = -1;
+      else if (this.cursors.down.isDown) y = 1;
+    }
+
+    return { x, y };
+  }
 }

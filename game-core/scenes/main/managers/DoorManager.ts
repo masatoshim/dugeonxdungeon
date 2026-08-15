@@ -4,8 +4,10 @@ import { TILE_CONFIG } from "@/game-core/master";
 import { TILE_SIZE } from "@/game-core/types";
 import { Player } from "@/game-core/entities/Player";
 import { Door } from "@/game-core/entities/Door";
+import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
 import { Button } from "@/game-core/entities/Button";
 import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
+import { AllowedDirection } from "@/game-core/types";
 
 export class DoorManager {
   private targets = new Map<string, Door>();
@@ -39,6 +41,30 @@ export class DoorManager {
 
         this.registerTarget(door);
 
+        groups.doors.add(door);
+      });
+
+    // 一方通行扉の生成
+    entities
+      .filter((e) => e.tileId === "GDDL")
+      .forEach((e) => {
+        const config = TILE_CONFIG[e.tileId];
+        const direction = config.allowedDirection ?? "DOWN";
+
+        const door = new DirectionalDoor(
+          scene,
+          e.x * TILE_SIZE + TILE_SIZE / 2,
+          e.y * TILE_SIZE + TILE_SIZE / 2,
+          config.texture!,
+          e.id,
+          {
+            allowedDirection: direction,
+            openFrame: config.openFrame ?? 1,
+            closedFrame: 0,
+          },
+        );
+
+        // 扉グループに追加
         groups.doors.add(door);
       });
 
@@ -177,9 +203,12 @@ export class DoorManager {
     this.targets.clear();
   }
 
-  public handleDoorCollision(player: Player, door: Door) {
+  public handleDoorCollision(player: Player, door: Door | DirectionalDoor) {
+    if (door instanceof DirectionalDoor) {
+      return;
+    }
+    // 鍵扉のチェック処理
     if (door.isActive()) return;
-
     const doorId = door.id;
     // 該当する扉の鍵を持っているか確認
     if (player.hasKeyFor(doorId)) {

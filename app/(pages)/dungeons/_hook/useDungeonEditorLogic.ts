@@ -124,6 +124,8 @@ export function useDungeonEditorLogic(initialData?: any) {
 
       const incomingType = getEntityType(selectedTile);
       const isGimmick = category === TILE_CATEGORIES.GIMMICK || incomingType !== null;
+      // ペアリングチェック
+      const isPairingGimmick = isGimmick && incomingType !== null;
 
       // リンク待機中のチェック
       if (linkingRef.current.active && !isEraser) {
@@ -153,7 +155,7 @@ export function useDungeonEditorLogic(initialData?: any) {
       let currentFirstEntityId: string | null = null;
 
       // ペアリング状態の更新
-      if (!isEraser && isGimmick && incomingType) {
+      if (!isEraser && isPairingGimmick) {
         if (!linkingRef.current.active && linkConfig) {
           updateLinking({
             active: true,
@@ -178,7 +180,10 @@ export function useDungeonEditorLogic(initialData?: any) {
         // 設置先セルにあった古いエンティティを取り除く
         const filtered = prev.filter((e) => !(e.x === c && e.y === r));
 
-        if (!isEraser && isGimmick && incomingType) {
+        if (isEraser) return filtered;
+
+        // ペアリングを伴うギミック
+        if (isPairingGimmick) {
           if (!isPairingCompleteRoute) {
             const newEntity: EntityData = {
               id: newId,
@@ -202,7 +207,18 @@ export function useDungeonEditorLogic(initialData?: any) {
           }
         }
 
-        // 消しゴムまたはギミック以外のタイルを置いた場合は、古いエンティティを消去した配列をそのまま返す
+        // 単体ギミック
+        if (isGimmick) {
+          const newEntity: EntityData = {
+            id: newId,
+            tileId: selectedTile,
+            x: c,
+            y: r,
+          };
+          return [...filtered, newEntity];
+        }
+
+        // 消しゴムまたはギミック以外のタイルの場合
         return filtered;
       });
     },
