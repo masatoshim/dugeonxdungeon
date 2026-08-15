@@ -9,6 +9,10 @@ import wallbreakable2Img from "@/game-core/assets/core/wall-breakable-2.png";
 import wallbreakable3Img from "@/game-core/assets/core/wall-breakable-3.png";
 import emptyImg from "@/game-core/assets/core/empty.png";
 import floorImg from "@/game-core/assets/core/floor.png";
+import colorWallRedImg from "@/game-core/assets/core/color_wall_red.png";
+import colorWallBlueImg from "@/game-core/assets/core/color_wall_blue.png";
+import colorWallYellowImg from "@/game-core/assets/core/color_wall_yellow.png";
+import colorWallGreenImg from "@/game-core/assets/core/color_wall_green.png";
 
 // gimmicks
 import stoneImg from "@/game-core/assets/gimmicks/stone.png";
@@ -33,6 +37,8 @@ import blockHorizontalImg from "@/game-core/assets/gimmicks/block_horizontal.png
 import blockVerticalImg from "@/game-core/assets/gimmicks/block_vertical.png";
 import colorBlockRedImg from "@/game-core/assets/gimmicks/color_block_red.png";
 import colorBlockBlueImg from "@/game-core/assets/gimmicks/color_block_blue.png";
+import colorBlockYellowImg from "@/game-core/assets/gimmicks/color_block_yellow.png";
+import colorBlockGreenImg from "@/game-core/assets/gimmicks/color_block_green.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
@@ -75,6 +81,10 @@ export const ASSETS = {
   wallbreakable3: wallbreakable3Img.src,
   empty: emptyImg.src,
   floor: floorImg.src,
+  colorWallRed: colorWallRedImg.src,
+  colorWallBlue: colorWallBlueImg.src,
+  colorWallYellow: colorWallYellowImg.src,
+  colorWallGreen: colorWallGreenImg.src,
 
   // gimmicks
   stone: stoneImg.src,
@@ -99,6 +109,8 @@ export const ASSETS = {
   blockVertical: blockVerticalImg.src,
   colorBlockRed: colorBlockRedImg.src,
   colorBlockBlue: colorBlockBlueImg.src,
+  colorBlockYellow: colorBlockYellowImg.src,
+  colorBlockGreen: colorBlockGreenImg.src,
 
   // items
   weaponSword: weaponSwordImg.src,

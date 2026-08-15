@@ -25,5 +25,33 @@ export const CORE_TILES = {
     isBreakable: true,
     hp: 3,
   },
+  CWR: {
+    name: "赤壁",
+    category: TILE_CATEGORIES.WALL,
+    texture: "colorWallRed",
+    color: "RED",
+    isBreakable: false,
+  },
+  CWB: {
+    name: "青壁",
+    category: TILE_CATEGORIES.WALL,
+    texture: "colorWallBlue",
+    color: "BLUE",
+    isBreakable: false,
+  },
+  CWY: {
+    name: "黄壁",
+    category: TILE_CATEGORIES.WALL,
+    texture: "colorWallYellow",
+    color: "YELLOW",
+    isBreakable: false,
+  },
+  CWG: {
+    name: "緑壁",
+    category: TILE_CATEGORIES.WALL,
+    texture: "colorWallGreen",
+    color: "GREEN",
+    isBreakable: false,
+  },
   " ": { name: "床", category: TILE_CATEGORIES.EMPTY, texture: "empty" },
 } as const satisfies Record<string, TileConfig>;

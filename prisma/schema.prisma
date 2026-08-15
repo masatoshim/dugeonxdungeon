@@ -14,6 +14,10 @@ model User {
   iconImageKey       String?
   role               Role                @default(USER)
   createDungeonLimit Int                 @default(10)
+  bgmEnabled         Boolean             @default(true)
+  seEnabled          Boolean             @default(true)
+  bgmVolume          Float               @default(0.5)
+
   // --- ゲーム統計情報 ---
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
@@ -95,6 +99,10 @@ model Dungeon {
   mapSizeWidth       Int
   mapSize            Int
   
+  // --- 音声設定 ---
+  bgmTrackId         String?          @default("bgm_default") // BGM指定
+  seTrackId          String?          @default("se_default") // 環境音・SEセット指定
+
   // --- ゲーム設定 ---
   timeLimit          Int               @default(60)
   difficulty         Float             @default(1.0) // 星3.5などの表現に対応

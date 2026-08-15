@@ -114,7 +114,7 @@ export interface TileConfig {
       | "WARP_TWO_WAY1"
       | "WARP_TWO_WAY2";
   };
-  color?: "RED" | "BLUE" | "YELLOW" | "BLACK";
+  color?: "RED" | "BLUE" | "YELLOW" | "GREEN";
   openFrame?: number;
   isBreakable?: boolean;
   isLocked?: boolean;

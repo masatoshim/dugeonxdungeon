@@ -248,6 +248,7 @@ export class LevelBuilder {
     if (config.isBreakable) {
       wall.setData("hp", config.hp);
     }
+    wall.setData("element", "WALL");
     wall.setData("color", config.color);
     wall.setData("isDisappearing", false); // 消滅中か判定用
     wall.setMass(9999);
