@@ -7,12 +7,14 @@ import { nanoid } from "nanoid";
 // 内部ロジック判定用
 interface LinkingStateType {
   active: boolean;
-  mode: "KEY_DOOR" | "BUTTON_DOOR" | "WARP" | "WARP_TWO_WAY" | null;
+  mode: "KEY_DOOR" | "BUTTON_DOOR" | "LEVER_SWITCH_DOOR" | "WARP" | "WARP_TWO_WAY" | null;
   pendingType:
     | "KEY"
     | "KEY_DOOR"
     | "BUTTON"
     | "BUTTON_DOOR"
+    | "LEVER_SWITCH"
+    | "LEVER_SWITCH_DOOR"
     | "WARP_IN"
     | "WARP_OUT"
     | "WARP_TWO_WAY1"

@@ -1,128 +1,128 @@
 import { TileConfig, TILE_CATEGORIES } from "@/game-core/types/tiles";
 
 export const GIMMICK_TILES = {
-  R1: {
+  ST: {
     name: "石",
     category: TILE_CATEGORIES.STONE,
     texture: "stone",
     stoneData: { id: "S_NORMAL", stoneType: "NORMAL", element: "STONE" },
   },
-  R3: {
+  STI: {
     name: "氷",
     category: TILE_CATEGORIES.STONE,
     texture: "iceStone",
     stoneData: { id: "S_ICE", stoneType: "NORMAL", element: "ICE" },
   },
-  R5: {
+  STB: {
     name: "壊れる石",
     category: TILE_CATEGORIES.STONE,
     texture: "stoneBreakable",
     stoneData: { id: "S_BREAKABLE", stoneType: "BREAKABLE", element: "STONE" },
   },
-  R6: {
+  STIB: {
     name: "壊れる氷",
     category: TILE_CATEGORIES.STONE,
     texture: "iceStoneBreakable",
     stoneData: { id: "S_BREAKABLE_ICE", stoneType: "BREAKABLE", element: "ICE" },
   },
-  R7: {
+  STH: {
     name: "重い石",
     category: TILE_CATEGORIES.STONE,
     texture: "heavyStone",
     stoneData: { id: "S_HEAVY", stoneType: "HEAVY", element: "STONE" },
   },
-  R8: {
+  STS: {
     name: "とげとげ石",
     category: TILE_CATEGORIES.STONE,
     texture: "spikyStone",
     stoneData: { id: "S_SPIKY", stoneType: "SPIKE", element: "STONE" },
   },
-  BR: {
+  BLR: {
     name: "右ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockRight",
     stoneData: { id: "B_RIGHT", stoneType: "NORMAL", element: "BLOCK", allowedDirection: "RIGHT" },
   },
-  BL: {
+  BLL: {
     name: "左ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockLeft",
     stoneData: { id: "B_LEFT", stoneType: "NORMAL", element: "BLOCK", allowedDirection: "LEFT" },
   },
-  BU: {
+  BLU: {
     name: "上ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockUp",
     stoneData: { id: "B_UP", stoneType: "NORMAL", element: "BLOCK", allowedDirection: "UP" },
   },
-  BD: {
+  BLD: {
     name: "下ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockDown",
     stoneData: { id: "B_DOWN", stoneType: "NORMAL", element: "BLOCK", allowedDirection: "DOWN" },
   },
-  BH: {
+  BLH: {
     name: "横ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockHorizontal",
     stoneData: { id: "B_HORIZONTAL", stoneType: "NORMAL", element: "BLOCK", allowedDirection: "HORIZONTAL" },
   },
-  BV: {
+  BLV: {
     name: "縦ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockVertical",
     stoneData: { id: "B_VERTICAL", stoneType: "NORMAL", element: "STONE", allowedDirection: "VERTICAL" },
   },
-  CBR: {
+  CBLR: {
     name: "赤ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "colorBlockRed",
     color: "RED",
     stoneData: { id: "CB_RED", stoneType: "NORMAL", element: "BLOCK" },
   },
-  CBB: {
+  CBLB: {
     name: "青ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "colorBlockBlue",
     color: "BLUE",
     stoneData: { id: "CB_BLUE", stoneType: "NORMAL", element: "BLOCK" },
   },
-  CBY: {
+  CBLY: {
     name: "黄ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "colorBlockYellow",
     color: "YELLOW",
     stoneData: { id: "CB_YELLOW", stoneType: "NORMAL", element: "BLOCK" },
   },
-  CBG: {
+  CBLG: {
     name: "緑ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "colorBlockGreen",
     color: "GREEN",
     stoneData: { id: "CB_YELLOW", stoneType: "NORMAL", element: "BLOCK" },
   },
-  B1: {
+  GB: {
     name: "ボタン",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "buttonTrigger",
     openFrame: 1,
     linkConfig: { entityType: "BUTTON", linkGroup: "BUTTON_DOOR", targetEntityType: "BUTTON_DOOR" },
   },
-  D1: {
+  GBD: {
     name: "ボタン扉",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "buttonDoor",
     openFrame: 1,
     linkConfig: { entityType: "BUTTON_DOOR", linkGroup: "BUTTON_DOOR", targetEntityType: "BUTTON" },
   },
-  K1: {
+  GK: {
     name: "鍵",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "keySilver",
     item: { id: "KEY_SILVER", name: "銀の鍵", type: "KEY", consumesOnUse: true },
     linkConfig: { entityType: "KEY", linkGroup: "KEY_DOOR", targetEntityType: "KEY_DOOR" },
   },
-  KD1: {
+  GKD: {
     name: "鍵扉",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "keySilverDoor",
@@ -130,25 +130,39 @@ export const GIMMICK_TILES = {
     isLocked: true,
     linkConfig: { entityType: "KEY_DOOR", linkGroup: "KEY_DOOR", targetEntityType: "KEY" },
   },
-  WI1: {
+  GLS: {
+    name: "レバースイッチ",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "leverSwitch",
+    openFrame: 1,
+    linkConfig: { entityType: "LEVER_SWITCH", linkGroup: "LEVER_SWITCH_DOOR", targetEntityType: "LEVER_SWITCH_DOOR" },
+  },
+  GLSD: {
+    name: "レバースイッチ扉",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "leverSwitchDoor",
+    openFrame: 1,
+    linkConfig: { entityType: "LEVER_SWITCH_DOOR", linkGroup: "LEVER_SWITCH_DOOR", targetEntityType: "LEVER_SWITCH" },
+  },
+  GWI: {
     name: "ワープ入口",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "warpIn",
     linkConfig: { entityType: "WARP_IN", linkGroup: "WARP", targetEntityType: "WARP_OUT" },
   },
-  WO1: {
+  GWO: {
     name: "ワープ出口",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "warpOut",
     linkConfig: { entityType: "WARP_OUT", linkGroup: "WARP", targetEntityType: "WARP_IN" },
   },
-  WT1: {
+  GWT1: {
     name: "ワープ1",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "warpTwoWay1",
     linkConfig: { entityType: "WARP_TWO_WAY1", linkGroup: "WARP_TWO_WAY", targetEntityType: "WARP_TWO_WAY2" },
   },
-  WT2: {
+  GWT2: {
     name: "ワープ2",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "warpTwoWay2",

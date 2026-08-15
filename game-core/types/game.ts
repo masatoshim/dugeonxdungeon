@@ -13,7 +13,7 @@ export const DUNGEON_DEFAULT = {
   COLS: 10,
   TIME_LIMIT: 60,
   MIN_SIZE: 4,
-  MAX_SIZE: 256,
+  MAX_SIZE: 99,
 } as const;
 
 export interface EntityData {
@@ -46,11 +46,6 @@ export interface GameState {
   status: "PLAYING" | "GAMEOVER" | "CLEAR";
 }
 
-export interface GimmickConnection {
-  button: Phaser.Physics.Arcade.Sprite;
-  door: Phaser.Physics.Arcade.Sprite;
-}
-
 export interface LevelGroups {
   walls: Phaser.Physics.Arcade.StaticGroup;
   doors: Phaser.Physics.Arcade.StaticGroup;
@@ -59,5 +54,7 @@ export interface LevelGroups {
   enemies: Phaser.Physics.Arcade.Group;
   goal: Phaser.Physics.Arcade.StaticGroup;
   movableStones: Phaser.Physics.Arcade.Group;
+  warps: Phaser.Physics.Arcade.StaticGroup;
+  buttonsGroup: Phaser.Physics.Arcade.StaticGroup;
   onPlayerCreate: (x: number, y: number) => void;
 }

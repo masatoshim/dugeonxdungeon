@@ -1,7 +1,7 @@
 import { TileConfig, TILE_CATEGORIES } from "@/game-core/types/tiles";
 
 export const ENEMY_TILES = {
-  E1: {
+  ES: {
     name: "--未使用 スライム",
     category: TILE_CATEGORIES.ENEMY,
     texture: "slime",
@@ -22,7 +22,7 @@ export const ENEMY_TILES = {
       isStealth: true,
     },
   },
-  E2: {
+  ES2: {
     name: "にこにこスライム",
     category: TILE_CATEGORIES.ENEMY,
     texture: "slimeBA2",
@@ -43,7 +43,7 @@ export const ENEMY_TILES = {
       frameRate: 10,
     },
   },
-  E3: {
+  ES3: {
     name: "げきおこスライム",
     category: TILE_CATEGORIES.ENEMY,
     texture: "slimeBA3",
@@ -64,7 +64,7 @@ export const ENEMY_TILES = {
       frameRate: 32,
     },
   },
-  EB1: {
+  EIB: {
     name: "ムテキくろ",
     description: "とても強い。攻撃が効かない",
     category: TILE_CATEGORIES.ENEMY,
@@ -87,7 +87,7 @@ export const ENEMY_TILES = {
       isInvincible: true,
     },
   },
-  ER1: {
+  EIR: {
     name: "ムテキあか",
     description: "とても強い。攻撃が効かない",
     category: TILE_CATEGORIES.ENEMY,
@@ -110,7 +110,7 @@ export const ENEMY_TILES = {
       isInvincible: true,
     },
   },
-  EC1: {
+  EF: {
     name: "ほのお",
     description: "じわじわと追いかけてくる",
     category: TILE_CATEGORIES.ENEMY,
@@ -133,7 +133,7 @@ export const ENEMY_TILES = {
       isInvincible: false,
     },
   },
-  EC2: {
+  EIF: {
     name: "ムテキほのお",
     description: "じわじわと追いかけてくる。むてき",
     category: TILE_CATEGORIES.ENEMY,
@@ -179,7 +179,7 @@ export const ENEMY_TILES = {
       isInvincible: false,
     },
   },
-  EG1: {
+  EG: {
     name: "ゴースト",
     description: "すり抜けてくる",
     category: TILE_CATEGORIES.ENEMY,
@@ -205,7 +205,7 @@ export const ENEMY_TILES = {
       detectDistance: 8,
     },
   },
-  EO1: {
+  EOR: {
     name: "あかおに",
     description: "みつけたら追いかけてくる",
     category: TILE_CATEGORIES.ENEMY,
@@ -231,7 +231,7 @@ export const ENEMY_TILES = {
       speedUp: 1.1,
     },
   },
-  EO2: {
+  EOB: {
     name: "あおおに",
     description: "みつけたら追いかけてくる。速い",
     category: TILE_CATEGORIES.ENEMY,
@@ -325,7 +325,7 @@ export const ENEMY_TILES = {
       speedUp: 1.1,
     },
   },
-  ES: {
+  ESH: {
     name: "かげ",
     category: TILE_CATEGORIES.ENEMY,
     texture: "shadow",
@@ -370,7 +370,7 @@ export const ENEMY_TILES = {
       isObstacle: true,
     },
   },
-  EG: {
+  EGO: {
     name: "ゴーレム",
     category: TILE_CATEGORIES.ENEMY,
     texture: "golem",
@@ -392,6 +392,12 @@ export const ENEMY_TILES = {
       animSize: 12,
       frameRate: 6,
       stunDuration: 300,
+      footstompData: {
+        footstompTexture: "step",
+        hasDirection: true,
+        duration: 10000,
+        validItemId: "SWORD",
+      },
     },
   },
   ECC: {

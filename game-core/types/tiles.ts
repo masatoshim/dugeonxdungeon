@@ -102,8 +102,10 @@ export interface TileConfig {
       | "WARP_IN"
       | "WARP_OUT"
       | "WARP_TWO_WAY1"
-      | "WARP_TWO_WAY2";
-    linkGroup: "KEY_DOOR" | "BUTTON_DOOR" | "WARP" | "WARP_TWO_WAY";
+      | "WARP_TWO_WAY2"
+      | "LEVER_SWITCH"
+      | "LEVER_SWITCH_DOOR";
+    linkGroup: "KEY_DOOR" | "BUTTON_DOOR" | "WARP" | "WARP_TWO_WAY" | "LEVER_SWITCH_DOOR";
     targetEntityType:
       | "KEY"
       | "KEY_DOOR"
@@ -112,7 +114,9 @@ export interface TileConfig {
       | "WARP_IN"
       | "WARP_OUT"
       | "WARP_TWO_WAY1"
-      | "WARP_TWO_WAY2";
+      | "WARP_TWO_WAY2"
+      | "LEVER_SWITCH"
+      | "LEVER_SWITCH_DOOR";
   };
   color?: "RED" | "BLUE" | "YELLOW" | "GREEN";
   openFrame?: number;

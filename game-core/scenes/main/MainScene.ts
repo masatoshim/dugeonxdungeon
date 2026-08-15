@@ -1,16 +1,19 @@
 import * as Phaser from "phaser";
-import { GAME_EVENTS, MapData, TileConfig, GimmickConnection } from "@/game-core/types";
+import { GAME_EVENTS, MapData, TileConfig, LevelGroups } from "@/game-core/types";
 import { TileConfigKey } from "@/game-core/master";
 import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
-import { LevelBuilder, LevelGroups } from "@/game-core/builders/LevelBuilder";
+import { LevelBuilder } from "@/game-core/builders/LevelBuilder";
 import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
 import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
+import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
+import { Button } from "@/game-core/entities/Button";
+import { Door } from "@/game-core/entities/Door";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -36,14 +39,15 @@ export class MainScene extends Phaser.Scene {
   private movableStones!: Phaser.Physics.Arcade.Group;
   private goalGroup!: Phaser.Physics.Arcade.StaticGroup;
   private warps!: Phaser.Physics.Arcade.StaticGroup;
-  private gimmickConnections: GimmickConnection[] = [];
   private footstompTraps!: Phaser.Physics.Arcade.StaticGroup;
+  private buttonsGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   // ヘルパー・マネージャー
   private timerUI!: TimerUI;
   private warpManager!: WarpManager;
   private stoneManager!: StoneManager;
   private combatManager!: CombatManager;
+  private doorManager!: DoorManager;
 
   constructor() {
     super("MainScene");
@@ -59,6 +63,7 @@ export class MainScene extends Phaser.Scene {
     this.isTimerStarted = false;
 
     // マネージャーの初期化
+    this.doorManager = new DoorManager(this);
     this.stoneManager = new StoneManager(this);
     this.combatManager = new CombatManager(this, this.stoneManager);
   }
@@ -85,6 +90,7 @@ export class MainScene extends Phaser.Scene {
     this.doors = this.physics.add.staticGroup();
     this.warps = this.physics.add.staticGroup();
     this.footstompTraps = this.physics.add.staticGroup();
+    this.buttonsGroup = this.physics.add.staticGroup();
 
     this.warpManager = new WarpManager(this, this.warps);
 
@@ -97,6 +103,7 @@ export class MainScene extends Phaser.Scene {
       goal: this.goalGroup,
       movableStones: this.movableStones,
       warps: this.warps,
+      buttonsGroup: this.buttonsGroup,
       onPlayerCreate: (x, y) => {
         this.player = new Player(this, x, y);
         this.player.setDepth(10);
@@ -123,8 +130,8 @@ export class MainScene extends Phaser.Scene {
     this.levelBuilder.createLevel(this.tiles, levelGroups);
     // ワープマスの生成と登録
     this.warpManager.setupWarps(this.mapData);
-    // 次に createGimmicks を実行
-    this.gimmickConnections = this.levelBuilder.createGimmicks(this, this.mapData.entities, levelGroups);
+    // 各扉ギミックの生成と登録
+    this.doorManager.createGimmicks(this, this.mapData.entities, levelGroups);
 
     // 敵の弾グループを作成
     this.enemyBullets = this.physics.add.group({
@@ -156,8 +163,38 @@ export class MainScene extends Phaser.Scene {
 
     // プレイヤーと静的オブジェクトとの衝突
     this.physics.add.collider(this.player, this.walls);
+    this.physics.add.overlap(
+      this.player,
+      this.buttonsGroup,
+      (player, button) => {
+        (button as Button).onOverlap();
+      },
+      undefined,
+      this,
+    );
     this.physics.add.collider(this.player, this.breakableWalls);
     this.physics.add.collider(this.player, this.footstompTraps);
+
+    this.physics.add.collider(
+      this.player,
+      this.doors,
+      (player, door) => {
+        this.doorManager.handleDoorCollision(player as Player, door as Door);
+      },
+      undefined,
+      this,
+    );
+
+    // 石とボタンの接触判定
+    this.physics.add.overlap(
+      this.movableStones,
+      this.buttonsGroup,
+      (stone, button) => {
+        (button as Button).onOverlap();
+      },
+      undefined,
+      this,
+    );
 
     // 敵と壁の衝突
     this.physics.add.collider(
@@ -418,43 +455,9 @@ export class MainScene extends Phaser.Scene {
 
     this.enemies.getChildren().forEach((enemy) => enemy.update());
 
-    this.updateGimmickConnections();
-
     if (this.warpManager && this.player) {
       this.warpManager.update(this.player, this.enemies);
     }
-  }
-
-  private updateGimmickConnections() {
-    this.gimmickConnections.forEach((conn) => {
-      const { button, door } = conn;
-      if (door.getData("isLocked") === true) return;
-
-      const isPressed =
-        this.physics.overlap(button, this.player) ||
-        this.physics.overlap(button, this.movableStones) ||
-        this.physics.overlap(button, this.enemies, undefined, (_, enemyObj) => {
-          const enemy = enemyObj as Enemy;
-          return enemy.getEnemyData().moveType === "MIRROR";
-        });
-
-      const dOpen = door.getData("openFrame") ?? 0;
-      const dClosed = door.getData("closedFrame") ?? 1;
-      const bOpen = button.getData("openFrame") ?? 1;
-      const bClosed = button.getData("closedFrame") ?? 0;
-
-      if (isPressed) {
-        button.setFrame(bOpen);
-        door.setFrame(dOpen);
-        door.setAlpha(0.3);
-        if (door.body) (door.body as Phaser.Physics.Arcade.StaticBody).enable = false;
-      } else {
-        button.setFrame(bClosed);
-        door.setFrame(dClosed);
-        door.setAlpha(1.0);
-        if (door.body) (door.body as Phaser.Physics.Arcade.StaticBody).enable = true;
-      }
-    });
   }
 
   /**
