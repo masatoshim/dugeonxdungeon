@@ -71,7 +71,7 @@ export function useDungeonEditorLogic(initialData?: any) {
     setTiles(newTiles);
   }, []);
 
-  const setEntitiesState = useCallback((newEntities: EntityData[]) => {
+  const setEntitiesState = useCallback((newEntities: EntityData[] | ((prev: EntityData[]) => EntityData[])) => {
     setEntities(newEntities);
   }, []);
 
@@ -110,7 +110,7 @@ export function useDungeonEditorLogic(initialData?: any) {
   const handleCellClick = useCallback(
     (r: number, c: number, selectedTile: TileConfigKey) => {
       // 境界チェック (外壁には設置不可)
-      if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
+      if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return null;
 
       const isEraser = selectedTile === " ";
 
@@ -131,26 +131,20 @@ export function useDungeonEditorLogic(initialData?: any) {
       if (linkingRef.current.active && !isEraser) {
         if (!isGimmick || incomingType !== linkingRef.current.pendingType) {
           toast.error("正しく対になるギミックを設置してください");
-          return;
+          return null;
         }
       }
 
       // プレイヤー単一チェック
       if (category === TILE_CATEGORIES.PLAYER) {
-        let hasPlayer = false;
-        setTiles((prev) => {
-          hasPlayer = prev.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
-          return prev;
-        });
-
+        const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
         if (hasPlayer) {
           toast.error("プレイヤーは1つのみです");
-          return;
+          return null;
         }
       }
 
       const newId = `${selectedTile}_${nanoid(8)}`;
-
       let isPairingCompleteRoute = false;
       let currentFirstEntityId: string | null = null;
 
@@ -170,20 +164,30 @@ export function useDungeonEditorLogic(initialData?: any) {
         }
       }
 
-      setTiles((prev) =>
-        prev.map((row, rIdx) =>
-          rIdx === r ? row.map((cell, cIdx) => (cIdx === c ? (isGimmick ? " " : selectedTile) : cell)) : row,
-        ),
+      // 次のTilesを同期的に計算
+      const nextTiles = tiles.map((row, rIdx) =>
+        rIdx === r ? row.map((cell, cIdx) => (cIdx === c ? (isGimmick ? " " : selectedTile) : cell)) : row,
       );
 
-      setEntities((prev) => {
-        // 設置先セルにあった古いエンティティを取り除く
-        const filtered = prev.filter((e) => !(e.x === c && e.y === r));
+      // 次のEntitiesを同期的に計算
+      const removedEntity = entities.find((e) => e.x === c && e.y === r);
+      const targetIdToClean = removedEntity?.properties?.targetId;
 
-        if (isEraser) return filtered;
+      let nextEntities = entities.filter((e) => !(e.x === c && e.y === r));
 
-        // ペアリングを伴うギミック
+      if (targetIdToClean) {
+        nextEntities = nextEntities.map((e) => {
+          if (e.id === targetIdToClean) {
+            const { targetId, ...restProps } = e.properties || {};
+            return { ...e, properties: restProps };
+          }
+          return e;
+        });
+      }
+
+      if (!isEraser) {
         if (isPairingGimmick) {
+          // ペアリングを伴うギミック
           if (!isPairingCompleteRoute) {
             const newEntity: EntityData = {
               id: newId,
@@ -191,7 +195,7 @@ export function useDungeonEditorLogic(initialData?: any) {
               x: c,
               y: r,
             };
-            return [...filtered, newEntity];
+            nextEntities = [...nextEntities, newEntity];
           } else {
             const firstId = currentFirstEntityId;
             const newEntity: EntityData = {
@@ -201,28 +205,29 @@ export function useDungeonEditorLogic(initialData?: any) {
               y: r,
               properties: { targetId: firstId! },
             };
-            return filtered
+            nextEntities = nextEntities
               .map((e) => (e.id === firstId ? { ...e, properties: { ...e.properties, targetId: newId } } : e))
               .concat(newEntity);
           }
-        }
-
-        // 単体ギミック
-        if (isGimmick) {
+        } else if (isGimmick) {
+          // 単体ギミック
           const newEntity: EntityData = {
             id: newId,
             tileId: selectedTile,
             x: c,
             y: r,
           };
-          return [...filtered, newEntity];
+          nextEntities = [...nextEntities, newEntity];
         }
+      }
 
-        // 消しゴムまたはギミック以外のタイルの場合
-        return filtered;
-      });
+      setTiles(nextTiles);
+      setEntities(nextEntities);
+
+      // 最新の計算結果を返却
+      return { nextTiles, nextEntities };
     },
-    [rows, cols, getEntityType, cancelLinking, updateLinking],
+    [rows, cols, tiles, entities, getEntityType, cancelLinking, updateLinking],
   );
 
   return {

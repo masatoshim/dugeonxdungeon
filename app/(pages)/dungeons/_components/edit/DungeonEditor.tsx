@@ -150,13 +150,17 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         if (hasPlayer) return toast.error("プレイヤーは1つのみです");
       }
 
-      handleCellClick(r, c, selectedTile);
+      // 最新の計算結果を受け取る
+      const result = handleCellClick(r, c, selectedTile);
+      if (!result) return;
 
+      const { nextTiles, nextEntities } = result;
+
+      // 履歴に保存
       const nextSnapshot = {
         ...getCurrentSnapshot(),
-        tiles: tiles.map((row, ri) =>
-          row.map((cell, ci) => (ri === r && ci === c ? (selectedTile === " " ? " " : selectedTile) : cell)),
-        ),
+        tiles: nextTiles,
+        entities: nextEntities,
       };
       pushHistory(nextSnapshot);
     },

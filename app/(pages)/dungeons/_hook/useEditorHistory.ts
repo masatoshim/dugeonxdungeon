@@ -65,7 +65,8 @@ export function useEditorHistory(
           last.name === nextSnapshot.name &&
           last.description === nextSnapshot.description &&
           last.timeLimit === nextSnapshot.timeLimit &&
-          JSON.stringify(last.tiles) === JSON.stringify(nextSnapshot.tiles)
+          JSON.stringify(last.tiles) === JSON.stringify(nextSnapshot.tiles) &&
+          JSON.stringify(last.entities) === JSON.stringify(nextSnapshot.entities)
         ) {
           return;
         }

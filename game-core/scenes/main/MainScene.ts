@@ -137,7 +137,7 @@ export class MainScene extends Phaser.Scene {
     // ワープマスの生成と登録
     this.warpManager.setupWarps(this.mapData);
     // 各扉ギミックの生成と登録
-    this.doorManager.createGimmicks(this, this.mapData.entities, levelGroups);
+    this.doorManager.createDoorGimmicks(this, this.mapData.entities, levelGroups);
 
     // 敵の弾グループを作成
     this.enemyBullets = this.physics.add.group({

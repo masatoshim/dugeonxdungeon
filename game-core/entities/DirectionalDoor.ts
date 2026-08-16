@@ -55,7 +55,7 @@ export class DirectionalDoor extends Phaser.Physics.Arcade.Sprite {
           canOpen = dy > 0 && dy < openMargin && Math.abs(dx) < alignMargin;
           break;
         case "DOWN":
-          canOpen = dy < 8 && dy > -openMargin && Math.abs(dx) < alignMargin;
+          canOpen = dy < 0 && dy > -openMargin && Math.abs(dx) < alignMargin;
           break;
       }
 

@@ -7,7 +7,6 @@ import { Door } from "@/game-core/entities/Door";
 import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
 import { Button } from "@/game-core/entities/Button";
 import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
-import { AllowedDirection } from "@/game-core/types";
 
 export class DoorManager {
   private targets = new Map<string, Door>();
@@ -17,7 +16,7 @@ export class DoorManager {
   /**
    * エディタで配置された扉、鍵、ボタン、レバースイッチを生成し、接続関係を構築する
    */
-  public createGimmicks(scene: Phaser.Scene, entities: EntityData[] = [], groups: LevelGroups) {
+  public createDoorGimmicks(scene: Phaser.Scene, entities: EntityData[] = [], groups: LevelGroups) {
     if (!entities || !Array.isArray(entities)) return [];
 
     // 扉の生成
