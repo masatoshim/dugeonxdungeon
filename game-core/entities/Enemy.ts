@@ -476,6 +476,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /**
+   * CHASE_1 の移動制御（プレイヤーの位置を常時把握して追跡）
+   */
   private moveChase(speedUp?: number) {
     if (!this.active || !this.body) return;
 
@@ -513,6 +516,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(moveX * speed * factor, moveY * speed * factor);
   }
 
+  /**
+   * CHASE_2 の移動制御（感知・追跡）
+   */
   private moveChase2() {
     if (!this.active || !this.body) return;
 
@@ -533,7 +539,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * CHASE_3 の移動制御
+   * CHASE_3 の移動制御（感知・猪突猛進）
    */
   private moveChase3() {
     if (!this.active || !this.body) return;
@@ -560,7 +566,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * CHASE_4 の移動制御
+   * CHASE_4 の移動制御（だるまさんが転んだ）
    */
   private moveChase4() {
     if (!this.active || !this.body) return;
@@ -674,8 +680,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       // 攻撃シーケンス開始
       this.startRangedAttackSequence(player, prepareTime, cooldown);
     } else if (this.rangedState === "IDLE") {
-      if (this.body.velocity.x === 0 && this.body.velocity.y === 0) {
-        this.changeDirection();
+      const speed = this.enemyData.speed ?? 0;
+      if (speed === 0) {
+        // 固定敵
+        this.setVelocity(0, 0);
+      } else {
+        // 移動敵
+        if (this.body.velocity.x === 0 && this.body.velocity.y === 0) {
+          this.changeDirection();
+        }
       }
     }
   }

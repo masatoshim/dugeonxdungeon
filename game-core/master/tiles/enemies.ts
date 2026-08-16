@@ -326,12 +326,12 @@ export const ENEMY_TILES = {
     },
   },
   ESH: {
-    name: "かげ",
+    name: "ステルス",
     category: TILE_CATEGORIES.ENEMY,
     texture: "shadow",
     enemyData: {
       id: "E_SHADOW",
-      name: "かげ",
+      name: "ステルス",
       hp: 1,
       score: 800,
       xsize: 26,
@@ -426,7 +426,7 @@ export const ENEMY_TILES = {
       },
       animType: "DIRECTIONAL_3",
       animSize: 4,
-      frameRate: 6,
+      frameRate: 12,
       isInvincible: false,
       isGhost: false,
       chaseDistance: 10,
