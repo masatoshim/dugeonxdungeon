@@ -12,11 +12,12 @@ export class FootstompTrap extends Phaser.Physics.Arcade.Sprite {
     x: number,
     y: number,
     texture: string,
+    frame: number | string,
     rotationAngle: number,
     duration: number,
     validItemId?: string,
   ) {
-    super(scene, x, y, texture);
+    super(scene, x, y, texture, frame);
     this.mainScene = scene as MainScene;
     this.validItemId = validItemId;
 

@@ -68,6 +68,8 @@ export interface EnemyData {
     hasDirection?: boolean; // 足跡の方向性判定
     duration?: number; // 足跡の寿命 ms
     validItemId?: string; // 足跡解除用のアイテムのID
+    frameIndices?: number[]; // 使用するフレームの配列
+    selectionMode?: "RANDOM" | "SEQUENTIAL";
   };
 }
 

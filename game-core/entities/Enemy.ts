@@ -31,6 +31,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   // 足跡用のプロパティ
   private lastFootstompTileX: number | null = null;
   private lastFootstompTileY: number | null = null;
+  private currentFootstompFrameIndex: number = 0;
 
   // ダメージ復帰タイマー
   private stunTimer?: Phaser.Time.TimerEvent;
@@ -903,16 +904,29 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
 
       const duration = this.enemyData.footstompData.duration ?? 10000;
+      const footstompData = this.enemyData.footstompData;
+      const frames = footstompData.frameIndices ?? [0];
+      const mode = footstompData.selectionMode ?? "RANDOM";
+
+      let selectedFrame = frames[0];
+
+      if (mode === "RANDOM") {
+        selectedFrame = Phaser.Math.RND.pick(frames);
+      } else if (mode === "SEQUENTIAL") {
+        selectedFrame = frames[this.currentFootstompFrameIndex % frames.length];
+        this.currentFootstompFrameIndex++;
+      }
 
       // トラップ生成
       new FootstompTrap(
         this.scene,
         trapWorldX,
         trapWorldY,
-        this.enemyData.footstompData.footstompTexture,
+        footstompData.footstompTexture,
+        selectedFrame,
         rotationAngle,
         duration,
-        this.enemyData.footstompData.validItemId,
+        footstompData.validItemId,
       );
 
       this.lastFootstompTileX = currentTileX;
