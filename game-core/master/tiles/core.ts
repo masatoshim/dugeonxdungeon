@@ -12,7 +12,7 @@ export const CORE_TILES = {
     hp: 1,
   },
   WB2: {
-    name: "壊れる壁1",
+    name: "壊れる壁",
     category: TILE_CATEGORIES.WALL,
     texture: "wallbreakable2",
     isBreakable: true,

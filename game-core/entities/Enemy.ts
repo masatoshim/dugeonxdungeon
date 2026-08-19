@@ -161,6 +161,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           { suffix: "right", frames: [2] },
           { suffix: "up", frames: [3] },
         ],
+        DIRECTIONAL_4: [
+          { suffix: "down", frames: [0, 1, 2, 1] },
+          { suffix: "left", frames: [3, 4, 5, 6, 7, 8] },
+          { suffix: "right", frames: [10, 11, 12, 13, 14] },
+          { suffix: "up", frames: [15, 16, 17, 16] },
+        ],
       };
       const directions = directionsMap[this.enemyData.animType] || directionsMap["DIRECTIONAL"];
 
@@ -905,15 +911,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
       const duration = this.enemyData.footstompData.duration ?? 10000;
       const footstompData = this.enemyData.footstompData;
-      const frames = footstompData.frameIndices ?? [0];
-      const mode = footstompData.selectionMode ?? "RANDOM";
+      const frameNo = footstompData.animSize ?? 1;
+      const mode = footstompData.animType ?? "RANDOM";
 
-      let selectedFrame = frames[0];
+      let selectedFrame = frameNo;
 
       if (mode === "RANDOM") {
-        selectedFrame = Phaser.Math.RND.pick(frames);
+        selectedFrame = Math.floor(Math.random() * (selectedFrame - 1));
       } else if (mode === "SEQUENTIAL") {
-        selectedFrame = frames[this.currentFootstompFrameIndex % frames.length];
+        selectedFrame = this.currentFootstompFrameIndex % frameNo;
         this.currentFootstompFrameIndex++;
       }
 

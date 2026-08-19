@@ -53,7 +53,7 @@ export interface EnemyData {
   };
   // moveTypeがMIRROR専用のパラメータ
   mirrorAxis?: "BOTH" | "HORIZONTAL_ONLY" | "VERTICAL_ONLY";
-  animType: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
+  animType: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3" | "DIRECTIONAL_4"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize: number;
   frameRate?: number;
   isInvincible?: boolean; // 無敵判定
@@ -68,8 +68,8 @@ export interface EnemyData {
     hasDirection?: boolean; // 足跡の方向性判定
     duration?: number; // 足跡の寿命 ms
     validItemId?: string; // 足跡解除用のアイテムのID
-    frameIndices?: number[]; // 使用するフレームの配列
-    selectionMode?: "RANDOM" | "SEQUENTIAL";
+    animType?: "RANDOM" | "SEQUENTIAL";
+    animSize?: number; // 使用するフレームの配列
   };
 }
 
