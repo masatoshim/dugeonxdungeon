@@ -187,19 +187,21 @@ export class MainScene extends Phaser.Scene {
       },
       this,
     );
+
     this.physics.add.overlap(
       this.player,
       this.buttonsGroup,
-      (player, button) => {
+      (_player, button) => {
         (button as Button).onOverlap();
       },
       undefined,
       this,
     );
+
     this.physics.add.overlap(
       this.player,
       this.leversGroup,
-      (player, lever) => {
+      (_player, lever) => {
         (lever as LeverSwitch).onOverlap();
       },
       undefined,
@@ -210,12 +212,13 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.movableStones,
       this.buttonsGroup,
-      (stone, button) => {
+      (_stone, button) => {
         (button as Button).onOverlap();
       },
       undefined,
       this,
     );
+
     // 石とレバースイッチの接触判定
     this.physics.add.overlap(
       this.movableStones,
@@ -370,7 +373,7 @@ export class MainScene extends Phaser.Scene {
       this.player,
       this.enemies,
       (player, enemies) => {
-        // 通常の敵（障害物タイプでない）の場合、触れたら即ゲームオーバー
+        // 通常の敵の場合、触れたら即ゲームオーバー
       },
       (player, enemies) => {
         const enemy = enemies as Enemy;
@@ -382,7 +385,7 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemies, (player, enemyObj) => {
       const enemy = enemyObj as Enemy;
 
-      // 障害物タイプ（isObstacle: true）ならダメージを与えない
+      // 障害物タイプならダメージを与えない
       if (enemy.getEnemyData().isObstacle || false) {
         return;
       }

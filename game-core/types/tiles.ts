@@ -53,7 +53,7 @@ export interface EnemyData {
   };
   // moveTypeがMIRROR専用のパラメータ
   mirrorAxis?: "BOTH" | "HORIZONTAL_ONLY" | "VERTICAL_ONLY";
-  animType: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3" | "DIRECTIONAL_4"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
+  animType: "SINGLE" | "DIRECTIONAL" | "DIRECTIONAL_2" | "DIRECTIONAL_3" | "DIRECTIONAL_4" | "DIRECTIONAL_5"; // SINGLE: 進行方向に依存しない。　DIRECTIONAL: 進行方向ごとにアニメーション切り替え
   animSize: number;
   frameRate?: number;
   isInvincible?: boolean; // 無敵判定

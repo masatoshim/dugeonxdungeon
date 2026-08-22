@@ -105,6 +105,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
           { id: "EFS" },
           { id: "EGO" },
           { id: "ECC" },
+          { id: "EBO" },
         ],
       },
     ],

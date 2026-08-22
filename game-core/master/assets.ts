@@ -76,6 +76,7 @@ import cannonBallImg from "@/game-core/assets/enemies/cannon_ball.png";
 import stepImg from "@/game-core/assets/enemies/step.png";
 import stepStepImg from "@/game-core/assets/enemies/step_step.png";
 import pawsImg from "@/game-core/assets/enemies/paws.png";
+import boarImg from "@/game-core/assets/enemies/boar.png";
 
 export const ASSETS = {
   // core
@@ -156,6 +157,7 @@ export const ASSETS = {
   step: stepImg.src,
   stepStep: stepStepImg.src,
   paws: pawsImg.src,
+  boar: boarImg.src,
 } as const;
 
 export type AssetKey = keyof typeof ASSETS;

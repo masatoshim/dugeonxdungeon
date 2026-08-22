@@ -109,7 +109,6 @@ export class StoneManager {
     stone2: Phaser.Physics.Arcade.Sprite,
     movableStones?: Phaser.Physics.Arcade.Group,
   ) => {
-    console.log("stone:", stone1);
     if (stone1.getData("color") == "NONE" || stone2.getData("color") == "NONE") return;
 
     const isBlock1 = stone1.getData("element") === "BLOCK";
@@ -140,7 +139,6 @@ export class StoneManager {
     movableStones?: Phaser.Physics.Arcade.Group,
     wallsGroup?: Phaser.Physics.Arcade.StaticGroup,
   ) => {
-    console.log("stone:", stone);
     if (stone.getData("color") == "NONE" || wall.getData("color") == "NONE") return;
 
     const isBlock = stone.getData("element") === "BLOCK";
@@ -293,7 +291,6 @@ export class StoneManager {
   ): { x: number; y: number; hitObject?: Phaser.GameObjects.GameObject } {
     let currX = stone.x;
     let currY = stone.y;
-    let hitObject: Phaser.GameObjects.GameObject | undefined = undefined;
 
     const TOLERANCE = 8; // グリッド中心からの許容誤差
 

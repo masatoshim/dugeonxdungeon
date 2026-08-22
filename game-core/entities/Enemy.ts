@@ -167,6 +167,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           { suffix: "right", frames: [10, 11, 12, 13, 14] },
           { suffix: "up", frames: [15, 16, 17, 16] },
         ],
+        DIRECTIONAL_5: [
+          { suffix: "down", frames: [0, 2, 1] },
+          { suffix: "left", frames: [3, 5, 4] },
+          { suffix: "right", frames: [6, 8, 7] },
+          { suffix: "up", frames: [9, 11, 10] },
+        ],
       };
       const directions = directionsMap[this.enemyData.animType] || directionsMap["DIRECTIONAL"];
 
