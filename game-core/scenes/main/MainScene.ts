@@ -12,6 +12,7 @@ import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
 import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
+import { LimitedDoor } from "@/game-core/entities/LimitedDoor";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 import { Button } from "@/game-core/entities/Button";
@@ -164,6 +165,12 @@ export class MainScene extends Phaser.Scene {
     this.timerUI = new TimerUI(this, this.timeLimit);
   }
 
+  private setupItemCollisions() {
+    if (!this.player) return;
+    // player と items グループの接触を監視
+    this.physics.add.overlap(this.player, this.items, this.handleItemPickup, undefined, this);
+  }
+
   private setupPhysics() {
     if (!this.player) return;
 
@@ -171,18 +178,25 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.walls);
     this.physics.add.collider(this.player, this.breakableWalls);
     this.physics.add.collider(this.player, this.footstompTraps);
+    // プレイヤーと扉の衝突設定
     this.physics.add.collider(
       this.player,
       this.doors,
-      (player, door) => {
-        if (!(door instanceof DirectionalDoor)) {
-          this.doorManager.handleDoorCollision(player as Player, door as Door);
-        }
+      // 衝突が発生した時のコールバック
+      (player, doorObj) => {
+        this.doorManager.handleDoorCollision(player as Player, doorObj as Door);
       },
-      (_player, door) => {
-        if (door instanceof DirectionalDoor && door.isOpened) {
-          return false;
+      // 衝突判定を行うかどうかを決めるチェック
+      (_player, doorObj) => {
+        // カウントダウン扉の判定
+        if (doorObj instanceof LimitedDoor) {
+          return doorObj.getRemainingCount() === 0;
         }
+        // 一方通行扉の判定
+        if (doorObj instanceof DirectionalDoor) {
+          return !doorObj.isOpened;
+        }
+        // その他の扉はデフォルトで衝突有効
         return true;
       },
       this,
@@ -372,17 +386,17 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(
       this.player,
       this.enemies,
-      (player, enemies) => {
+      (_player, _enemies) => {
         // 通常の敵の場合、触れたら即ゲームオーバー
       },
-      (player, enemies) => {
+      (_player, enemies) => {
         const enemy = enemies as Enemy;
         // 障害物タイプの敵だけ物理的な衝突を有効にする
         return !!enemy.getEnemyData().isObstacle;
       },
     );
 
-    this.physics.add.overlap(this.player, this.enemies, (player, enemyObj) => {
+    this.physics.add.overlap(this.player, this.enemies, (_player, enemyObj) => {
       const enemy = enemyObj as Enemy;
 
       // 障害物タイプならダメージを与えない
@@ -391,12 +405,6 @@ export class MainScene extends Phaser.Scene {
       }
       this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
     });
-  }
-
-  private setupItemCollisions() {
-    if (!this.player) return;
-    // player と items グループの接触を監視
-    this.physics.add.overlap(this.player, this.items, this.handleItemPickup, undefined, this);
   }
 
   // アイテムを拾った時の処理
@@ -496,8 +504,13 @@ export class MainScene extends Phaser.Scene {
     // 一方通行扉の毎フレーム通過・距離チェック
     if (this.player && this.doors) {
       this.doors.getChildren().forEach((door) => {
+        // 一方通行扉の処理
         if (door instanceof DirectionalDoor) {
           door.updatePassCheck(this.player);
+        }
+        // カウントダウン扉の処理を追加
+        if (door instanceof LimitedDoor) {
+          door.checkLimitedDoorPass(this.player);
         }
       });
     }

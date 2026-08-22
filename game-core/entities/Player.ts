@@ -113,6 +113,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return (this.inventory.keys as any as string[]).includes(doorId);
   }
 
+  public hasKey(): boolean {
+    return this.inventory.keys.length > 0;
+  }
+
   public useKeyFor(doorId: string) {
     const keys = this.inventory.keys as any as string[];
     const index = keys.indexOf(doorId);

@@ -100,6 +100,6 @@ export class LeverSwitch extends Phaser.Physics.Arcade.Sprite {
   public invertState(): void {
     this.isOn = !this.isOn;
     this.setFrame(this.isOn ? this.activeFrame : this.inactiveFrame);
-    this.doorManager.toggleTarget(this.targetId, this);
+    this.doorManager.toggleTarget(this.targetId);
   }
 }

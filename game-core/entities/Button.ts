@@ -65,7 +65,7 @@ export class Button extends Phaser.Physics.Arcade.Sprite {
     if (!this.isPressed) {
       this.isPressed = true;
       this.setFrame(this.activeFrame);
-      this.doorManager.activateTarget(this.targetId, this);
+      this.doorManager.activateTarget(this.targetId);
     }
   }
 
@@ -83,7 +83,7 @@ export class Button extends Phaser.Physics.Arcade.Sprite {
     if (this.isPressed && !this.wasPressedThisFrame) {
       this.isPressed = false;
       this.setFrame(this.inactiveFrame);
-      this.doorManager.deactivateTarget(this.targetId, this);
+      this.doorManager.deactivateTarget(this.targetId);
     }
 
     // 次フレーム用にフラグをリセット

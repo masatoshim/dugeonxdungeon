@@ -5,8 +5,10 @@ import { TILE_SIZE } from "@/game-core/types";
 import { Player } from "@/game-core/entities/Player";
 import { Door } from "@/game-core/entities/Door";
 import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
+import { LimitedDoor } from "@/game-core/entities/LimitedDoor";
 import { Button } from "@/game-core/entities/Button";
 import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
+import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 
 export class DoorManager {
   private targets = new Map<string, Door>();
@@ -61,6 +63,24 @@ export class DoorManager {
             openFrame: config.openFrame ?? 1,
             closedFrame: 0,
           },
+        );
+
+        // 扉グループに追加
+        groups.doors.add(door);
+      });
+
+    // カウントダウン扉の生成
+    entities
+      .filter((e) => e.tileId === "GDC3")
+      .forEach((e) => {
+        const config = TILE_CONFIG[e.tileId];
+
+        const door = new LimitedDoor(
+          scene,
+          e.x * TILE_SIZE + TILE_SIZE / 2,
+          e.y * TILE_SIZE + TILE_SIZE / 2,
+          config.texture!,
+          config.maxCount!,
         );
 
         // 扉グループに追加
@@ -166,7 +186,7 @@ export class DoorManager {
   /**
    * トリガー起動時の処理
    */
-  public activateTarget(targetId: string, source?: any): void {
+  public activateTarget(targetId: string): void {
     const target = this.targets.get(targetId);
     if (target) {
       target.activate();
@@ -178,7 +198,7 @@ export class DoorManager {
   /**
    * トリガー解除時の処理（ボタン用）
    */
-  public deactivateTarget(targetId: string, source?: any): void {
+  public deactivateTarget(targetId: string): void {
     const target = this.targets.get(targetId);
     if (target) {
       target.deactivate();
@@ -188,7 +208,7 @@ export class DoorManager {
   /**
    * ターゲットの状態を反転させる（レバースイッチ用）
    */
-  public toggleTarget(targetId: string, source?: any): void {
+  public toggleTarget(targetId: string): void {
     const target = this.targets.get(targetId);
     if (target) {
       target.toggle();
@@ -202,8 +222,11 @@ export class DoorManager {
     this.targets.clear();
   }
 
-  public handleDoorCollision(player: Player, door: Door | DirectionalDoor) {
+  public handleDoorCollision(player: Player, door: Door) {
     if (door instanceof DirectionalDoor) {
+      return;
+    }
+    if (door instanceof LimitedDoor) {
       return;
     }
     // 鍵扉のチェック処理
@@ -212,10 +235,15 @@ export class DoorManager {
     // 該当する扉の鍵を持っているか確認
     if (player.hasKeyFor(doorId)) {
       // 扉を開ける
-      this.activateTarget(doorId, player);
+      this.activateTarget(doorId);
       // 使った鍵を削除
       player.useKeyFor(doorId);
     } else {
+      if (player.hasKey()) {
+        MessageManager.getInstance().notify("持ってる鍵じゃ開かないみたい…");
+      } else {
+        MessageManager.getInstance().notify("扉は固く閉ざされている");
+      }
     }
   }
 }

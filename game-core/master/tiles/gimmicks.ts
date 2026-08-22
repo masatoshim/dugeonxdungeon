@@ -177,6 +177,13 @@ export const GIMMICK_TILES = {
     openFrame: 1,
     allowedDirection: "DOWN",
   },
+  GDC3: {
+    name: "カウントダウン扉3",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "doorCount3",
+    openFrame: 1,
+    maxCount: 3,
+  },
   GWI: {
     name: "ワープ入口",
     category: TILE_CATEGORIES.GIMMICK,

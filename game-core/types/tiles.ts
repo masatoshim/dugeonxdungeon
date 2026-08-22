@@ -124,6 +124,7 @@ export interface TileConfig {
   allowedDirection?: AllowedDirection;
   color?: "RED" | "BLUE" | "YELLOW" | "GREEN";
   openFrame?: number;
+  maxCount?: number;
   isBreakable?: boolean;
   isLocked?: boolean;
   hp?: number;
