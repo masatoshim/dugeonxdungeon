@@ -106,6 +106,13 @@ export const GIMMICK_TILES = {
     color: "GREEN",
     stoneData: { id: "CB_YELLOW", stoneType: "NORMAL", element: "BLOCK" },
   },
+  BLC3: {
+    name: "カウントダウンブロック3",
+    category: TILE_CATEGORIES.STONE,
+    texture: "blockCount3",
+    maxCount: 3,
+    stoneData: { id: "B_COUNT3", stoneType: "NORMAL", element: "BLOCK" },
+  },
   GB: {
     name: "ボタン",
     category: TILE_CATEGORIES.GIMMICK,

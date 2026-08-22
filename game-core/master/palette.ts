@@ -46,6 +46,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
           { id: "CBLB" },
           { id: "CBLY" },
           { id: "CBLG" },
+          { id: "BLC3" },
         ],
       },
       {

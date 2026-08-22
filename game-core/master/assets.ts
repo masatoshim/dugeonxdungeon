@@ -46,6 +46,7 @@ import doorDirectionRightImg from "@/game-core/assets/gimmicks/door_direction_ri
 import doorDirectionUpImg from "@/game-core/assets/gimmicks/door_direction_up.png";
 import doorDirectionDownImg from "@/game-core/assets/gimmicks/door_direction_down.png";
 import doorCount3Img from "@/game-core/assets/gimmicks/door_count_3.png";
+import blockCount3Img from "@/game-core/assets/gimmicks/block_count3.png";
 
 // items
 import weaponSwordImg from "@/game-core/assets/items/weapon-sword.png";
@@ -128,6 +129,7 @@ export const ASSETS = {
   doorDirectionUp: doorDirectionUpImg.src,
   doorDirectionDown: doorDirectionDownImg.src,
   doorCount3: doorCount3Img.src,
+  blockCount3: blockCount3Img.src,
 
   // items
   weaponSword: weaponSwordImg.src,

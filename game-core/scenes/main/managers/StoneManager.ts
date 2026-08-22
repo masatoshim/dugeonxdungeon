@@ -51,11 +51,21 @@ export class StoneManager {
       movableStones,
     );
 
-    if (targetPos.x === stone.x && targetPos.y === stone.y && !targetPos.hitObject) {
+    // 移動先が変わらない場合は処理終了
+    if (targetPos.x === stone.x && targetPos.y === stone.y) {
+      if (targetPos.hitObject) {
+        if (movableStones && targetPos.hitObject.getData("element") === "BLOCK") {
+          this.handleStoneToStoneCollision(stone, targetPos.hitObject as Phaser.Physics.Arcade.Sprite, movableStones);
+        } else if (walls && targetPos.hitObject.getData("element") === "WALL") {
+          this.handleStoneToWallCollision(stone, targetPos.hitObject, movableStones, walls);
+        }
+      }
       return;
     }
 
     if (!this.canPushStone(moveX, moveY, stone)) return;
+
+    stone.setData("isMoving", true);
 
     this.moveStoneTween(stone, targetPos, isIce, true, movableStones, walls);
   }
@@ -97,6 +107,8 @@ export class StoneManager {
     }
 
     if (!this.canPushStone(moveX, moveY, stone)) return;
+
+    stone.setData("isMoving", true);
 
     this.moveStoneTween(stone, targetPos, isIce, true, movableStones, walls);
   }
@@ -380,12 +392,19 @@ export class StoneManager {
     const { x: targetX, y: targetY, hitObject } = targetResult;
     const distance = Phaser.Math.Distance.Between(stone.x, stone.y, targetX, targetY);
 
+    if (distance === 0) {
+      stone.setData("isMoving", false);
+      return;
+    }
+
     let duration = (distance / TILE_SIZE) * 300;
     if (isAttack) {
       duration = isIce ? (distance / TILE_SIZE) * 120 : 120;
     }
 
-    stone.setData("isMoving", true);
+    // すでに動いているTweenがあれば安全に停止
+    this.scene.tweens.killTweensOf(stone);
+
     stone.setData("targetX", targetX);
     stone.setData("targetY", targetY);
 
@@ -399,7 +418,9 @@ export class StoneManager {
         if (stone.body) (stone.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
       },
       onComplete: () => {
+        if (stone.getData("isDisappearing")) return;
         this.clearStoneData(stone);
+        this.decrementStoneCount(stone);
 
         // 移動完了時に衝突対象との消滅判定をロジックで直接実行
         if (hitObject) {
@@ -410,30 +431,51 @@ export class StoneManager {
           }
         }
       },
-      onKill: () => {
-        this.clearStoneData(stone);
-      },
     });
   }
 
   private canPushStone(moveX: number, moveY: number, stone: Phaser.Physics.Arcade.Sprite): boolean {
+    // 移動回数制限のチェック
+    const remainingCount = stone.getData("remainingCount");
+    if (remainingCount !== undefined && remainingCount <= 0) {
+      return false;
+    }
+
+    // 方向性のチェック
     const allowed: string = stone.getData("allowedDirection") || "ALL";
-
     if (allowed.includes("ALL")) return true;
-
     if (moveX > 0 && allowed === "RIGHT") return true;
-
     if (moveX < 0 && allowed === "LEFT") return true;
-
     if (moveY > 0 && allowed === "DOWN") return true;
-
     if (moveY < 0 && allowed === "UP") return true;
-
     if (allowed.includes("HORIZONTAL") && moveY === 0) return true;
-
     if (allowed.includes("VERTICAL") && moveX === 0) return true;
 
     return false;
+  }
+
+  /**
+   * 移動完了時にカウントを減らし、必要に応じてスプライト表示を変更する
+   */
+  private decrementStoneCount(stone: Phaser.Physics.Arcade.Sprite) {
+    const remainingCount = stone.getData("remainingCount");
+    if (remainingCount === undefined) return;
+
+    const newCount = Math.max(0, remainingCount - 1);
+    stone.setData("remainingCount", newCount);
+
+    const maxCount = stone.getData("maxCount") || newCount;
+
+    const frameIndex = maxCount - newCount;
+    console.log("maxCount:", maxCount);
+    console.log("newCount:", newCount);
+    console.log("frameIndex:", frameIndex);
+    stone.setFrame(frameIndex);
+
+    // カウント0になったら動かない壁にする
+    if (newCount === 0 && stone.body instanceof Phaser.Physics.Arcade.Body) {
+      stone.body.setImmovable(true);
+    }
   }
 
   /**
