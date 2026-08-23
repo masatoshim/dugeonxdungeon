@@ -218,7 +218,7 @@ export class MainScene extends Phaser.Scene {
       this.warpManager.handleWarpOverlap(this.player, warpObj as Phaser.Physics.Arcade.Sprite);
     });
 
-    // プレイヤーと石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
+    // プレイヤーと石との衝突処理
     this.physics.add.collider(this.player, this.movableStones, (player, stoneObj) => {
       const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
       const stoneType = stone.getData("stoneType");

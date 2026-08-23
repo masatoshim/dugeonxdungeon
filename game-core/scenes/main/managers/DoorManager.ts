@@ -11,14 +11,14 @@ import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 
 export class DoorManager {
-  private targets = new Map<string, Door>();
+  private targetDoors = new Map<string, Door>();
 
   constructor(private scene: Phaser.Scene) {}
 
   /**
    * エディタで配置された扉、鍵、ボタン、レバースイッチを生成し、接続関係を構築する
    */
-  public createDoorGimmicks(scene: Phaser.Scene, entities: EntityData[] = [], groups: LevelGroups) {
+  public createDoorGimmicks(scene: Phaser.Scene, entities: EntityData[] = [], levelGroups: LevelGroups) {
     if (!entities || !Array.isArray(entities)) return [];
 
     // 扉の生成
@@ -42,7 +42,7 @@ export class DoorManager {
 
         this.registerTarget(door);
 
-        groups.doors.add(door);
+        levelGroups.doors.add(door);
       });
 
     // 一方通行扉の生成
@@ -65,8 +65,7 @@ export class DoorManager {
           },
         );
 
-        // 扉グループに追加
-        groups.doors.add(door);
+        levelGroups.doors.add(door);
       });
 
     // カウントダウン扉の生成
@@ -83,8 +82,7 @@ export class DoorManager {
           config.maxCount!,
         );
 
-        // 扉グループに追加
-        groups.doors.add(door);
+        levelGroups.doors.add(door);
       });
 
     // ボタンの生成
@@ -111,7 +109,7 @@ export class DoorManager {
 
         button.setDepth(1);
 
-        groups.buttonsGroup.add(button);
+        levelGroups.buttonsGroup.add(button);
       });
 
     // レバースイッチの生成
@@ -137,7 +135,7 @@ export class DoorManager {
 
         lever.setDepth(1);
 
-        groups.leversGroup.add(lever, true);
+        levelGroups.leversGroup.add(lever, true);
       });
 
     // カギの生成
@@ -162,36 +160,36 @@ export class DoorManager {
           },
         });
 
-        groups.items.add(keyItem);
+        levelGroups.items.add(keyItem);
       });
   }
 
   /**
    * ギミックのターゲットを登録する
    */
-  public registerTarget(target: Door): void {
-    if (!target.id) {
+  public registerTarget(targetDoor: Door): void {
+    if (!targetDoor.id) {
       return;
     }
-    this.targets.set(target.id, target);
+    this.targetDoors.set(targetDoor.id, targetDoor);
   }
 
   /**
    * 登録済みターゲットの取得
    */
   public getTarget(targetId: string): Door | undefined {
-    return this.targets.get(targetId);
+    return this.targetDoors.get(targetId);
   }
 
   /**
    * トリガー起動時の処理
    */
   public activateTarget(targetId: string): void {
-    const target = this.targets.get(targetId);
-    if (target) {
-      target.activate();
+    const targetDoor = this.targetDoors.get(targetId);
+    if (targetDoor) {
+      targetDoor.activate();
     } else {
-      console.warn(`GimmickTarget with ID '${targetId}' not found.`);
+      // console.warn(`GimmickTarget with ID '${targetId}' not found.`);
     }
   }
 
@@ -199,9 +197,9 @@ export class DoorManager {
    * トリガー解除時の処理（ボタン用）
    */
   public deactivateTarget(targetId: string): void {
-    const target = this.targets.get(targetId);
-    if (target) {
-      target.deactivate();
+    const targetDoor = this.targetDoors.get(targetId);
+    if (targetDoor) {
+      targetDoor.deactivate();
     }
   }
 
@@ -209,9 +207,9 @@ export class DoorManager {
    * ターゲットの状態を反転させる（レバースイッチ用）
    */
   public toggleTarget(targetId: string): void {
-    const target = this.targets.get(targetId);
-    if (target) {
-      target.toggle();
+    const targetDoor = this.targetDoors.get(targetId);
+    if (targetDoor) {
+      targetDoor.toggle();
     }
   }
 
@@ -219,7 +217,7 @@ export class DoorManager {
    * 管理情報のクリア
    */
   public clear(): void {
-    this.targets.clear();
+    this.targetDoors.clear();
   }
 
   public handleDoorCollision(player: Player, door: Door) {

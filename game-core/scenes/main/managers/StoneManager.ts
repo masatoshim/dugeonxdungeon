@@ -9,7 +9,7 @@ export class StoneManager {
   }
 
   /**
-   * 石または氷を押した時の移動ロジック
+   * TILE_CATEGORIESがSTONE（石・氷・ブロック）のオブジェクトを押した時の移動ロジック
    */
   public handleStonePush(
     pusher: Phaser.Physics.Arcade.Sprite,
@@ -54,10 +54,20 @@ export class StoneManager {
     // 移動先が変わらない場合は処理終了
     if (targetPos.x === stone.x && targetPos.y === stone.y) {
       if (targetPos.hitObject) {
+        // 移動方向の正規化 (-1, 0, 1)
+        const dirX = Math.sign(moveX);
+        const dirY = Math.sign(moveY);
+
         if (movableStones && targetPos.hitObject.getData("element") === "BLOCK") {
-          this.handleStoneToStoneCollision(stone, targetPos.hitObject as Phaser.Physics.Arcade.Sprite, movableStones);
+          this.handleStoneToStoneCollision(
+            stone,
+            targetPos.hitObject as Phaser.Physics.Arcade.Sprite,
+            movableStones,
+            dirX,
+            dirY,
+          );
         } else if (walls && targetPos.hitObject.getData("element") === "WALL") {
-          this.handleStoneToWallCollision(stone, targetPos.hitObject, movableStones, walls);
+          this.handleStoneToWallCollision(stone, targetPos.hitObject, movableStones, walls, dirX, dirY);
         }
       }
       return;
@@ -71,7 +81,7 @@ export class StoneManager {
   }
 
   /**
-   * 攻撃によって石・氷を飛ばす
+   * 攻撃によってSTONEを飛ばす
    */
   public moveStoneByAttack(
     stone: Phaser.Physics.Arcade.Sprite,
@@ -120,6 +130,8 @@ export class StoneManager {
     stone1: Phaser.Physics.Arcade.Sprite,
     stone2: Phaser.Physics.Arcade.Sprite,
     movableStones?: Phaser.Physics.Arcade.Group,
+    dirX: number = 0,
+    dirY: number = 0,
   ) => {
     if (stone1.getData("color") == "NONE" || stone2.getData("color") == "NONE") return;
 
@@ -136,9 +148,9 @@ export class StoneManager {
       !stone1.getData("isDisappearing") &&
       !stone2.getData("isDisappearing")
     ) {
-      // 同色ブロック同士の消滅処理
-      this.disappearObject(stone1, movableStones);
-      this.disappearObject(stone2, movableStones);
+      // 押した方向へずらしながら消滅させる
+      this.disappearObject(stone1, movableStones, dirX, dirY, true);
+      this.disappearObject(stone2, movableStones, dirX, dirY, false);
     }
   };
 
@@ -150,6 +162,8 @@ export class StoneManager {
     wall: Phaser.GameObjects.GameObject,
     movableStones?: Phaser.Physics.Arcade.Group,
     wallsGroup?: Phaser.Physics.Arcade.StaticGroup,
+    dirX: number = 0,
+    dirY: number = 0,
   ) => {
     if (stone.getData("color") == "NONE" || wall.getData("color") == "NONE") return;
 
@@ -166,9 +180,9 @@ export class StoneManager {
       !stone.getData("isDisappearing") &&
       !wall.getData("isDisappearing")
     ) {
-      // 同色のブロックと壁を消滅させる
-      this.disappearObject(stone, movableStones);
-      this.disappearObject(wall, wallsGroup);
+      // 押した方向へずらしながら消滅させる
+      this.disappearObject(stone, movableStones, dirX, dirY, true);
+      this.disappearObject(wall, wallsGroup, dirX, dirY, false);
     }
   };
 
@@ -178,6 +192,9 @@ export class StoneManager {
   public disappearObject(
     target: Phaser.GameObjects.GameObject,
     group?: Phaser.Physics.Arcade.Group | Phaser.Physics.Arcade.StaticGroup,
+    dirX: number = 0,
+    dirY: number = 0,
+    shouldOffset: boolean = false,
   ) {
     if (target.getData("isDisappearing")) return;
     target.setData("isDisappearing", true);
@@ -190,13 +207,23 @@ export class StoneManager {
       target.body.enable = false;
     }
 
+    // 押し込む量
+    const PUSH_OFFSET = TILE_SIZE * 0.8;
+    const sprite = target as Phaser.Physics.Arcade.Sprite;
+
+    // 押した本人のみ座標を変化させる
+    const targetX = shouldOffset ? sprite.x + dirX * PUSH_OFFSET : sprite.x;
+    const targetY = shouldOffset ? sprite.y + dirY * PUSH_OFFSET : sprite.y;
+
     this.scene.tweens.add({
       targets: target,
+      x: targetX,
+      y: targetY,
       alpha: 0,
-      scaleX: 0.7,
-      scaleY: 0.7,
+      scaleX: 0.6,
+      scaleY: 0.6,
       duration: 500,
-      ease: "Power2",
+      ease: "Cubic.easeOut", // 押されてスッと吸い込まれるようなイージング
       onComplete: () => {
         if (group) {
           group.remove(target, true, true);
@@ -271,13 +298,15 @@ export class StoneManager {
     stone.setPosition(snappedX, snappedY);
   }
 
+  /**
+   * 押そうとした1マス先に敵がいるか判定
+   */
   private isEnemyAhead(
     stone: Phaser.Physics.Arcade.Sprite,
     moveX: number,
     moveY: number,
     enemies: Phaser.Physics.Arcade.Group,
   ): boolean {
-    // 押そうとした1マス先に敵がいるかチェック
     const nextGridX = stone.x + moveX;
     const nextGridY = stone.y + moveY;
 
@@ -434,6 +463,9 @@ export class StoneManager {
     });
   }
 
+  /**
+   * 移動可能か判定
+   */
   private canPushStone(moveX: number, moveY: number, stone: Phaser.Physics.Arcade.Sprite): boolean {
     // 移動回数制限のチェック
     const remainingCount = stone.getData("remainingCount");
