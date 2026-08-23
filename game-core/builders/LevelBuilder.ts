@@ -11,9 +11,9 @@ export class LevelBuilder {
    * マップデータを解析して、各種オブジェクトを生成・グループ化する
    * 基本的にタイル配列（mapData）に基づいた静的な配置を行う
    */
-  public createLevel(mapData: TileConfigKey[][], groups: LevelGroups) {
+  public createLevel(tiles: TileConfigKey[][], groups: LevelGroups) {
     // 地面を描画
-    mapData.forEach((row, y) => {
+    tiles.forEach((row, y) => {
       row.forEach((_, x) => {
         const posX = x * TILE_SIZE + TILE_SIZE / 2;
         const posY = y * TILE_SIZE + TILE_SIZE / 2;
@@ -24,7 +24,7 @@ export class LevelBuilder {
     });
 
     // 各オブジェクトを生成
-    mapData.forEach((row, y) => {
+    tiles.forEach((row, y) => {
       row.forEach((tileId, x) => {
         const config = TILE_CONFIG[tileId];
 

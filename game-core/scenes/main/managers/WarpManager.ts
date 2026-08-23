@@ -15,35 +15,6 @@ export class WarpManager {
   }
 
   /**
-   * 毎フレームの更新処理
-   * プレイヤーおよび敵がワープマスから離れたかを個別チェックしてフラグ解除
-   */
-  public update(player: Player, enemies?: Phaser.Physics.Arcade.Group) {
-    if (!this.warps) return;
-
-    // プレイヤーの離脱チェック
-    if (player && player.getData("isOverlappingWarp")) {
-      const isTouching = this.scene.physics.overlap(player, this.warps);
-      if (!isTouching) {
-        player.setData("isOverlappingWarp", false);
-      }
-    }
-
-    // 敵グループの離脱チェック
-    if (enemies) {
-      enemies.getChildren().forEach((enemyObj) => {
-        const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
-        if (enemy.active && enemy.getData("isOverlappingWarp")) {
-          const isTouching = this.scene.physics.overlap(enemy, this.warps);
-          if (!isTouching) {
-            enemy.setData("isOverlappingWarp", false);
-          }
-        }
-      });
-    }
-  }
-
-  /**
    * ワープオブジェクトを生成
    */
   public setupWarps(mapData: MapData) {
@@ -122,5 +93,34 @@ export class WarpManager {
         });
       },
     });
+  }
+
+  /**
+   * 毎フレームの更新処理
+   * プレイヤーおよび敵がワープマスから離れたかを個別チェックしてフラグ解除
+   */
+  public update(player: Player, enemies?: Phaser.Physics.Arcade.Group) {
+    if (!this.warps) return;
+
+    // プレイヤーの離脱チェック
+    if (player && player.getData("isOverlappingWarp")) {
+      const isTouching = this.scene.physics.overlap(player, this.warps);
+      if (!isTouching) {
+        player.setData("isOverlappingWarp", false);
+      }
+    }
+
+    // 敵グループの離脱チェック
+    if (enemies) {
+      enemies.getChildren().forEach((enemyObj) => {
+        const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
+        if (enemy.active && enemy.getData("isOverlappingWarp")) {
+          const isTouching = this.scene.physics.overlap(enemy, this.warps);
+          if (!isTouching) {
+            enemy.setData("isOverlappingWarp", false);
+          }
+        }
+      });
+    }
   }
 }

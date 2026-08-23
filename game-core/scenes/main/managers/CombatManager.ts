@@ -85,7 +85,7 @@ export class CombatManager {
     });
 
     this.scene.physics.overlap(hitArea, leversGroup, (_, leverObject) => {
-      console.log("HIT!!");
+      // console.log("HIT!!");
       if (leverObject instanceof LeverSwitch) {
         hasHit = true;
         leverObject.invertState();
