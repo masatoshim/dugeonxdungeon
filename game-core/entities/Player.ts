@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { WeaponData, PlayerInventory } from "@/game-core/types";
+import { TileConfig, WeaponData, PlayerInventory } from "@/game-core/types";
 import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -246,6 +246,42 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /**
+   * アイテムを拾った時の処理
+   */
+  public handleItemPickup(itemObj: any) {
+    const itemSprite = itemObj as Phaser.Physics.Arcade.Sprite;
+    const config: TileConfig = itemSprite.getData("config");
+    if (!config) return;
+
+    // 鍵のパターン
+    if (config.item?.type === "KEY" && config.item.targetDoorId) {
+      this.addKey(config.item.targetDoorId);
+      itemSprite.destroy();
+      MessageManager.getInstance().notify(`${config.item.name}を拾った！`);
+      return;
+    }
+
+    // スコアアイテムのパターン
+    if (config.item?.type === "SCORE_ITEM") {
+      this.addScore(config.item.score || 0);
+      itemSprite.destroy();
+      MessageManager.getInstance().notify(`${config.name}を手に入れた！`);
+      return;
+    }
+
+    // 武器のパターン
+    if (config.weaponData) {
+      this.equipWeapon(config.weaponData);
+      itemSprite.destroy();
+      MessageManager.getInstance().notify(`${config.name}を装備した！`);
+      return;
+    }
+  }
+
+  /**
+   * 武器を装備する
+   */
   public equipWeapon(weapon: WeaponData) {
     this.currentWeapon = weapon;
     // インベントリ側も更新しておく

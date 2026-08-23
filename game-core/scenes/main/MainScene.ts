@@ -139,36 +139,17 @@ export class MainScene extends Phaser.Scene {
     this.warpManager.setupWarps(this.mapData);
     // 各扉ギミックの生成と登録
     this.doorManager.createDoorGimmicks(this, this.mapData.entities, levelGroups);
-
     // 敵の弾グループを作成
     this.enemyBullets = this.physics.add.group({
       runChildUpdate: true,
     });
-    // 弾とプレイヤーのオーバーラップ
-    this.physics.add.overlap(this.player, this.enemyBullets, () =>
-      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
-    );
-    // 弾と障害物の衝突処理
-    const wallsToCheck = [this.walls, this.breakableWalls, this.doors, this.movableStones];
-    wallsToCheck.forEach((obstacleGroup) => {
-      if (obstacleGroup) {
-        this.physics.add.collider(this.enemyBullets, obstacleGroup, (bullet) => {
-          bullet.destroy();
-        });
-      }
-    });
 
-    this.setupItemCollisions(); // アイテム判定
-    this.setupPhysics(); // 壁や敵との衝突判定
-    this.setupCamera(); // カメラ設定
+    // 各衝突判定を設定
+    this.setupPhysics();
+    // カメラ設定
+    this.setupCamera();
 
     this.timerUI = new TimerUI(this, this.timeLimit);
-  }
-
-  private setupItemCollisions() {
-    if (!this.player) return;
-    // player と items グループの接触を監視
-    this.physics.add.overlap(this.player, this.items, this.handleItemPickup, undefined, this);
   }
 
   private setupPhysics() {
@@ -178,6 +159,14 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.walls);
     this.physics.add.collider(this.player, this.breakableWalls);
     this.physics.add.collider(this.player, this.footstompTraps);
+    // プレイヤーとアイテムの接触を監視
+    this.physics.add.overlap(
+      this.player,
+      this.items,
+      (_player, itemObj) => this.player.handleItemPickup(itemObj),
+      undefined,
+      this,
+    );
     // プレイヤーと扉の衝突設定
     this.physics.add.collider(
       this.player,
@@ -202,32 +191,93 @@ export class MainScene extends Phaser.Scene {
       this,
     );
 
+    // プレイヤーとボタンの衝突設定
     this.physics.add.overlap(
       this.player,
       this.buttonsGroup,
-      (_player, button) => {
-        (button as Button).onOverlap();
+      (_player, buttonObj) => {
+        (buttonObj as Button).onOverlap();
       },
       undefined,
       this,
     );
 
+    // プレイヤーとレバースイッチの衝突設定
     this.physics.add.overlap(
       this.player,
       this.leversGroup,
-      (_player, lever) => {
-        (lever as LeverSwitch).onOverlap();
+      (_player, leverObj) => {
+        (leverObj as LeverSwitch).onOverlap();
       },
       undefined,
       this,
     );
+
+    // プレイヤーとワープマスの重ね合わせ判定
+    this.physics.add.overlap(this.player, this.warps, (_player, warpObj) => {
+      this.warpManager.handleWarpOverlap(this.player, warpObj as Phaser.Physics.Arcade.Sprite);
+    });
+
+    // プレイヤーと石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
+    this.physics.add.collider(this.player, this.movableStones, (player, stoneObj) => {
+      const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
+      const stoneType = stone.getData("stoneType");
+
+      // とげとげの石は触れたら即ゲームオーバー
+      if (stoneType === "SPIKE") {
+        this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+        return;
+      }
+      // 重い石は押して移動させない
+      if (stoneType === "HEAVY") return;
+
+      this.stoneManager.handleStonePush(
+        player as Player,
+        stone,
+        this.enemies,
+        this.walls,
+        this.breakableWalls,
+        this.doors,
+        this.movableStones,
+      );
+    });
+
+    // プレイヤーと弾のオーバーラップ
+    this.physics.add.overlap(this.player, this.enemyBullets, () =>
+      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
+    );
+
+    // 通常の敵の場合、触れたら即ゲームオーバー
+    this.physics.add.collider(
+      this.player,
+      this.enemies,
+      (_player, _enemyObj) => {},
+      (_player, enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        // 障害物タイプの敵だけ物理的な衝突を有効にする
+        return !!enemy.getEnemyData().isObstacle;
+      },
+    );
+
+    this.physics.add.overlap(this.player, this.enemies, (_player, enemyObj) => {
+      const enemy = enemyObj as Enemy;
+      // 障害物タイプならダメージを与えない
+      if (enemy.getEnemyData().isObstacle || false) {
+        return;
+      }
+      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+    });
+
+    // 石が勝手に吹っ飛ぶのを防ぐ
+    this.physics.add.collider(this.movableStones, this.walls);
+    this.physics.add.collider(this.movableStones, this.movableStones);
 
     // 石とボタンの接触判定
     this.physics.add.overlap(
       this.movableStones,
       this.buttonsGroup,
-      (_stone, button) => {
-        (button as Button).onOverlap();
+      (_stoneObj, buttonObj) => {
+        (buttonObj as Button).onOverlap();
       },
       undefined,
       this,
@@ -237,8 +287,8 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.movableStones,
       this.leversGroup,
-      (stone, lever) => {
-        (lever as LeverSwitch).onOverlap();
+      (_stoneObj, leverObj) => {
+        (leverObj as LeverSwitch).onOverlap();
       },
       undefined,
       this,
@@ -285,7 +335,6 @@ export class MainScene extends Phaser.Scene {
       const enemy = enemyObj as Enemy;
       const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
       const stoneType = stone.getData("stoneType");
-
       // MIRRORタイプの敵のみ石を押せるように判定
       if (enemy.getEnemyData().moveType === "MIRROR") {
         if (stoneType === "HEAVY" || stoneType === "SPIKE") return;
@@ -307,59 +356,6 @@ export class MainScene extends Phaser.Scene {
       }
     });
 
-    // プレイヤーと石との衝突処理：物理的な押し出しではなく、handleStonePush を実行する
-    this.physics.add.collider(this.player, this.movableStones, (p, stoneObject) => {
-      const stone = stoneObject as Phaser.Physics.Arcade.Sprite;
-      const stoneType = stone.getData("stoneType");
-
-      // とげとげの石は触れたら即ゲームオーバー
-      if (stoneType === "SPIKE") {
-        this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
-        return;
-      }
-      // 重い石は押して移動させない
-      if (stoneType === "HEAVY") return;
-
-      this.stoneManager.handleStonePush(
-        p as Player,
-        stone,
-        this.enemies,
-        this.walls,
-        this.breakableWalls,
-        this.doors,
-        this.movableStones,
-      );
-    });
-
-    // 石が勝手に吹っ飛ぶのを防ぐ
-    this.physics.add.collider(this.movableStones, this.walls);
-    this.physics.add.collider(this.movableStones, this.movableStones);
-
-    // プレイヤーと扉の衝突判定
-    this.physics.add.collider(this.player, this.doors, (_, d) => {
-      const door = d as Phaser.Physics.Arcade.Sprite;
-      const doorId = door.getData("id");
-
-      if (door.getData("isLocked") && this.player.hasKeyFor(doorId)) {
-        this.player.useKeyFor(doorId);
-        door.setData("isLocked", false);
-        const openFrame = door.getData("openFrame") ?? 0;
-        door.setFrame(openFrame);
-        door.setAlpha(0.3);
-        if (door.body) (door.body as Phaser.Physics.Arcade.StaticBody).enable = false;
-      }
-    });
-
-    // プレイヤーとワープマスの重ね合わせ判定
-    this.physics.add.overlap(
-      this.player,
-      this.warps, // LevelBuilder が生成してグループに格納したワープ群
-      (_, warp) => {
-        // ワープ処理の発火
-        this.warpManager.handleWarpOverlap(this.player, warp as Phaser.Physics.Arcade.Sprite);
-      },
-    );
-
     // 敵とワープマスの重ね合わせ判定
     this.physics.add.overlap(
       this.enemies,
@@ -374,68 +370,22 @@ export class MainScene extends Phaser.Scene {
         const enemy = enemyObj as Enemy;
         // MIRRORタイプ以外の敵はすり抜け
         if (enemy.getEnemyData().moveType !== "MIRROR") return false;
-
         // すでにワープ中または移動先マス上に留まっている場合は判定スキップ
         if (enemy.getData("isWarping") || enemy.getData("isOverlappingWarp")) return false;
-
         return true;
       },
       this,
     );
 
-    this.physics.add.collider(
-      this.player,
-      this.enemies,
-      (_player, _enemies) => {
-        // 通常の敵の場合、触れたら即ゲームオーバー
-      },
-      (_player, enemies) => {
-        const enemy = enemies as Enemy;
-        // 障害物タイプの敵だけ物理的な衝突を有効にする
-        return !!enemy.getEnemyData().isObstacle;
-      },
-    );
-
-    this.physics.add.overlap(this.player, this.enemies, (_player, enemyObj) => {
-      const enemy = enemyObj as Enemy;
-
-      // 障害物タイプならダメージを与えない
-      if (enemy.getEnemyData().isObstacle || false) {
-        return;
+    // 弾と障害物の衝突処理
+    const wallsToCheck = [this.walls, this.breakableWalls, this.doors, this.movableStones];
+    wallsToCheck.forEach((obstacleGroup) => {
+      if (obstacleGroup) {
+        this.physics.add.collider(this.enemyBullets, obstacleGroup, (bullet) => {
+          bullet.destroy();
+        });
       }
-      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
     });
-  }
-
-  // アイテムを拾った時の処理
-  private handleItemPickup(_playerObj: any, itemObj: any) {
-    const itemSprite = itemObj as Phaser.Physics.Arcade.Sprite;
-    const config: TileConfig = itemSprite.getData("config");
-    if (!config) return;
-
-    // 鍵のパターン
-    if (config.item?.type === "KEY" && config.item.targetDoorId) {
-      this.player.addKey(config.item.targetDoorId);
-      itemSprite.destroy();
-      MessageManager.getInstance().notify(`${config.item.name}を拾った！`);
-      return;
-    }
-
-    // スコアアイテムのパターン
-    if (config.item?.type === "SCORE_ITEM") {
-      this.player.addScore(config.item.score || 0);
-      itemSprite.destroy();
-      MessageManager.getInstance().notify(`${config.name}を手に入れた！`);
-      return;
-    }
-
-    // 武器のパターン
-    if (config.weaponData) {
-      this.player.equipWeapon(config.weaponData);
-      itemSprite.destroy();
-      MessageManager.getInstance().notify(`${config.name}を装備した！`);
-      return;
-    }
   }
 
   public getPlayer(): Player {
