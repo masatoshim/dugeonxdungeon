@@ -1,25 +1,14 @@
 import { useState, useCallback, useRef } from "react";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
-import { TILE_CATEGORIES, EntityData, DUNGEON_DEFAULT } from "@/game-core/types";
+import { TILE_CATEGORIES, EntityData, DUNGEON_DEFAULT, LinkGroupType, LinkEntityType } from "@/game-core/types";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 
 // 内部ロジック判定用
 interface LinkingStateType {
   active: boolean;
-  mode: "KEY_DOOR" | "BUTTON_DOOR" | "LEVER_SWITCH_DOOR" | "WARP" | "WARP_TWO_WAY" | null;
-  pendingType:
-    | "KEY"
-    | "KEY_DOOR"
-    | "BUTTON"
-    | "BUTTON_DOOR"
-    | "LEVER_SWITCH"
-    | "LEVER_SWITCH_DOOR"
-    | "WARP_IN"
-    | "WARP_OUT"
-    | "WARP_TWO_WAY1"
-    | "WARP_TWO_WAY2"
-    | null;
+  mode: LinkGroupType | null;
+  pendingType: LinkEntityType | null;
   firstEntityId: string | null;
 }
 

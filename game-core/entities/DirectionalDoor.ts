@@ -1,17 +1,17 @@
 import * as Phaser from "phaser";
 import { Player } from "@/game-core/entities/Player";
-import { AllowedDirection } from "@/game-core/types";
+import { AllowedDirectionType } from "@/game-core/types";
 import { TILE_SIZE } from "@/game-core/types";
 
 export interface DirectionalDoorConfig {
-  allowedDirection: AllowedDirection;
+  allowedDirection: AllowedDirectionType;
   openFrame?: number;
   closedFrame?: number;
 }
 
 export class DirectionalDoor extends Phaser.Physics.Arcade.Sprite {
   public readonly id: string;
-  private allowedDirection: AllowedDirection;
+  private allowedDirection: AllowedDirectionType;
   private openFrame: number;
   private closedFrame: number;
   public isOpened: boolean = false;

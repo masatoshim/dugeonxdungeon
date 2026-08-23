@@ -4,7 +4,7 @@ import { TILE_SIZE } from "@/game-core/types";
 import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
-import { LevelBuilder } from "@/game-core/builders/LevelBuilder";
+import { LevelBuilder } from "@/game-core/scenes/main/builders/LevelBuilder";
 import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
 import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
