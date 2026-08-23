@@ -6,6 +6,7 @@ import { Player } from "@/game-core/entities/Player";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { LevelBuilder } from "@/game-core/scenes/main/builders/LevelBuilder";
 import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
+import { EnemyManager } from "@/game-core/scenes/main/managers/EnemyManager";
 import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
 import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
 import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
@@ -44,6 +45,7 @@ export class MainScene extends Phaser.Scene {
 
   // ヘルパー・マネージャー
   private timerUI!: TimerUI;
+  private enemyManager!: EnemyManager;
   private warpManager!: WarpManager;
   private stoneManager!: StoneManager;
   private combatManager!: CombatManager;
@@ -61,11 +63,12 @@ export class MainScene extends Phaser.Scene {
     this.isTimerStarted = false;
 
     // マネージャーの初期化
+    this.enemyManager = new EnemyManager(this);
     this.doorManager = new DoorManager(this);
     this.warpManager = new WarpManager(this);
     this.stoneManager = new StoneManager(this);
     this.combatManager = new CombatManager(this, this.stoneManager);
-    this.levelBuilder = new LevelBuilder(this, this.doorManager, this.warpManager);
+    this.levelBuilder = new LevelBuilder(this, this.enemyManager, this.doorManager, this.warpManager);
   }
 
   preload() {
@@ -433,7 +436,7 @@ export class MainScene extends Phaser.Scene {
       this.checkGoalCondition();
     }
 
-    this.enemies.getChildren().forEach((enemy) => enemy.update());
+    this.enemyManager.update();
 
     if (this.warpManager && this.player) {
       this.warpManager.update(this.player, this.enemies);

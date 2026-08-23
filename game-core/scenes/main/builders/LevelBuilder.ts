@@ -3,12 +3,14 @@ import { TILE_CATEGORIES, TileConfig, EntityData, LevelGroups } from "@/game-cor
 import { Enemy } from "@/game-core/entities/Enemy";
 import { TileConfigKey } from "@/game-core/master";
 import { TILE_SIZE, MapData } from "@/game-core/types";
+import { EnemyManager } from "@/game-core/scenes/main/managers/EnemyManager";
 import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
 import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 
 export class LevelBuilder {
   constructor(
     private scene: Phaser.Scene,
+    private enemyManager: EnemyManager,
     private doorManager: DoorManager,
     private warpManager: WarpManager,
   ) {}
@@ -18,6 +20,7 @@ export class LevelBuilder {
    * 基本的にタイル配列（mapData）に基づいた静的な配置を行う
    */
   public createLevel(mapData: MapData, groups: LevelGroups) {
+    this.enemyManager.setupEnemiesGroup(groups.enemies);
     this.createFloorAndTiles(mapData.tiles, groups);
     if (mapData.entities) {
       // 各扉ギミックの生成と登録
@@ -77,9 +80,7 @@ export class LevelBuilder {
           case TILE_CATEGORIES.ENEMY:
             // Enemyクラスのインスタンスを生成してグループに追加
             if (config.enemyData) {
-              const enemy = new Enemy(this.scene, posX, posY, config.texture!, 0, config.enemyData);
-              if (config.enemyData) enemy.setData("enemyData", config.enemyData);
-              groups.enemies.add(enemy);
+              this.enemyManager.createEnemy(posX, posY, config.texture!, 0, config.enemyData);
             }
             break;
 
