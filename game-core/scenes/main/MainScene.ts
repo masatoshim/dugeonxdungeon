@@ -1,6 +1,5 @@
 import * as Phaser from "phaser";
 import { GAME_EVENTS, MapData, TileConfig, LevelGroups } from "@/game-core/types";
-import { TileConfigKey } from "@/game-core/master";
 import { TILE_SIZE } from "@/game-core/types";
 import { ASSETS } from "@/game-core/master";
 import { Player } from "@/game-core/entities/Player";
@@ -13,7 +12,6 @@ import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
 import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
 import { LimitedDoor } from "@/game-core/entities/LimitedDoor";
-import { MessageManager } from "@/game-core/scenes/main/managers/MessageManager";
 import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
 import { Button } from "@/game-core/entities/Button";
 import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
@@ -25,8 +23,6 @@ export class MainScene extends Phaser.Scene {
   private timeLeft: number = 0;
   private isTimerStarted: boolean = false;
   private isGameOver: boolean = false;
-
-  private tiles!: TileConfigKey[][];
 
   private player!: Player;
   private levelBuilder!: LevelBuilder;
@@ -59,17 +55,17 @@ export class MainScene extends Phaser.Scene {
 
   init(data: { mapData: MapData; timeLimit: number }) {
     this.mapData = data.mapData;
-    this.tiles = data.mapData.tiles;
     this.timeLimit = data.timeLimit;
     this.timeLeft = data.timeLimit ?? 60;
-    this.levelBuilder = new LevelBuilder(this);
     this.isGameOver = false;
     this.isTimerStarted = false;
 
     // マネージャーの初期化
     this.doorManager = new DoorManager(this);
+    this.warpManager = new WarpManager(this);
     this.stoneManager = new StoneManager(this);
     this.combatManager = new CombatManager(this, this.stoneManager);
+    this.levelBuilder = new LevelBuilder(this, this.doorManager, this.warpManager);
   }
 
   preload() {
@@ -96,8 +92,9 @@ export class MainScene extends Phaser.Scene {
     this.footstompTraps = this.physics.add.staticGroup();
     this.buttonsGroup = this.physics.add.staticGroup();
     this.leversGroup = this.physics.add.staticGroup();
-
-    this.warpManager = new WarpManager(this, this.warps);
+    this.enemyBullets = this.physics.add.group({
+      runChildUpdate: true,
+    });
 
     const levelGroups: LevelGroups = {
       walls: this.walls,
@@ -134,16 +131,7 @@ export class MainScene extends Phaser.Scene {
     };
 
     // LevelManagerを使用してマップ配置
-    this.levelBuilder.createLevel(this.tiles, levelGroups);
-    // ワープマスの生成と登録
-    this.warpManager.setupWarps(this.mapData);
-    // 各扉ギミックの生成と登録
-    this.doorManager.createDoorGimmicks(this, this.mapData.entities, levelGroups);
-    // 敵の弾グループを作成
-    this.enemyBullets = this.physics.add.group({
-      runChildUpdate: true,
-    });
-
+    this.levelBuilder.createLevel(this.mapData, levelGroups);
     // 各衝突判定を設定
     this.setupPhysics();
     // カメラ設定
@@ -502,8 +490,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setupCamera() {
-    const mapWidth = this.tiles[0].length * TILE_SIZE;
-    const mapHeight = this.tiles.length * TILE_SIZE;
+    const mapWidth = this.mapData.tiles[0].length * TILE_SIZE;
+    const mapHeight = this.mapData.tiles.length * TILE_SIZE;
     this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
     if (mapWidth > this.scale.width || mapHeight > this.scale.height) {
       // プレイヤーの追従（マップが画面より大きい場合のみ有効に機能する）

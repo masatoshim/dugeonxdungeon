@@ -6,18 +6,18 @@ import { TILE_SIZE } from "@/game-core/types";
 
 export class WarpManager {
   private scene: Phaser.Scene;
-  private warps: Phaser.Physics.Arcade.StaticGroup;
+  private warps!: Phaser.Physics.Arcade.StaticGroup;
   private warpMap: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 
-  constructor(scene: Phaser.Scene, warpsGroup: Phaser.Physics.Arcade.StaticGroup) {
+  constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.warps = warpsGroup;
   }
 
   /**
    * ワープオブジェクトを生成
    */
-  public setupWarps(mapData: MapData) {
+  public setupWarps(mapData: MapData, warpsGroup: Phaser.Physics.Arcade.StaticGroup) {
+    this.warps = warpsGroup;
     this.warpMap.clear();
     if (!mapData.entities) return;
 

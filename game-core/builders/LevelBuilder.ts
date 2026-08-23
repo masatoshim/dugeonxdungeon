@@ -2,16 +2,37 @@ import { TILE_CONFIG } from "@/game-core/master";
 import { TILE_CATEGORIES, TileConfig, EntityData, LevelGroups } from "@/game-core/types";
 import { Enemy } from "@/game-core/entities/Enemy";
 import { TileConfigKey } from "@/game-core/master";
-import { TILE_SIZE } from "@/game-core/types";
+import { TILE_SIZE, MapData } from "@/game-core/types";
+import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
+import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 
 export class LevelBuilder {
-  constructor(private scene: Phaser.Scene) {}
+  constructor(
+    private scene: Phaser.Scene,
+    private doorManager: DoorManager,
+    private warpManager: WarpManager,
+  ) {}
 
   /**
    * マップデータを解析して、各種オブジェクトを生成・グループ化する
    * 基本的にタイル配列（mapData）に基づいた静的な配置を行う
    */
-  public createLevel(tiles: TileConfigKey[][], groups: LevelGroups) {
+  public createLevel(mapData: MapData, groups: LevelGroups) {
+    this.createFloorAndTiles(mapData.tiles, groups);
+    if (mapData.entities) {
+      // 各扉ギミックの生成と登録
+      this.doorManager.createDoorGimmicks(this.scene, mapData.entities, groups);
+      // ワープマスの生成と登録
+      this.warpManager.setupWarps(mapData, groups.warps);
+    }
+  }
+
+  /**
+   * 床と基本タイルの生成
+   * @param tiles
+   * @param groups
+   */
+  public createFloorAndTiles(tiles: TileConfigKey[][], groups: LevelGroups) {
     // 地面を描画
     tiles.forEach((row, y) => {
       row.forEach((_, x) => {
@@ -49,9 +70,6 @@ export class LevelBuilder {
             this.createMovableStone(posX, posY, config, groups);
             break;
 
-          case TILE_CATEGORIES.GIMMICK:
-            break;
-
           case TILE_CATEGORIES.ITEM:
             this.createItemFromConfig(posX, posY, config, groups);
             break;
@@ -70,6 +88,9 @@ export class LevelBuilder {
             groups.goal.add(goal);
             goal.body.updateFromGameObject();
             goal.setDepth(1);
+            break;
+
+          case TILE_CATEGORIES.GIMMICK:
             break;
         }
       });
