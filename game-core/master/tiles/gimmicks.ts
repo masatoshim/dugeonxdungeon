@@ -188,8 +188,13 @@ export const GIMMICK_TILES = {
     name: "カウントダウン扉3",
     category: TILE_CATEGORIES.GIMMICK,
     texture: "doorCount3",
-    openFrame: 1,
     maxCount: 3,
+  },
+  GDC6: {
+    name: "カウントダウン扉6",
+    category: TILE_CATEGORIES.GIMMICK,
+    texture: "doorCount6",
+    maxCount: 6,
   },
   GWI: {
     name: "ワープ入口",

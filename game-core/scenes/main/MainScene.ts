@@ -1,22 +1,19 @@
 import * as Phaser from "phaser";
-import { GAME_EVENTS, MapData, TileConfig, LevelGroups } from "@/game-core/types";
-import { TILE_SIZE } from "@/game-core/types";
 import { ASSETS } from "@/game-core/master";
-import { Player } from "@/game-core/entities/Player";
-import { Enemy } from "@/game-core/entities/Enemy";
+import { GAME_EVENTS, MapData, TILE_SIZE, LevelGroups } from "@/game-core/types";
 import { LevelBuilder } from "@/game-core/scenes/main/builders/LevelBuilder";
+import {
+  Player,
+  Enemy,
+  DirectionalDoor,
+  Door,
+  LimitedDoor,
+  EnemyBullet,
+  Button,
+  LeverSwitch,
+} from "@/game-core/entities";
+import { EnemyManager, WarpManager, StoneManager, CombatManager, DoorManager } from "@/game-core/scenes/main/managers";
 import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
-import { EnemyManager } from "@/game-core/scenes/main/managers/EnemyManager";
-import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
-import { StoneManager } from "@/game-core/scenes/main/managers/StoneManager";
-import { CombatManager } from "@/game-core/scenes/main/managers/CombatManager";
-import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
-import { DirectionalDoor } from "@/game-core/entities/DirectionalDoor";
-import { LimitedDoor } from "@/game-core/entities/LimitedDoor";
-import { EnemyBullet } from "@/game-core/entities/EnemyBullet";
-import { Button } from "@/game-core/entities/Button";
-import { LeverSwitch } from "@/game-core/entities/LeverSwitch";
-import { Door } from "@/game-core/entities/Door";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;

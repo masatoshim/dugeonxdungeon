@@ -70,7 +70,7 @@ export class DoorManager {
 
     // カウントダウン扉の生成
     entities
-      .filter((e) => e.tileId === "GDC3")
+      .filter((e) => e.tileId === "GDC3" || e.tileId === "GDC6")
       .forEach((e) => {
         const config = TILE_CONFIG[e.tileId];
 

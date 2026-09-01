@@ -1,11 +1,6 @@
-import { TILE_CONFIG } from "@/game-core/master";
-import { TILE_CATEGORIES, TileConfig, EntityData, LevelGroups } from "@/game-core/types";
-import { Enemy } from "@/game-core/entities/Enemy";
-import { TileConfigKey } from "@/game-core/master";
-import { TILE_SIZE, MapData } from "@/game-core/types";
-import { EnemyManager } from "@/game-core/scenes/main/managers/EnemyManager";
-import { WarpManager } from "@/game-core/scenes/main/managers/WarpManager";
-import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
+import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+import { TILE_CATEGORIES, TILE_SIZE, MapData, TileConfig, LevelGroups } from "@/game-core/types";
+import { EnemyManager, WarpManager, DoorManager } from "@/game-core/scenes/main/managers";
 
 export class LevelBuilder {
   constructor(
