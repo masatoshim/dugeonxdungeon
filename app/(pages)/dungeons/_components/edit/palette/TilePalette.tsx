@@ -1,205 +1,193 @@
-import { useState } from "react";
-import { TILE_CONFIG, TILE_PALETTE_SCHEMA } from "@/game-core/master";
-import { TileConfigKey } from "@/game-core/master";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { TILE_CONFIG, TILE_PALETTE_SCHEMA, TileConfigKey } from "@/game-core/master";
 import { TileIconForm } from "./TileIconForm";
 import { TILE_SIZE } from "@/game-core/types";
-import { ChevronDown, Eraser, Play } from "lucide-react";
+import { Eraser, User, ShieldAlert, Sparkles, Layers, X } from "lucide-react";
 
 type Props = {
   selectedTile: TileConfigKey;
   onSelect: (id: TileConfigKey) => void;
-  defaultOpen?: boolean;
+  onHoverChange?: (isHovered: boolean) => void;
+  isMetadataOpen?: boolean;
 };
 
-export const TilePalette = ({ selectedTile, onSelect, defaultOpen = true }: Props) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="bg-slate-900/95 border border-slate-800/80 rounded-xl p-4 shadow-2xl shadow-black/40 backdrop-blur-sm transition-all duration-300 w-full flex flex-col gap-3">
-      {/* 全体ヘッダー部分 */}
-      <div className="flex items-center justify-between select-none">
-        <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Palettes</h2>
-
-        <div className="flex items-center gap-2">
-          {/* 消しゴムボタン */}
-          <button
-            type="button"
-            onClick={() => onSelect(" ")}
-            title="消しゴム (ERASER)"
-            className={`p-1.5 rounded-md transition-all duration-150 border flex items-center justify-center ${
-              selectedTile === " "
-                ? "border-red-500/80 bg-red-950/40 text-red-400 shadow-sm shadow-red-950"
-                : "border-red-950/60 bg-red-950/10 text-red-900/80 hover:text-red-400 hover:bg-red-950/30 hover:border-red-900/50"
-            }`}
-          >
-            <Eraser size={16} />
-          </button>
-
-          {/* コンポーネント全体の最小化 */}
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-slate-500 hover:text-slate-200 p-1 hover:bg-slate-800/60 rounded-md transition-all"
-            aria-label={isOpen ? "パレットを最小化" : "パレットを展開"}
-          >
-            <ChevronDown
-              size={16}
-              className={`transform transition-transform duration-200 ease-in-out ${isOpen ? "rotate-180 text-slate-300" : ""}`}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* 全体のアニメーションラッパー */}
-      <div
-        className={`grid transition-all duration-300 ease-in-out ${
-          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none mt-0"
-        }`}
-      >
-        <div className="overflow-hidden flex flex-col gap-3.5">
-          {TILE_PALETTE_SCHEMA.map((group, groupIdx) => (
-            <PaletteGroupSection key={groupIdx} group={group} selectedTile={selectedTile} onSelect={onSelect} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+// 大グループごとのアイコンマッピング
+const GROUP_ICONS: Record<string, React.ReactNode> = {
+  プレイヤーとゴール: <User size={18} />,
+  壁: <ShieldAlert size={18} />,
+  ギミック: <Sparkles size={18} />,
 };
 
-// 大グループコンポーネント
-const PaletteGroupSection = ({
-  group,
-  selectedTile,
-  onSelect,
-}: {
-  group: (typeof TILE_PALETTE_SCHEMA)[number];
-  selectedTile: TileConfigKey;
-  onSelect: (id: TileConfigKey) => void;
-}) => {
-  const [isGroupOpen, setIsGroupOpen] = useState(true);
+export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataOpen = false }: Props) => {
+  const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(0);
+  const [hoveredGroupIdx, setHoveredGroupIdx] = useState<number | null>(null);
 
-  return (
-    <div className="border-b border-slate-800/50 pb-3 last:border-none last:pb-0">
-      {/* 大グループヘッダー */}
-      <div
-        className="flex items-center justify-between cursor-pointer group/group-header select-none py-1"
-        onClick={() => setIsGroupOpen(!isGroupOpen)}
-      >
-        <div className="flex items-center gap-2">
-          <Play
-            size={8}
-            className={`fill-slate-600 text-slate-600 group-hover/group-header:fill-slate-400 group-hover/group-header:text-slate-400 transform transition-transform duration-150 ease-out ${
-              isGroupOpen ? "rotate-90" : "rotate-0"
-            }`}
-          />
-          <h3 className="text-[10px] font-bold text-slate-500 group-hover/group-header:text-slate-300 uppercase tracking-widest transition-colors">
-            {group.label}
-          </h3>
-        </div>
-      </div>
+  // 左バーの画面上Y位置を追従するための参照とState
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [panelTop, setPanelTop] = useState<number>(0);
 
-      <div
-        className={`grid transition-all duration-200 ease-in-out ${
-          isGroupOpen ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 pointer-events-none mt-0"
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="flex flex-col gap-3">
-            {group.subGroups.map((subGroup, subIdx) => (
-              <PaletteSubGroupSection
-                key={subIdx}
-                subGroup={subGroup}
-                selectedTile={selectedTile}
-                onSelect={onSelect}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+  // メタデータパネル開閉時のリセット
+  useEffect(() => {
+    if (isMetadataOpen) {
+      setActiveGroupIdx(null);
+      setHoveredGroupIdx(null);
+    }
+  }, [isMetadataOpen]);
 
-// 小グループ（サブグループ）コンポーネント
-const PaletteSubGroupSection = ({
-  subGroup,
-  selectedTile,
-  onSelect,
-}: {
-  subGroup: (typeof TILE_PALETTE_SCHEMA)[number]["subGroups"][number];
-  selectedTile: string;
-  onSelect: (id: TileConfigKey) => void;
-}) => {
-  const [isSubOpen, setIsSubOpen] = useState(true);
-  const hasSubLabel = !!subGroup.subLabel;
+  // 左バーの画面上Y座標を取得してパネル上端を合わせる
+  useEffect(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setPanelTop(rect.top);
+    }
+  }, [activeGroupIdx, hoveredGroupIdx]);
+
+  // 表示対象のグループ（ホバー優先、なければ選択中のグループ）
+  const currentGroupIdx = hoveredGroupIdx !== null ? hoveredGroupIdx : activeGroupIdx;
+  const currentGroup = currentGroupIdx !== null ? TILE_PALETTE_SCHEMA[currentGroupIdx] : null;
 
   return (
     <div
-      className={`flex flex-col transition-all ${
-        hasSubLabel
-          ? "bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 w-full shadow-inner shadow-black/10"
-          : ""
-      }`}
+      ref={containerRef}
+      className="relative flex items-start z-30 select-none"
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => {
+        setHoveredGroupIdx(null);
+        onHoverChange?.(false);
+      }}
     >
-      {/* 小グループ名 */}
-      {hasSubLabel && (
-        <div
-          className="flex items-center justify-between cursor-pointer group/sub-header select-none pb-1.5"
-          onClick={() => setIsSubOpen(!isSubOpen)}
+      {/* 全体ヘッダー部分 */}
+      <div className="flex flex-col gap-2 p-1.5 bg-slate-900/90 border border-slate-800/80 rounded-2xl shadow-2xl backdrop-blur-md shrink-0 w-12">
+        {/* 消しゴムボタン */}
+        <button
+          type="button"
+          onClick={() => {
+            onSelect(" ");
+            setActiveGroupIdx(null);
+          }}
+          title="消しゴム (ERASER)"
+          className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${
+            selectedTile === " "
+              ? "border-red-500/80 bg-red-950/60 text-red-400 shadow-lg shadow-red-950/50"
+              : "border-slate-800/80 bg-slate-800/40 text-slate-400 hover:text-red-400 hover:bg-red-950/30 hover:border-red-900/50"
+          }`}
         >
-          <div className="flex items-center gap-1.5">
-            <Play
-              size={7}
-              className={`fill-slate-600 text-slate-600 group-hover/sub-header:fill-slate-400 group-hover/sub-header:text-slate-400 transform transition-transform duration-150 ease-out ${
-                isSubOpen ? "rotate-90" : "rotate-0"
+          <Eraser size={18} />
+          <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
+            消しゴム
+          </span>
+        </button>
+
+        <div className="w-full h-px bg-slate-800/80 my-0.5" />
+
+        {/* 大グループアイコン一覧 */}
+        {TILE_PALETTE_SCHEMA.map((group, idx) => {
+          const isActive = currentGroupIdx === idx;
+          const isSelectedGroup = activeGroupIdx === idx;
+          const icon = GROUP_ICONS[group.label] || <Layers size={18} />;
+
+          return (
+            <button
+              type="button"
+              key={idx}
+              onClick={() => setActiveGroupIdx(idx)}
+              onMouseEnter={() => setHoveredGroupIdx(idx)}
+              className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${
+                isActive || isSelectedGroup
+                  ? "border-cyan-500 bg-cyan-950/50 text-cyan-300 shadow-md shadow-cyan-950/40"
+                  : "border-slate-800/80 bg-slate-800/40 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
               }`}
-            />
-            <span className="text-[9px] font-bold text-slate-500 group-hover/sub-header:text-slate-300 tracking-wide transition-colors">
-              {subGroup.subLabel}
-            </span>
+            >
+              {icon}
+
+              {isSelectedGroup && (
+                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-cyan-400 rounded-r-full" />
+              )}
+
+              <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
+                {group.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ─── サブグループ & タイルパネル ─── */}
+      {!isMetadataOpen && currentGroup && (
+        <div
+          className="fixed left-[calc(1rem+3.5rem)] w-72 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-col gap-3 animate-in fade-in slide-in-from-left-2 duration-150 z-50 h-auto"
+          style={{
+            top: `${panelTop}px`,
+            maxHeight: `calc(100vh - ${panelTop}px - 2.0rem)`,
+          }}
+          onMouseEnter={() => {
+            if (hoveredGroupIdx !== null) setHoveredGroupIdx(hoveredGroupIdx);
+          }}
+        >
+          {/* 固定ヘッダー */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2 shrink-0">
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{currentGroup.label}</h3>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveGroupIdx(null);
+                setHoveredGroupIdx(null);
+              }}
+              className="p-1 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          {/* スクロール可能エリア */}
+          <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar min-h-0 pr-1">
+            {currentGroup.subGroups.map((subGroup, subIdx) => (
+              <div key={subIdx} className="flex flex-col gap-2">
+                {subGroup.subLabel && (
+                  <span className="text-[10px] font-semibold text-slate-500 tracking-wider">{subGroup.subLabel}</span>
+                )}
+
+                <div className="grid grid-cols-3 gap-2">
+                  {subGroup.items.map((item) => {
+                    if (item.isEraser) return null;
+                    const tile = TILE_CONFIG[item.id];
+                    if (!tile) return null;
+
+                    const isSelected = selectedTile === item.id;
+
+                    return (
+                      <button
+                        type="button"
+                        key={item.id}
+                        onClick={() => {
+                          onSelect(item.id);
+                          setHoveredGroupIdx(null);
+                        }}
+                        className={`p-2 rounded-xl border transition-all duration-150 flex flex-col items-center justify-center gap-1.5 h-16 relative group/tile ${
+                          isSelected
+                            ? "border-cyan-500 bg-cyan-950/60 text-cyan-300 shadow-md shadow-cyan-950/50"
+                            : "border-slate-800/80 bg-slate-800/30 hover:bg-slate-800/80 hover:border-slate-700 text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        <div className="shrink-0 p-0.5 rounded bg-black/20 border border-black/10 group-hover/tile:border-black/30 transition-colors">
+                          <TileIconForm tileId={item.id} size={TILE_SIZE} />
+                        </div>
+
+                        <span className="text-[9px] font-medium truncate w-full text-center tracking-tight leading-none opacity-90 group-hover/tile:opacity-100">
+                          {tile.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      {/* 小グループ内のタイル一覧用アニメーションラッパー */}
-      <div
-        className={`grid transition-all duration-200 ease-in-out ${
-          !hasSubLabel || isSubOpen
-            ? "grid-rows-[1fr] opacity-100 mt-0.5"
-            : "grid-rows-[0fr] opacity-0 pointer-events-none mt-0"
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="flex flex-wrap gap-2 items-start justify-start">
-            {subGroup.items.map((item) => {
-              if (item.isEraser) return null;
-              const tile = TILE_CONFIG[item.id];
-              if (!tile) return null;
-
-              return (
-                <button
-                  type="button"
-                  key={item.id}
-                  onClick={() => onSelect(item.id)}
-                  className={`p-1.5 rounded-lg border transition-all duration-150 flex flex-col items-center justify-center gap-1 min-h-[60px] w-[calc((100%-16px)/3)] min-w-[54px] max-w-[68px] relative group/tile select-none ${
-                    selectedTile === item.id
-                      ? "border-cyan-500 bg-cyan-950/40 text-cyan-300 shadow-md shadow-cyan-950/50"
-                      : "border-slate-800/80 bg-slate-800/40 hover:bg-slate-700/50 hover:border-slate-700 text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  <div className="shrink-0 p-0.5 rounded bg-black/20 border border-black/10 group-hover/tile:border-black/30 transition-colors">
-                    <TileIconForm tileId={item.id} size={TILE_SIZE} />
-                  </div>
-
-                  <span className="text-[9px] font-medium truncate w-full text-center tracking-tight leading-none opacity-90 group-hover/tile:opacity-100 transition-opacity">
-                    {tile.name}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

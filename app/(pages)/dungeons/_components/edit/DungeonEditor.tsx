@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { Settings } from "lucide-react";
 
 import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
@@ -28,7 +29,7 @@ const dungeonSchema = z.object({
     .max(3600, "制限時間は1時間以内に設定してください"),
   mapDataCheck: z.any(), // 変更検知用の隠しフィールド（バリデーションは通すだけ）
 });
-export type DungeonFormData = z.infer<typeof dungeonSchema>; // 子側で使うためexport
+export type DungeonFormData = z.infer<typeof dungeonSchema>;
 
 // ガイドメッセージ用の定義辞書
 const LINKING_GUIDE_MESSAGES: Record<string, string> = {
@@ -42,6 +43,19 @@ const LINKING_GUIDE_MESSAGES: Record<string, string> = {
   WARP_OUT: "「ワープ出口」を配置して、ワープ入口とペアリングさせてください",
   WARP_TWO_WAY1: "「ワープ2」を配置して、ワープ1とペアリングさせてください",
   WARP_TWO_WAY2: "「ワープ1」を配置して、ワープ2とペアリングさせてください",
+};
+
+const ENTITY_TYPE_TO_TILE: Record<string, TileConfigKey> = {
+  KEY: "GK",
+  KEY_DOOR: "GKD",
+  BUTTON: "GB",
+  BUTTON_DOOR: "GBD",
+  LEVER_SWITCH: "GLS",
+  LEVER_SWITCH_DOOR: "GLSD",
+  WARP_IN: "GWI",
+  WARP_OUT: "GWO",
+  WARP_TWO_WAY1: "GWT1",
+  WARP_TWO_WAY2: "GWT2",
 };
 
 interface DungeonEditorProps {
@@ -62,8 +76,13 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   // パレットパネルは閉じて、メタ情報パネルは開く
   const fromSource = searchParams.get("from");
   const isFromUserDetail = fromSource === "user-detail";
-  const initialPaletteOpen = isFromUserDetail ? false : true;
-  const initialMetadataOpen = isFromUserDetail ? true : false;
+
+  const [isMetadataOpen, setIsMetadataOpen] = useState(isFromUserDetail);
+
+  const mainRef = useRef<HTMLElement | null>(null);
+  const isDraggingRef = useRef(false);
+  const startPosRef = useRef({ x: 0, y: 0 });
+  const startScrollRef = useRef({ left: 0, top: 0 });
 
   const isEditMode = !!initialData?.id;
 
@@ -109,7 +128,77 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     setEntitiesState,
   );
 
-  // 初期名生成ロジック
+  // ダンジョンの初期位置を指定
+  const resetScrollPosition = useCallback(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    requestAnimationFrame(() => {
+      const maxScrollLeft = mainEl.scrollWidth - mainEl.clientWidth;
+      const maxScrollTop = mainEl.scrollHeight - mainEl.clientHeight;
+
+      mainEl.scrollLeft = Math.max(0, maxScrollLeft / 2);
+      mainEl.scrollTop = Math.max(0, maxScrollTop / 2);
+    });
+  }, []);
+
+  // マップサイズ変更時や初期ロード時に位置を合わせる
+  useEffect(() => {
+    resetScrollPosition();
+  }, [rows, cols, resetScrollPosition]);
+
+  const MIN_ZOOM = 0.25;
+  const MAX_ZOOM = 3.0;
+  const [zoom, setZoom] = useState(1);
+
+  // 拡大縮小制御
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    const handleWheelNative = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+        setZoom((prev) => Math.min(Math.max(prev * zoomFactor, MIN_ZOOM), MAX_ZOOM));
+      }
+    };
+
+    mainEl.addEventListener("wheel", handleWheelNative, { passive: false });
+    return () => mainEl.removeEventListener("wheel", handleWheelNative);
+  }, [MIN_ZOOM, MAX_ZOOM]);
+
+  // ドラッグ / タッチ移動
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    // 中クリック、Shift+クリック、または背景領域のドラッグでスクロール開始
+    if (e.button === 1 || e.shiftKey || (e.target as HTMLElement).tagName === "MAIN") {
+      isDraggingRef.current = true;
+      startPosRef.current = { x: e.clientX, y: e.clientY };
+      startScrollRef.current = { left: mainEl.scrollLeft, top: mainEl.scrollTop };
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingRef.current || !mainRef.current) return;
+    const dx = e.clientX - startPosRef.current.x;
+    const dy = e.clientY - startPosRef.current.y;
+
+    mainRef.current.scrollLeft = startScrollRef.current.left - dx;
+    mainRef.current.scrollTop = startScrollRef.current.top - dy;
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isEditMode && userInfo && !formValues.name) {
       const nickName = userInfo.nickName || userInfo.userName || "Player";
@@ -142,6 +231,16 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
 
   // タイル配置アクション
   const [selectedTile, setSelectedTile] = useState<TileConfigKey>("W");
+
+  useEffect(() => {
+    if (linkingState.active && linkingState.pendingType) {
+      const targetTile = ENTITY_TYPE_TO_TILE[linkingState.pendingType];
+      if (targetTile) {
+        setSelectedTile(targetTile);
+      }
+    }
+  }, [linkingState.active, linkingState.pendingType]);
+
   const handleCanvasAction = useCallback(
     (r: number, c: number) => {
       if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
@@ -175,83 +274,105 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* FormProviderで囲み、子コンポーネントがContext経由でReact Hook Formを扱えるようにする */}
-        <FormProvider {...methods}>
-          {/* onSubmitのデフォルト挙動を無効化 */}
-          <form onSubmit={(e) => e.preventDefault()}>
-            {/* ─── ヘッダー ─── */}
-            <header className="select-none w-full mb-6">
-              {/* 左側：基本情報フォーム（カード） */}
-              <div className="min-w-0 w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-4 flex flex-col justify-center">
-                <EditorInfoHeader
-                  isAdmin={isAdmin}
-                  status={initialData?.status ?? "DRAFT"}
-                  cols={cols}
-                  rows={rows}
-                  onConfigConfirm={() => pushHistory()}
-                  onSizeChange={(r, c) => {
-                    setRows(r);
-                    setCols(c);
-                    updateTilesSize(r, c);
-                  }}
-                  initialData={initialData}
-                  user={user}
-                  tiles={tiles}
-                  entities={entities}
-                  linkingState={linkingState}
-                  canUndo={canUndo}
-                  canRedo={canRedo}
-                  onUndo={handleUndo}
-                  onRedo={handleRedo}
-                />
-              </div>
-            </header>
+    <>
+      {/* FormProviderで囲み、子コンポーネントがContext経由でReact Hook Formを扱えるようにする */}
+      <FormProvider {...methods}>
+        {/* onSubmitのデフォルト挙動を無効化 */}
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="relative h-[calc(100vh-3.5rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
+        >
+          {/* ─── ヘッダー ─── */}
+          <header className="z-40 w-full shrink-0 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-2">
+            <EditorInfoHeader
+              isAdmin={isAdmin}
+              status={initialData?.status ?? "DRAFT"}
+              cols={cols}
+              rows={rows}
+              onConfigConfirm={() => pushHistory()}
+              onSizeChange={(r, c) => {
+                setRows(r);
+                setCols(c);
+                updateTilesSize(r, c);
+              }}
+              initialData={initialData}
+              user={user}
+              tiles={tiles}
+              entities={entities}
+              linkingState={linkingState}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+            />
+          </header>
 
-            {/* ─── メインレイアウト ─── */}
-            <div className="flex flex-col md:flex-row gap-6 mt-6 items-start w-full">
-              {/* 左サイドバー */}
-              <aside className="w-64 flex-shrink-0 space-y-4">
+          {/* ─── メインレイアウト ─── */}
+          <div className="relative flex-1 min-h-0 w-full overflow-hidden">
+            {/* 左サイドバー */}
+            <div className="absolute top-4 left-4 z-30 pointer-events-auto">
+              <div className="flex flex-col gap-3 relative">
                 <TilePalette
                   selectedTile={selectedTile}
+                  isMetadataOpen={isMetadataOpen}
+                  onHoverChange={(isHovered) => {
+                    if (isHovered) setIsMetadataOpen(false);
+                  }}
                   onSelect={(id) => {
                     if (linkingState.active && id !== " " && getEntityType(id) !== linkingState.pendingType) {
                       return toast.error("セット設置を優先するか、消しゴムでキャンセルしてください");
                     }
                     setSelectedTile(id);
                   }}
-                  defaultOpen={initialPaletteOpen}
                 />
 
-                <DungeonMetadataCard
-                  initialData={initialData}
-                  isEditMode={isEditMode}
-                  isAdmin={isAdmin}
-                  defaultOpen={initialMetadataOpen}
-                />
-              </aside>
+                <button
+                  type="button"
+                  onClick={() => setIsMetadataOpen((prev) => !prev)}
+                  title="ダンジョン情報"
+                  className={`w-12 h-12 rounded-2xl border transition-all duration-200 shadow-2xl flex items-center justify-center shrink-0 group relative ${
+                    isMetadataOpen
+                      ? "bg-amber-500 text-slate-950 border-amber-400"
+                      : "bg-slate-900/90 backdrop-blur-md border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  }`}
+                >
+                  <Settings className="w-5 h-5" />
+                  <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
+                    ダンジョン情報
+                  </span>
+                </button>
 
-              {/* メインエリア：キャンバスコンテナ */}
-              <div className="flex-1 flex flex-col min-w-0 relative h-[calc(100vh-220px)] min-h-[540px] w-full">
-                {linkingState.active && (
-                  <div className="absolute top-4 left-4 right-4 z-30 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="w-full bg-slate-900/95 backdrop-blur-md border-2 border-amber-500 rounded-xl px-5 py-3 flex items-center justify-between shadow-2xl shadow-black/80 pointer-events-auto">
-                      <div className="flex items-center space-x-3">
-                        <span className="relative flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-                        </span>
-                        <p className="text-sm font-bold text-amber-400 tracking-wide">
-                          {getLinkingGuideMessage()} （消しゴムでリセット）
-                        </p>
-                      </div>
+                {isMetadataOpen && (
+                  <div className="absolute top-0 left-15 z-40 w-80 animate-in fade-in slide-in-from-left-2 duration-150">
+                    <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-4 max-h-[calc(100vh-7rem)] overflow-y-auto custom-scrollbar">
+                      <DungeonMetadataCard
+                        initialData={initialData}
+                        isEditMode={isEditMode}
+                        isAdmin={isAdmin}
+                        defaultOpen={true}
+                      />
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
 
-                {/* メインエリア：キャンバス本体 */}
-                <main className="bg-gray-900 border border-gray-800 rounded-xl overflow-auto p-12 h-full w-full flex">
+            {/* メインエリア：キャンバス本体 */}
+            <main
+              ref={mainRef}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              className="w-full h-full overflow-auto relative cursor-grab active:cursor-grabbing custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] flex"
+            >
+              <div className="m-auto shrink-0 flex items-center justify-center p-[600px]">
+                <div
+                  style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: "center center",
+                  }}
+                  className="will-change-transform shrink-0"
+                >
                   <DungeonCanvasView
                     key={`${rows}-${cols}`}
                     tiles={tiles}
@@ -262,13 +383,60 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                     isLoaded={isLoaded}
                     linkingState={linkingState}
                     onCanvasAction={handleCanvasAction}
+                    selectedTile={selectedTile}
                   />
-                </main>
+                </div>
               </div>
+            </main>
+
+            {/* ─── ギミック連携ガイド通知 ─── */}
+            {linkingState.active && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-200">
+                <div className="bg-amber-500/10 backdrop-blur-xl border-2 border-amber-500/80 rounded-2xl px-6 py-3 shadow-2xl shadow-amber-500/10 flex items-center gap-3">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                  </span>
+                  <p className="text-sm font-bold text-amber-400 tracking-wide">
+                    {getLinkingGuideMessage()} （消しゴムでリセット）
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ─── ズームコントローラー ─── */}
+            <div className="absolute bottom-4 right-4 z-30 pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-1 text-xs text-slate-300 shadow-2xl">
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.max(Number((z - 0.1).toFixed(2)), MIN_ZOOM))}
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 active:bg-slate-700 transition-colors font-bold"
+                title="縮小"
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setZoom(1);
+                  // resetScrollPosition(); // スクロールバーの位置も初期状態に自動復帰
+                }}
+                className="px-2 py-1 rounded-lg hover:bg-slate-800 font-mono text-amber-400 transition-colors"
+                title="100%にリセット"
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(Number((z + 0.1).toFixed(2)), MAX_ZOOM))}
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 active:bg-slate-700 transition-colors font-bold"
+                title="拡大"
+              >
+                +
+              </button>
             </div>
-          </form>
-        </FormProvider>
-      </div>
-    </div>
+          </div>
+        </form>
+      </FormProvider>
+    </>
   );
 }
