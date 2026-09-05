@@ -15,7 +15,7 @@ interface Props {
   isLoaded: boolean;
   linkingState: any;
   onCanvasAction: (r: number, c: number) => void;
-  selectedTile?: TileConfigKey;
+  selectedTile?: TileConfigKey | null;
 }
 
 export function DungeonCanvasView({
@@ -105,7 +105,7 @@ export function DungeonCanvasView({
       />
 
       {/* マウスカーソル画像を表示 */}
-      {isHovered && selectedTile !== " " && (
+      {isHovered && selectedTile !== null && selectedTile !== " " && (
         <div
           className="absolute pointer-events-none z-50 transform -translate-x-1/2 -translate-y-1/2 opacity-80 scale-110 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] transition-transform duration-75 ease-out"
           style={{

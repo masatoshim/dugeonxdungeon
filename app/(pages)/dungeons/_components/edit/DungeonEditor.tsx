@@ -230,7 +230,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   }, [handleUndo, handleRedo]);
 
   // タイル配置アクション
-  const [selectedTile, setSelectedTile] = useState<TileConfigKey>("W");
+  const [selectedTile, setSelectedTile] = useState<TileConfigKey | null>(null);
 
   useEffect(() => {
     if (linkingState.active && linkingState.pendingType) {
@@ -243,7 +243,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
 
   const handleCanvasAction = useCallback(
     (r: number, c: number) => {
-      if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return;
+      // タイル未選択時の操作を無効化
+      if (selectedTile === null || r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) {
+        return;
+      }
       if (selectedTile !== " " && TILE_CONFIG[selectedTile]?.category === TILE_CATEGORIES.PLAYER) {
         const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
         if (hasPlayer) return toast.error("プレイヤーは1つのみです");
@@ -314,6 +317,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               <div className="flex flex-col gap-3 relative">
                 <TilePalette
                   selectedTile={selectedTile}
+                  isEditMode={isEditMode}
                   isMetadataOpen={isMetadataOpen}
                   onHoverChange={(isHovered) => {
                     if (isHovered) setIsMetadataOpen(false);

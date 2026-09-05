@@ -7,14 +7,15 @@ import { TILE_SIZE } from "@/game-core/types";
 import { Eraser, X } from "lucide-react";
 
 type Props = {
-  selectedTile: TileConfigKey;
+  selectedTile: TileConfigKey | null;
+  isEditMode?: boolean;
   onSelect: (id: TileConfigKey) => void;
   onHoverChange?: (isHovered: boolean) => void;
   isMetadataOpen?: boolean;
 };
 
-export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataOpen = false }: Props) => {
-  const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(0);
+export const TilePalette = ({ selectedTile, isEditMode, onSelect, onHoverChange, isMetadataOpen = false }: Props) => {
+  const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(isEditMode ? null : 0);
   const [hoveredIdx, setHoveredIdx] = useState<number | "eraser" | null>(null);
 
   // 左バーの画面上Y位置を追従するための参照とState
@@ -28,6 +29,26 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
       setActiveGroupIdx(null);
     }
   }, [isMetadataOpen]);
+
+  // パレットのグループ切り替え / 閉じた時のフック
+  const handleGroupClick = (idx: number) => {
+    const isSelectedGroup = activeGroupIdx === idx;
+    if (isSelectedGroup) {
+      // 選択中のグループを閉じる場合 -> タイル選択も解除
+      setActiveGroupIdx(null);
+      onSelect(null as any);
+    } else {
+      // 別のグループに切り替える場合 -> タイル選択を一度解除
+      setActiveGroupIdx(idx);
+      onSelect(null as any);
+    }
+  };
+
+  // 3. パレット内の「×（閉じる）」ボタンクリック時
+  const handleClosePanel = () => {
+    setActiveGroupIdx(null);
+    onSelect(null as any);
+  };
 
   // ヘッダー開閉等のレイアウト変更に伴うY座標変更
   useEffect(() => {
@@ -117,7 +138,7 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
 
             <button
               type="button"
-              onClick={() => setActiveGroupIdx(null)}
+              onClick={handleClosePanel}
               className="p-1 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
             >
               <X size={14} />
@@ -199,9 +220,7 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
             <button
               type="button"
               key={idx}
-              onClick={() => {
-                setActiveGroupIdx(isSelectedGroup ? null : idx);
-              }}
+              onClick={() => handleGroupClick(idx)}
               onMouseEnter={(e) => handleMouseEnterButton(e, group.label, idx)}
               onMouseLeave={handleMouseLeaveButton}
               className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${

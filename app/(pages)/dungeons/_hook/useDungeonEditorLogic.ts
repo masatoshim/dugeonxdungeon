@@ -98,6 +98,7 @@ export function useDungeonEditorLogic(initialData?: any) {
   // セルクリック（設置・消去）ロジック
   const handleCellClick = useCallback(
     (r: number, c: number, selectedTile: TileConfigKey) => {
+      if (selectedTile === null) return;
       // 境界チェック (外壁には設置不可)
       if (r <= 0 || r >= rows - 1 || c <= 0 || c >= cols - 1) return null;
 
@@ -116,22 +117,22 @@ export function useDungeonEditorLogic(initialData?: any) {
       // ペアリングチェック
       const isPairingGimmick = isGimmick && incomingType !== null;
 
-      // リンク待機中のチェック
-      if (linkingRef.current.active && !isEraser) {
-        if (!isGimmick || incomingType !== linkingRef.current.pendingType) {
-          toast.error("正しく対になるギミックを設置してください");
-          return null;
-        }
-      }
+      // // リンク待機中のチェック
+      // if (linkingRef.current.active && !isEraser) {
+      //   if (!isGimmick || incomingType !== linkingRef.current.pendingType) {
+      //     toast.error("正しく対になるギミックを設置してください");
+      //     return null;
+      //   }
+      // }
 
-      // プレイヤー単一チェック
-      if (category === TILE_CATEGORIES.PLAYER) {
-        const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
-        if (hasPlayer) {
-          toast.error("プレイヤーは1つのみです");
-          return null;
-        }
-      }
+      // // プレイヤー単一チェック
+      // if (category === TILE_CATEGORIES.PLAYER) {
+      //   const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
+      //   if (hasPlayer) {
+      //     toast.error("プレイヤーは1つのみです");
+      //     return null;
+      //   }
+      // }
 
       const newId = `${selectedTile}_${nanoid(8)}`;
       let isPairingCompleteRoute = false;
