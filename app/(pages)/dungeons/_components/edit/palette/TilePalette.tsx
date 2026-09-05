@@ -22,23 +22,63 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
   const [panelTop, setPanelTop] = useState<number>(0);
   const [tooltipPos, setTooltipPos] = useState<{ top: number; label: string } | null>(null);
 
-  // メタデータパネル開閉時のリセット
+  // メタデータパネル開閉時にパレットを閉じる処理
   useEffect(() => {
     if (isMetadataOpen) {
       setActiveGroupIdx(null);
     }
   }, [isMetadataOpen]);
 
-  // 左バーの画面上Y座標を取得してパネル上端を合わせる
+  // ヘッダー開閉等のレイアウト変更に伴うY座標変更
   useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updatePosition = () => {
+      const rect = el.getBoundingClientRect();
       setPanelTop(rect.top);
+    };
+
+    updatePosition();
+
+    // ヘッダー開閉のアニメーション完了ラグに備えて1フレーム後にも更新
+    const rafId = requestAnimationFrame(updatePosition);
+
+    // 画面リサイズ監視
+    window.addEventListener("resize", updatePosition);
+
+    // ヘッダーなどのDOM要素の高さ変更を監視
+    const resizeObserver = new ResizeObserver(() => {
+      updatePosition();
+    });
+
+    // アコーディオン等の開閉を直接検知
+    const mutationObserver = new MutationObserver(() => {
+      updatePosition();
+    });
+
+    if (document.body) {
+      resizeObserver.observe(document.body);
+      mutationObserver.observe(document.body, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
     }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", updatePosition);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
   }, [activeGroupIdx]);
 
   // 表示対象のグループ（選択中のグループ）
   const currentGroup = activeGroupIdx !== null ? TILE_PALETTE_SCHEMA[activeGroupIdx] : null;
+
+  // 最小のY開始座標
+  const computedTop = Math.max(panelTop, 64);
 
   // ホバー位置のY座標計算
   const handleMouseEnterButton = (e: React.MouseEvent<HTMLButtonElement>, label: string, key: number | "eraser") => {
@@ -65,10 +105,10 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
       {/* ─── サブグループ & タイルパネル ─── */}
       {!isMetadataOpen && currentGroup && (
         <div
-          className="fixed left-[calc(1rem+3.5rem)] w-72 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-col gap-3 animate-in fade-in slide-in-from-left-2 duration-150 z-50 h-auto"
+          className="fixed left-[calc(1rem+3.5rem)] w-72 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-col gap-3 animate-in fade-in slide-in-from-left-2 duration-150 z-50 h-auto transition-[top] duration-100 ease-out"
           style={{
-            top: `${panelTop}px`,
-            maxHeight: `calc(100vh - ${panelTop}px - 2.0rem)`,
+            top: `${computedTop}px`,
+            maxHeight: `calc(100vh - ${computedTop}px - 2.0rem)`,
           }}
         >
           {/* 固定ヘッダー */}
