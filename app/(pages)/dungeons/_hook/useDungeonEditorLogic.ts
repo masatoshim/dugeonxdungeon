@@ -233,5 +233,6 @@ export function useDungeonEditorLogic(initialData?: any) {
     handleCellClick,
     updateTilesSize,
     getEntityType,
+    cancelLinking,
   };
 }

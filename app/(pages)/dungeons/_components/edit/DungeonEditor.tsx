@@ -114,6 +114,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     setCols,
     setTilesState,
     setEntitiesState,
+    cancelLinking,
   } = useDungeonEditorLogic(initialData);
 
   const { canUndo, canRedo, handleUndo, handleRedo, pushHistory, getCurrentSnapshot, setHistory } = useEditorHistory(
@@ -127,6 +128,21 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     setTilesState,
     setEntitiesState,
   );
+
+  // Undo / Redo 実行時のペアリング状態解除
+  const onUndoAction = useCallback(() => {
+    handleUndo();
+    if (typeof cancelLinking === "function") {
+      cancelLinking();
+    }
+  }, [handleUndo, cancelLinking]);
+
+  const onRedoAction = useCallback(() => {
+    handleRedo();
+    if (typeof cancelLinking === "function") {
+      cancelLinking();
+    }
+  }, [handleRedo, cancelLinking]);
 
   // ダンジョンの初期位置を指定
   const resetScrollPosition = useCallback(() => {
@@ -213,24 +229,71 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     }
   }, [userInfo, isEditMode, setValue, getCurrentSnapshot, setHistory]);
 
-  // 編集履歴キーボードショートカット
+  // 編集履歴キーボードショートカット（Undo / Redo）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
         e.preventDefault();
-        handleUndo();
+        onUndoAction();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
         e.preventDefault();
-        handleRedo();
+        onRedoAction();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleUndo, handleRedo]);
+  }, [onUndoAction, onRedoAction]);
 
   // タイル配置アクション
   const [selectedTile, setSelectedTile] = useState<TileConfigKey | null>(null);
+
+  // 消しゴム選択時にペアリングタイル1個目のギミック削除＋ペアリング解除 ───
+  useEffect(() => {
+    // ペアリング待機中 かつ 1個目のIDが存在し、消しゴムが選択された場合
+    if (selectedTile === " " && linkingState.active && linkingState.firstEntityId) {
+      const targetId = linkingState.firstEntityId;
+
+      // 1個目に配置したギミックを特定
+      const targetEntity = entities.find((ent) => ent.id === targetId);
+
+      if (targetEntity) {
+        // 対象のエンティティを除外
+        const nextEntities = entities.filter((ent) => ent.id !== targetId);
+
+        const nextTiles = tiles;
+
+        // State更新
+        setTilesState(nextTiles);
+        setEntitiesState(nextEntities);
+
+        // 履歴登録
+        pushHistory({
+          ...getCurrentSnapshot(),
+          tiles: nextTiles,
+          entities: nextEntities,
+        });
+      }
+
+      // ペアリング待機状態を解除
+      if (typeof cancelLinking === "function") {
+        cancelLinking();
+      }
+
+      toast.info("ペア配置を取り消し、1個目のギミックを削除しました");
+    }
+  }, [
+    selectedTile,
+    linkingState.active,
+    linkingState.firstEntityId,
+    tiles,
+    entities,
+    setTilesState,
+    setEntitiesState,
+    pushHistory,
+    getCurrentSnapshot,
+    cancelLinking,
+  ]);
 
   useEffect(() => {
     if (linkingState.active && linkingState.pendingType) {
@@ -305,8 +368,8 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               linkingState={linkingState}
               canUndo={canUndo}
               canRedo={canRedo}
-              onUndo={handleUndo}
-              onRedo={handleRedo}
+              onUndo={onUndoAction}
+              onRedo={onRedoAction}
             />
           </header>
 
@@ -402,7 +465,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                   </span>
                   <p className="text-sm font-bold text-amber-400 tracking-wide">
-                    {getLinkingGuideMessage()} （消しゴムでリセット）
+                    {getLinkingGuideMessage()} （消しゴムで取り消し）
                   </p>
                 </div>
               </div>
