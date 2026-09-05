@@ -145,7 +145,7 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
                         type="button"
                         key={item.id}
                         onClick={() => onSelect(item.id)}
-                        className={`p-2 rounded-xl border transition-all duration-150 flex flex-col items-center justify-center gap-1.5 h-16 relative group/tile ${
+                        className={`p-1.5 py-2 rounded-xl border transition-all duration-150 flex flex-col items-center justify-between min-h-[4.5rem] relative group/tile ${
                           isSelected
                             ? "border-cyan-500 bg-cyan-950/60 text-cyan-300 shadow-md shadow-cyan-950/50"
                             : "border-slate-800/80 bg-slate-800/30 hover:bg-slate-800/80 hover:border-slate-700 text-slate-400 hover:text-slate-200"
@@ -155,7 +155,7 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
                           <TileIconForm tileId={item.id} size={TILE_SIZE} />
                         </div>
 
-                        <span className="text-[9px] font-medium truncate w-full text-center tracking-tight leading-none opacity-90 group-hover/tile:opacity-100">
+                        <span className="text-[9px] font-medium leading-[1.1] text-center tracking-tighter opacity-90 group-hover/tile:opacity-100 mt-1 line-clamp-2 break-all w-full min-h-[20px] flex items-center justify-center">
                           {tile.name}
                         </span>
                       </button>
