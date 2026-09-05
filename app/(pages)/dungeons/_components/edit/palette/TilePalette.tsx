@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { TILE_CONFIG, TILE_PALETTE_SCHEMA, TileConfigKey } from "@/game-core/master";
 import { TileIconForm } from "./TileIconForm";
 import { TILE_SIZE } from "@/game-core/types";
-import { Eraser, User, ShieldAlert, Sparkles, Layers, X } from "lucide-react";
+import { Eraser, X } from "lucide-react";
 
 type Props = {
   selectedTile: TileConfigKey;
@@ -13,26 +13,19 @@ type Props = {
   isMetadataOpen?: boolean;
 };
 
-// 大グループごとのアイコンマッピング
-const GROUP_ICONS: Record<string, React.ReactNode> = {
-  プレイヤーとゴール: <User size={18} />,
-  壁: <ShieldAlert size={18} />,
-  ギミック: <Sparkles size={18} />,
-};
-
 export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataOpen = false }: Props) => {
   const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(0);
-  const [hoveredGroupIdx, setHoveredGroupIdx] = useState<number | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | "eraser" | null>(null);
 
   // 左バーの画面上Y位置を追従するための参照とState
   const containerRef = useRef<HTMLDivElement>(null);
   const [panelTop, setPanelTop] = useState<number>(0);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; label: string } | null>(null);
 
   // メタデータパネル開閉時のリセット
   useEffect(() => {
     if (isMetadataOpen) {
       setActiveGroupIdx(null);
-      setHoveredGroupIdx(null);
     }
   }, [isMetadataOpen]);
 
@@ -42,78 +35,33 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
       const rect = containerRef.current.getBoundingClientRect();
       setPanelTop(rect.top);
     }
-  }, [activeGroupIdx, hoveredGroupIdx]);
+  }, [activeGroupIdx]);
 
-  // 表示対象のグループ（ホバー優先、なければ選択中のグループ）
-  const currentGroupIdx = hoveredGroupIdx !== null ? hoveredGroupIdx : activeGroupIdx;
-  const currentGroup = currentGroupIdx !== null ? TILE_PALETTE_SCHEMA[currentGroupIdx] : null;
+  // 表示対象のグループ（選択中のグループ）
+  const currentGroup = activeGroupIdx !== null ? TILE_PALETTE_SCHEMA[activeGroupIdx] : null;
+
+  // ホバー位置のY座標計算
+  const handleMouseEnterButton = (e: React.MouseEvent<HTMLButtonElement>, label: string, key: number | "eraser") => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipPos({ top: rect.top + rect.height / 2, label });
+    setHoveredIdx(key);
+  };
+
+  const handleMouseLeaveButton = () => {
+    setTooltipPos(null);
+    setHoveredIdx(null);
+  };
 
   return (
     <div
       ref={containerRef}
-      className="relative flex items-start z-30 select-none"
+      className="relative flex items-start z-[60] select-none"
       onMouseEnter={() => onHoverChange?.(true)}
       onMouseLeave={() => {
-        setHoveredGroupIdx(null);
+        handleMouseLeaveButton();
         onHoverChange?.(false);
       }}
     >
-      {/* 全体ヘッダー部分 */}
-      <div className="flex flex-col gap-2 p-1.5 bg-slate-900/90 border border-slate-800/80 rounded-2xl shadow-2xl backdrop-blur-md shrink-0 w-12">
-        {/* 消しゴムボタン */}
-        <button
-          type="button"
-          onClick={() => {
-            onSelect(" ");
-            setActiveGroupIdx(null);
-          }}
-          title="消しゴム (ERASER)"
-          className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${
-            selectedTile === " "
-              ? "border-red-500/80 bg-red-950/60 text-red-400 shadow-lg shadow-red-950/50"
-              : "border-slate-800/80 bg-slate-800/40 text-slate-400 hover:text-red-400 hover:bg-red-950/30 hover:border-red-900/50"
-          }`}
-        >
-          <Eraser size={18} />
-          <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
-            消しゴム
-          </span>
-        </button>
-
-        <div className="w-full h-px bg-slate-800/80 my-0.5" />
-
-        {/* 大グループアイコン一覧 */}
-        {TILE_PALETTE_SCHEMA.map((group, idx) => {
-          const isActive = currentGroupIdx === idx;
-          const isSelectedGroup = activeGroupIdx === idx;
-          const icon = GROUP_ICONS[group.label] || <Layers size={18} />;
-
-          return (
-            <button
-              type="button"
-              key={idx}
-              onClick={() => setActiveGroupIdx(idx)}
-              onMouseEnter={() => setHoveredGroupIdx(idx)}
-              className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${
-                isActive || isSelectedGroup
-                  ? "border-cyan-500 bg-cyan-950/50 text-cyan-300 shadow-md shadow-cyan-950/40"
-                  : "border-slate-800/80 bg-slate-800/40 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
-            >
-              {icon}
-
-              {isSelectedGroup && (
-                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-cyan-400 rounded-r-full" />
-              )}
-
-              <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
-                {group.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* ─── サブグループ & タイルパネル ─── */}
       {!isMetadataOpen && currentGroup && (
         <div
@@ -122,9 +70,6 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
             top: `${panelTop}px`,
             maxHeight: `calc(100vh - ${panelTop}px - 2.0rem)`,
           }}
-          onMouseEnter={() => {
-            if (hoveredGroupIdx !== null) setHoveredGroupIdx(hoveredGroupIdx);
-          }}
         >
           {/* 固定ヘッダー */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-2 shrink-0">
@@ -132,10 +77,7 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
 
             <button
               type="button"
-              onClick={() => {
-                setActiveGroupIdx(null);
-                setHoveredGroupIdx(null);
-              }}
+              onClick={() => setActiveGroupIdx(null)}
               className="p-1 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
             >
               <X size={14} />
@@ -162,10 +104,7 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
                       <button
                         type="button"
                         key={item.id}
-                        onClick={() => {
-                          onSelect(item.id);
-                          setHoveredGroupIdx(null);
-                        }}
+                        onClick={() => onSelect(item.id)}
                         className={`p-2 rounded-xl border transition-all duration-150 flex flex-col items-center justify-center gap-1.5 h-16 relative group/tile ${
                           isSelected
                             ? "border-cyan-500 bg-cyan-950/60 text-cyan-300 shadow-md shadow-cyan-950/50"
@@ -186,6 +125,68 @@ export const TilePalette = ({ selectedTile, onSelect, onHoverChange, isMetadataO
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ─── 全体ヘッダー ─── */}
+      <div className="flex flex-col gap-2 p-1.5 bg-slate-900/90 border border-slate-800/80 rounded-2xl shadow-2xl backdrop-blur-md shrink-0 w-12 z-10">
+        {/* 消しゴムボタン */}
+        <button
+          type="button"
+          onClick={() => {
+            onSelect(" ");
+            setActiveGroupIdx(null);
+          }}
+          onMouseEnter={(e) => handleMouseEnterButton(e, "消しゴム", "eraser")}
+          onMouseLeave={handleMouseLeaveButton}
+          className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${
+            selectedTile === " "
+              ? "border-red-500/80 bg-red-950/60 text-red-400 shadow-lg shadow-red-950/50"
+              : "border-slate-800/80 bg-slate-800/40 text-slate-400 hover:text-red-400 hover:bg-red-950/30 hover:border-red-900/50"
+          }`}
+        >
+          <Eraser size={18} />
+        </button>
+
+        <div className="w-full h-px bg-slate-800/80 my-0.5" />
+
+        {/* 大グループアイコン一覧 */}
+        {TILE_PALETTE_SCHEMA.map((group, idx) => {
+          const isSelectedGroup = activeGroupIdx === idx;
+          const IconComponent = group.icon;
+
+          return (
+            <button
+              type="button"
+              key={idx}
+              onClick={() => {
+                setActiveGroupIdx(isSelectedGroup ? null : idx);
+              }}
+              onMouseEnter={(e) => handleMouseEnterButton(e, group.label, idx)}
+              onMouseLeave={handleMouseLeaveButton}
+              className={`w-9 h-9 rounded-xl transition-all duration-150 border flex items-center justify-center relative group ${
+                isSelectedGroup
+                  ? "border-cyan-500 bg-cyan-950/50 text-cyan-300 shadow-md shadow-cyan-950/40"
+                  : "border-slate-800/80 bg-slate-800/40 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              }`}
+            >
+              <IconComponent size={18} />
+
+              {isSelectedGroup && (
+                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-cyan-400 rounded-r-full" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ─── ツールチップ ─── */}
+      {tooltipPos && (
+        <div
+          className="fixed left-[calc(1rem+3.5rem)] px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap -translate-y-1/2 pointer-events-none shadow-lg z-[100]"
+          style={{ top: `${tooltipPos.top}px` }}
+        >
+          {tooltipPos.label}
         </div>
       )}
     </div>

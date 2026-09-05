@@ -7,7 +7,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Settings } from "lucide-react";
+import { Info } from "lucide-react";
 
 import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
@@ -336,7 +336,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                       : "bg-slate-900/90 backdrop-blur-md border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                   }`}
                 >
-                  <Settings className="w-5 h-5" />
+                  <Info className="w-5 h-5" />
                   <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-xs text-slate-200 border border-slate-800 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
                     ダンジョン情報
                   </span>

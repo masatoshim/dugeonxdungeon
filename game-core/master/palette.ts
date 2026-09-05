@@ -1,8 +1,10 @@
+import { User, BrickWall, Zap, Sword, Skull } from "lucide-react";
 import { PaletteGroup } from "@/game-core/types/tiles";
 
 export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   {
     label: "プレイヤーとゴール",
+    icon: User,
     subGroups: [
       {
         items: [{ id: "P" }, { id: "G" }],
@@ -11,6 +13,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   },
   {
     label: "壁",
+    icon: BrickWall,
     subGroups: [
       {
         items: [
@@ -28,6 +31,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   },
   {
     label: "ギミック",
+    icon: Zap,
     subGroups: [
       {
         subLabel: "いろんな石",
@@ -77,6 +81,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   },
   {
     label: "アイテム",
+    icon: Sword,
     subGroups: [
       {
         items: [{ id: "S1" }, { id: "S2" }, { id: "J1" }, { id: "J2" }],
@@ -85,6 +90,7 @@ export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   },
   {
     label: "てき",
+    icon: Skull,
     subGroups: [
       {
         items: [
