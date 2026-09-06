@@ -402,16 +402,14 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                 </button>
 
                 {isMetadataOpen && (
-                  <div className="absolute top-0 left-15 z-40 w-80 animate-in fade-in slide-in-from-left-2 duration-150">
-                    <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-4 max-h-[calc(100vh-7rem)] overflow-y-auto custom-scrollbar">
-                      <DungeonMetadataCard
-                        initialData={initialData}
-                        isEditMode={isEditMode}
-                        isAdmin={isAdmin}
-                        defaultOpen={true}
-                        onClose={() => setIsMetadataOpen(false)}
-                      />
-                    </div>
+                  <div className="absolute top-16 left-16 z-50 w-[calc(100vw-80px)] max-w-[300px] sm:max-w-[320px] animate-in fade-in slide-in-from-left-2 duration-150">
+                    <DungeonMetadataCard
+                      initialData={initialData}
+                      isEditMode={isEditMode}
+                      isAdmin={isAdmin}
+                      defaultOpen={true}
+                      onClose={() => setIsMetadataOpen(false)}
+                    />
                   </div>
                 )}
               </div>
