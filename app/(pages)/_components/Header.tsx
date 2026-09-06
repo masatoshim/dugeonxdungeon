@@ -186,12 +186,6 @@ export default function Header() {
               <div className="border-t border-slate-800 pt-4 mt-auto">
                 {session ? (
                   <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 gap-2">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-[10px] text-slate-400">ログイン中</span>
-                      <span className="text-sm font-bold text-slate-200 truncate">
-                        {session.user?.nickName || session.user?.name}
-                      </span>
-                    </div>
                     <div className="shrink-0 flex items-center justify-center">
                       <HeaderUserMenu />
                     </div>
