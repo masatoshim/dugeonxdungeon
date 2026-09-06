@@ -36,28 +36,31 @@ export function AdminStatsOverview({ userStats, dungeonStats }: AdminStatsOvervi
   }));
 
   return (
-    <div className="w-full bg-slate-900/60 border border-slate-700/50 rounded-3xl p-8 shadow-2xl grid grid-cols-1 lg:grid-cols-2 gap-12 text-slate-300">
-      {/* 左側：ユーザー数コンポーネント */}
-      <div className="flex flex-col justify-between">
-        <div className="flex justify-between items-center bg-[#1a233a] border border-slate-700/60 px-4 py-2 rounded-md max-w-[240px] mb-6">
-          <span className="text-sm font-bold text-[#4fd1d1]">ユーザー数</span>
-          <span className="text-lg font-mono font-bold text-white">{userStats.total}</span>
+    <div className="w-full bg-[#1a1d2b] border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-xl grid grid-cols-1 xl:grid-cols-2 gap-8 text-slate-300">
+      {/* 左側：ユーザー数 */}
+      <div className="flex flex-col justify-between bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
+        {/* 上部ヘッダー */}
+        <div className="flex justify-between items-center bg-[#101422] border border-slate-700/60 px-4 py-2.5 rounded-lg w-full max-w-[240px] mb-6">
+          <span className="text-xs sm:text-sm font-bold text-[#4fd1d1]">ユーザー数</span>
+          <span className="text-lg sm:text-xl font-mono font-bold text-white">{userStats.total}</span>
         </div>
 
-        <p className="text-sm font-bold text-[#4fd1d1] mb-4">直近ログインユーザー数</p>
+        <p className="text-xs sm:text-sm font-bold text-[#4fd1d1] mb-4">直近ログインユーザー数</p>
 
-        <div className="flex items-center justify-start gap-25">
-          <div className="space-y-2 font-mono text-sm min-w-[200px]">
+        {/* 数値リスト + 円グラフ */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          {/* リスト */}
+          <div className="space-y-2 font-mono text-xs sm:text-sm w-full sm:flex-1">
             {userStats.periods.map((period, index) => (
-              <div key={index} className="flex justify-between items-center">
-                <span className="text-[#4fd1d1]/90">{period.name}</span>
+              <div key={index} className="flex justify-between items-center border-b border-slate-700/30 pb-1">
+                <span className="text-slate-400">{period.name}</span>
                 <span className="text-white font-bold">{period.count}</span>
               </div>
             ))}
           </div>
 
           {/* 円グラフ */}
-          <div className="w-[160px] h-[160px] shrink-0">
+          <div className="w-36 h-36 sm:w-40 sm:h-40 shrink-0 relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -65,7 +68,7 @@ export function AdminStatsOverview({ userStats, dungeonStats }: AdminStatsOvervi
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
-                  outerRadius={80}
+                  outerRadius={65}
                   dataKey="count"
                   startAngle={90}
                   endAngle={-270}
@@ -77,31 +80,34 @@ export function AdminStatsOverview({ userStats, dungeonStats }: AdminStatsOvervi
         </div>
       </div>
 
-      {/* 右側：ダンジョン数コンポーネント */}
-      <div className="flex flex-col justify-between">
-        <div className="flex justify-between items-center bg-[#1a233a] border border-slate-700/60 px-4 py-2 rounded-md max-w-[240px] mb-6">
-          <span className="text-sm font-bold text-[#4fd1d1]">ダンジョン数</span>
-          <span className="text-lg font-mono font-bold text-white">{dungeonStats.total}</span>
+      {/* 右側：ダンジョン数 */}
+      <div className="flex flex-col justify-between bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
+        {/* 上部ヘッダー */}
+        <div className="flex justify-between items-center bg-[#101422] border border-slate-700/60 px-4 py-2.5 rounded-lg w-full max-w-[240px] mb-6">
+          <span className="text-xs sm:text-sm font-bold text-[#4fd1d1]">ダンジョン数</span>
+          <span className="text-lg sm:text-xl font-mono font-bold text-white">{dungeonStats.total}</span>
         </div>
 
-        <p className="text-sm font-bold text-[#4fd1d1] mb-4">ユーザー新規作成ダンジョン数</p>
+        <p className="text-xs sm:text-sm font-bold text-[#4fd1d1] mb-4">ユーザー新規作成ダンジョン数</p>
 
-        <div className="flex items-center justify-start gap-25">
-          <div className="space-y-2 font-mono text-sm min-w-[200px]">
+        {/* 数値リスト + 円グラフ */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          {/* リスト */}
+          <div className="space-y-2 font-mono text-xs sm:text-sm w-full sm:flex-1">
             {dungeonStats.periods.map((period, index) => (
-              <div key={index} className="flex justify-between items-center">
-                <span className="text-[#4fd1d1]/90">{period.name}</span>
+              <div key={index} className="flex justify-between items-center border-b border-slate-700/30 pb-1">
+                <span className="text-slate-400">{period.name}</span>
                 <span className="text-white font-bold">{period.count}</span>
               </div>
             ))}
-            <div className="flex justify-between items-center pt-1 border-t border-slate-800/60 mt-1">
+            <div className="flex justify-between items-center pt-2 border-t border-slate-700 mt-2">
               <span className="text-[#4fd1d1] font-bold">管理者ダンジョン数 :</span>
               <span className="text-white font-bold">{dungeonStats.adminCount}</span>
             </div>
           </div>
 
           {/* 円グラフ */}
-          <div className="w-[160px] h-[160px] shrink-0">
+          <div className="w-36 h-36 sm:w-40 sm:h-40 shrink-0 relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -109,7 +115,7 @@ export function AdminStatsOverview({ userStats, dungeonStats }: AdminStatsOvervi
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
-                  outerRadius={80}
+                  outerRadius={65}
                   dataKey="count"
                   startAngle={90}
                   endAngle={-270}
