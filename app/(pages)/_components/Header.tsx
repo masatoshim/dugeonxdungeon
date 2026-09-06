@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HeaderUserMenu } from "./HeaderUserMenu";
-import { AlertCircle, LogIn } from "lucide-react";
+import { AlertCircle, LogIn, Menu, X, Gamepad2, Hammer, Trophy } from "lucide-react";
 
 export default function Header() {
   const sessionContext = useSession();
@@ -15,12 +15,15 @@ export default function Header() {
 
   // ポップアップの開閉管理
   const [showLoginAlert, setShowLoginAlert] = useState(false);
+  // モバイルドロワーの開閉管理
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // 「創る」をクリックしたときの制御
-  const handleCreateClick = (e: React.MouseEvent) => {
+  const handleCreateClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+
     // 未ログインの場合は遷移をブロックしてポップアップを表示
     if (status === "unauthenticated") {
-      e.preventDefault();
       setShowLoginAlert(true);
       return;
     }
@@ -33,9 +36,15 @@ export default function Header() {
     }
   };
 
+  // ドロワー内のリンクタップ時にメニューを閉じる
+  const handleNavClick = (action?: () => void) => {
+    setIsMenuOpen(false);
+    if (action) action();
+  };
+
   return (
     <>
-      <header className="px-8 py-4 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
+      <header className="px-4 sm:px-8 py-4 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
         <div className="flex items-center gap-8">
           {/* ロゴエリア */}
           <Link
@@ -45,7 +54,7 @@ export default function Header() {
             DUNGEON<span className="text-[#4fd1d1]">×</span>DUNGEON
           </Link>
 
-          {/* ナビゲーションリンク */}
+          {/* PC用ナビゲーションリンク */}
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/dungeons" className="text-sm font-medium hover:text-[#4fd1d1] transition-colors">
               遊ぶ
@@ -65,27 +74,119 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          {status === "loading" ? (
-            <span className="text-xs text-slate-500 font-mono animate-pulse">LOADING...</span>
-          ) : session ? (
-            <div className="flex items-center gap-3">
-              {/* ユーザー名 */}
-              <span className="hidden sm:inline text-sm font-medium text-slate-300">
-                {session.user?.nickName || session.user?.name} <span className="text-xs text-slate-500">さん</span>
-              </span>
+        {/* 右側領域（ユーザーメニュー / モバイル用ハンバーガー） */}
+        <div className="flex items-center gap-3">
+          {/* PC表示用ユーザーエリア */}
+          <div className="hidden md:flex items-center gap-4">
+            {status === "loading" ? (
+              <span className="text-xs text-slate-500 font-mono animate-pulse">LOADING...</span>
+            ) : session ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-300">
+                  {session.user?.nickName || session.user?.name} <span className="text-xs text-slate-500">さん</span>
+                </span>
+                <HeaderUserMenu />
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all"
+              >
+                ログイン
+              </Link>
+            )}
+          </div>
+
+          {/* モバイル用ハンバーガー開閉ボタン */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="md:hidden p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors cursor-pointer"
+            aria-label={isMenuOpen ? "メニューを閉じる" : "メニューを開く"}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </header>
+
+      {/* ─── モバイル用スライドイン・ドロワー ─── */}
+      <div
+        className={`fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
+          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsMenuOpen(false)}
+      />
+
+      <aside
+        className={`fixed top-0 right-0 bottom-0 w-72 bg-slate-900 border-l border-slate-800 z-50 p-6 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <span className="font-black text-sm tracking-wider text-slate-400 uppercase">Menu</span>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen(false)}
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <nav className="flex flex-col gap-2">
+            <Link
+              href="/dungeons"
+              onClick={() => handleNavClick()}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all"
+            >
+              <Gamepad2 size={18} className="text-[#4fd1d1]" />
+              遊ぶ
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => handleNavClick(() => handleCreateClick())}
+              className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all cursor-pointer bg-transparent border-none"
+            >
+              <Hammer size={18} className="text-[#4fd1d1]" />
+              創る
+            </button>
+
+            <Link
+              href="/ranking"
+              onClick={() => handleNavClick()}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all"
+            >
+              <Trophy size={18} className="text-[#4fd1d1]" />
+              競う
+            </Link>
+          </nav>
+        </div>
+
+        <div className="border-t border-slate-800 pt-4">
+          {session ? (
+            <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80">
+              <div className="flex flex-col min-w-0 pr-2">
+                <span className="text-xs text-slate-400">ログイン中</span>
+                <span className="text-sm font-bold text-slate-200 truncate">
+                  {session.user?.nickName || session.user?.name}
+                </span>
+              </div>
               <HeaderUserMenu />
             </div>
           ) : (
             <Link
               href="/login"
-              className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all"
+              onClick={() => handleNavClick()}
+              className="flex items-center justify-center gap-2 w-full py-3 bg-[#4fd1d1] hover:bg-[#3db8b8] text-slate-950 font-black text-sm rounded-xl transition-all shadow-lg shadow-[#4fd1d1]/20"
             >
-              ログイン
+              <LogIn size={16} />
+              ログイン / 新規登録
             </Link>
           )}
         </div>
-      </header>
+      </aside>
 
       {/* 未ログインユーザー用のポップアップ */}
       {showLoginAlert && (
@@ -104,15 +205,7 @@ export default function Header() {
               className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors p-1 cursor-pointer"
               aria-label="閉じる"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X size={20} />
             </button>
 
             {/* ヘッダー・演出 */}
