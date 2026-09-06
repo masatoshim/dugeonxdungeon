@@ -276,10 +276,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       }
 
       // ペアリング待機状態を解除
-      if (typeof cancelLinking === "function") {
-        cancelLinking();
-      }
-
+      cancelLinking();
       toast.info("ペア配置を取り消し、1個目のギミックを削除しました");
     }
   }, [
@@ -417,6 +414,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                         isEditMode={isEditMode}
                         isAdmin={isAdmin}
                         defaultOpen={true}
+                        onClose={() => setIsMetadataOpen(false)}
                       />
                     </div>
                   </div>

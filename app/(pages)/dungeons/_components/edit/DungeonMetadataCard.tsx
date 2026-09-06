@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { DungeonResponse } from "@/app/_types";
 
 type Props = {
@@ -7,9 +7,10 @@ type Props = {
   isEditMode: boolean;
   isAdmin?: boolean;
   defaultOpen?: boolean;
+  onClose: () => void;
 };
 
-export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultOpen = false }: Props) => {
+export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultOpen = false, onClose }: Props) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   // 新規作成時はメタデータがないため表示しない
@@ -31,19 +32,32 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 transition-all duration-300">
       {/* ヘッダー（クリックで開閉） */}
       <div
-        className="flex items-center justify-between cursor-pointer group mb-2 select-none"
+        className="flex items-center justify-between cursor-pointer group select-none"
         onClick={() => setIsOpen(!isOpen)}
       >
         <h2 className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors uppercase tracking-wider">
           Dungeon Info
         </h2>
-        <button
-          type="button"
-          className="text-gray-500 group-hover:text-white p-1 hover:bg-gray-800 rounded transition-colors"
-          aria-label={isOpen ? "情報を最小化" : "情報を展開"}
-        >
-          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
+
+        {/* ボタン群 */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="text-gray-500 group-hover:text-white p-1 hover:bg-gray-800 rounded transition-colors"
+            aria-label={isOpen ? "情報を最小化" : "情報を展開"}
+          >
+            {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-gray-500 hover:text-gray-300 hover:bg-gray-800 rounded transition-colors"
+            aria-label="パネルを閉じる"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       {/* 最小化時のアニメーションラッパー */}
@@ -79,14 +93,14 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
                 {/* ユーザーネーム */}
                 <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
                   <span>ユーザーネーム:</span>
-                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.userId}>
+                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.userName ?? ""}>
                     {initialData.userName}
                   </span>
                 </div>
                 {/* ニックネーム */}
                 <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
                   <span>ニックネーム:</span>
-                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.userId}>
+                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.nickName ?? ""}>
                     {initialData.nickName}
                   </span>
                 </div>
