@@ -7,11 +7,11 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Info, X, Trash2 } from "lucide-react";
+import { Eraser, Info, X, Trash2 } from "lucide-react";
 
 import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
-import { EditorInfoHeader, TilePalette } from "@/app/(pages)/dungeons/_components";
+import { EditorInfoHeader, TileIconForm, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useGetUser } from "@/app/_hooks";
 import { useTileImages, useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
@@ -85,6 +85,9 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const startScrollRef = useRef({ left: 0, top: 0 });
 
   const isEditMode = !!initialData?.id;
+  const [isPaletteOpen, setIsPaletteOpen] = useState<boolean>(!isEditMode);
+  // 選択中のタイルがアクティブなパレット内に存在するかの状態を持たせる
+  const [isTileInActivePalette, setIsTileInActivePalette] = useState<boolean>(false);
 
   // React Hook Form の初期化
   const methods = useForm<DungeonFormData>({
@@ -368,14 +371,18 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                 <TilePalette
                   selectedTile={selectedTile}
                   isEditMode={isEditMode}
-                  isMetadataOpen={isMetadataOpen}
                   onSelect={(id) => {
+                    // パレット内のアイテム操作時にダンジョン情報パネルを閉じる
+                    setIsMetadataOpen(false);
+
                     if (linkingState.active && id !== " " && getEntityType(id) !== linkingState.pendingType) {
                       return toast.error("セット設置を優先するか、消しゴムでキャンセルしてください");
                     }
-                    // 同じタイルをタップした場合はトグルで選択解除
                     setSelectedTile((prev) => (prev === id ? null : id));
                   }}
+                  isMetadataOpen={isMetadataOpen}
+                  onCurrentTileInActiveGroupChange={setIsTileInActivePalette}
+                  onGroupChange={() => setIsMetadataOpen(false)}
                 />
 
                 <button
@@ -466,28 +473,35 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                 <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-1 shrink-0" />
               </button>
             ) : (
+              // 選択中のタイルが現在のパレット内に存在しない、かつ、タイルが選択中の時のみ表示
+              !isTileInActivePalette &&
               selectedTile !== null && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedTile(null)}
-                  className="group absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center gap-2.5 bg-slate-900/90 hover:bg-rose-950/90 border border-cyan-500/50 hover:border-rose-500/80 rounded-full px-5 py-2 shadow-2xl backdrop-blur-md transition-all duration-200 cursor-pointer"
-                  aria-label="選択状態を解除"
-                >
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-200 group-hover:text-rose-200 transition-colors">
-                    <span className="text-[10px] text-cyan-400 group-hover:text-rose-400 uppercase tracking-wider transition-colors">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex flex-col items-center group">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTile(null)}
+                    className="flex items-center gap-2.5 bg-slate-900/90 hover:bg-rose-950/90 border border-cyan-500/50 hover:border-rose-500/80 rounded-full px-4 py-1.5 shadow-2xl backdrop-blur-md transition-all duration-200 cursor-pointer"
+                    aria-label="選択状態を解除"
+                  >
+                    <span className="text-[10px] font-bold text-cyan-400 group-hover:text-rose-400 uppercase tracking-wider transition-colors shrink-0">
                       選択中:
                     </span>
-                    <span>{selectedTile === " " ? "消しゴム" : TILE_CONFIG[selectedTile]?.name}</span>
-                  </div>
 
-                  <div className="flex items-center gap-1 pl-1 border-l border-slate-700/80 group-hover:border-rose-500/40 transition-colors">
-                    <span className="text-[11px] text-slate-400 group-hover:text-rose-300 font-normal transition-colors">
-                      <span className="group-hover:hidden">（Escで解除）</span>
-                      <span className="hidden group-hover:inline font-bold">クリックで解除</span>
-                    </span>
-                    <X className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-300 group-hover:scale-110 transition-all shrink-0" />
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-black/40 border border-slate-700/60 group-hover:border-rose-500/50 shrink-0 overflow-hidden transition-colors">
+                      {selectedTile === " " ? (
+                        <Eraser className="w-4 h-4 text-red-400 group-hover:text-rose-300 transition-colors" />
+                      ) : (
+                        <TileIconForm tileId={selectedTile} size={24} />
+                      )}
+                    </div>
+
+                    <X className="w-4 h-4 text-slate-400 group-hover:text-rose-300 group-hover:scale-110 transition-all shrink-0 ml-0.5" />
+                  </button>
+
+                  <div className="absolute top-full mt-2 px-2.5 py-1 bg-slate-900/95 text-[11px] font-semibold text-rose-300 border border-rose-500/40 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 shadow-lg backdrop-blur-sm z-50">
+                    クリックで解除
                   </div>
-                </button>
+                </div>
               )
             )}
 
