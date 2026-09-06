@@ -74,7 +74,7 @@ export const EditorInfoHeader = ({
         className="flex items-center justify-between w-full select-none border-b border-slate-800/40 pb-0.5 cursor-pointer group/header"
       >
         {/* 左側：ナビゲーション・メタ情報 ＋ エラーバッジ */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 min-w-0">
           <div className="w-fit" onClick={(e) => e.stopPropagation()}>
             <BackButton isAdmin={isAdmin} />
           </div>
@@ -95,6 +95,20 @@ export const EditorInfoHeader = ({
             <span className="text-cyan-500/90">{config.code}</span>
           </div>
 
+          {/* 折りたたみ時のみ表示されるダンジョン名 */}
+          {!isOpen && (
+            <span
+              className="text-xs font-bold text-slate-300 truncate max-w-[160px] sm:max-w-[240px] md:max-w-[320px] shrink"
+              title={config.name}
+            >
+              {config.name}
+            </span>
+          )}
+
+          <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <DeleteActionGroup initialData={initialData} isAdmin={isAdmin} />
+          </div>
+
           {errors.name && (
             <span className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded font-black animate-pulse shrink-0">
               ※ダンジョン名が未入力です
@@ -105,7 +119,6 @@ export const EditorInfoHeader = ({
         {/* 右側：各種操作アクション */}
         <div className="flex items-center gap-3 shrink-0 pl-4">
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <DeleteActionGroup initialData={initialData} isAdmin={isAdmin} />
             <HistoryActionGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
             <SaveActionGroup
               initialData={initialData}
@@ -140,7 +153,6 @@ export const EditorInfoHeader = ({
               <label className="flex items-center gap-1 text-[11px] font-sans font-black tracking-wider text-slate-400 shrink-0 select-none uppercase">
                 ダンジョン名:
               </label>
-              {/* text-xs -> text-sm に変更 */}
               <input
                 type="text"
                 placeholder="未設定のダンジョン"
