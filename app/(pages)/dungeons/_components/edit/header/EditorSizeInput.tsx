@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-
-const MAX_SIZE = 999;
-const MIN_SIZE = 4;
+import { DUNGEON_DEFAULT } from "@/game-core/types";
 
 interface EditorSizeInputProps {
   label: string; // "R" や "C" など識別用
@@ -20,8 +18,8 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
   // 値を範囲内に収めるユーティリティ
   const clampValue = (val: string | number) => {
     const num = parseInt(val.toString(), 10);
-    if (isNaN(num)) return MIN_SIZE;
-    return Math.min(Math.max(num, MIN_SIZE), MAX_SIZE);
+    if (isNaN(num)) return DUNGEON_DEFAULT.MIN_SIZE;
+    return Math.min(Math.max(num, DUNGEON_DEFAULT.MIN_SIZE), DUNGEON_DEFAULT.MAX_SIZE);
   };
 
   // 確定処理
@@ -60,8 +58,8 @@ export function EditorSizeInput({ label, initialValue, onConfirm }: EditorSizeIn
         }}
         onBlur={handleBlur}
         className="w-11 bg-transparent text-center text-sm font-bold text-slate-100 focus:outline-none appearance-none p-0 border-none focus:ring-0"
-        min={MIN_SIZE}
-        max={MAX_SIZE}
+        min={DUNGEON_DEFAULT.MIN_SIZE}
+        max={DUNGEON_DEFAULT.MAX_SIZE}
       />
     </div>
   );

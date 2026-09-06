@@ -1,3 +1,4 @@
+import { LucideIcon } from "lucide-react";
 import { Item, WeaponData, EnemyData } from "@/game-core/types";
 import { TileConfigKey, AssetKey } from "@/game-core/master";
 
@@ -74,5 +75,6 @@ export interface PaletteSubGroup {
 
 export interface PaletteGroup {
   label: string;
+  icon: LucideIcon;
   subGroups: PaletteSubGroup[];
 }
