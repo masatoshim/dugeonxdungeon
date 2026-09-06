@@ -454,7 +454,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               <button
                 type="button"
                 onClick={handleCancelLinkingAndRemoveEntity}
-                className="group absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center gap-3 bg-amber-500/10 hover:bg-rose-500/20 backdrop-blur-xl border-2 border-amber-500/80 hover:border-rose-500 rounded-2xl px-5 py-2.5 shadow-2xl shadow-amber-500/10 transition-all duration-200 cursor-pointer"
+                className="group absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center gap-2.5 bg-amber-500/10 hover:bg-rose-500/20 backdrop-blur-xl border-2 border-amber-500/80 hover:border-rose-500 rounded-2xl px-3.5 py-2 sm:px-5 sm:py-2.5 shadow-2xl shadow-amber-500/10 transition-all duration-200 cursor-pointer max-w-[calc(100vw-2rem)] w-max"
                 aria-label="ペアリング状態を解除し、設置ギミックを削除"
               >
                 <span className="relative flex h-3 w-3 shrink-0">
@@ -462,15 +462,24 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500 group-hover:bg-rose-500 transition-colors"></span>
                 </span>
 
-                <p className="text-sm font-bold text-amber-400 group-hover:text-rose-300 tracking-wide transition-colors flex items-center gap-2">
-                  <span className="group-hover:hidden">{getLinkingGuideMessage()}</span>
+                <p className="text-xs sm:text-sm font-bold text-amber-400 group-hover:text-rose-300 tracking-wide transition-colors flex items-center gap-2 whitespace-normal sm:whitespace-nowrap leading-tight text-left min-w-0">
+                  {/* ペアリング用メッセージ */}
+                  <span className="group-hover:hidden">
+                    {getLinkingGuideMessage()}
+                    {/* タッチデバイスの時だけ末尾に追加 */}
+                    <span className="inline pointer-fine:hidden text-[10px] sm:text-xs opacity-80 ml-1">
+                      （タップで取り消し）
+                    </span>
+                  </span>
+
+                  {/* ホバー時メッセージ */}
                   <span className="hidden group-hover:inline-flex items-center gap-1.5 text-rose-300 font-extrabold">
-                    <Trash2 className="w-4 h-4" />
-                    クリックでペアリング解除＆1個目のギミックを削除
+                    <Trash2 className="w-4 h-4 shrink-0" />
+                    <span>クリックでペアリング解除＆1個目のギミックを削除</span>
                   </span>
                 </p>
 
-                <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-1 shrink-0" />
+                <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-0.5 shrink-0" />
               </button>
             ) : (
               // 選択中のタイルが現在のパレット内に存在しない、かつ、タイルが選択中の時のみ表示

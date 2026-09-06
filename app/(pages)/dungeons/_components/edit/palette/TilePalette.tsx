@@ -47,6 +47,7 @@ export const TilePalette = ({
   // パレットのグループ切り替え / 閉じた時のフック
   const handleGroupClick = (idx: number) => {
     const isSelectedGroup = activeGroupIdx === idx;
+    setTooltipPos(null);
     if (isSelectedGroup) {
       setActiveGroupIdx(null);
     } else {
@@ -156,7 +157,7 @@ export const TilePalette = ({
       {/* ─── サブグループ & タイルパネル ─── */}
       {!isMetadataOpen && currentGroup && (
         <div
-          className="fixed left-[calc(1rem+3.5rem)] w-72 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-col gap-3 animate-in fade-in slide-in-from-left-2 duration-150 z-50 transition-[top] duration-100 ease-out overflow-hidden"
+          className="fixed left-[calc(1rem+3.5rem)] w-[calc(100vw-5.5rem)] max-w-72 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-col gap-3 animate-in fade-in slide-in-from-left-2 duration-150 z-50 transition-[top] duration-100 ease-out overflow-hidden"
           style={{
             top: `${computedTop}px`,
             maxHeight: `calc(100vh - ${computedTop}px - 1.5rem)`,
