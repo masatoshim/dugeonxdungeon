@@ -39,15 +39,11 @@ export const TilePalette = ({ selectedTile, isEditMode, onSelect, onHoverChange,
   const handleGroupClick = (idx: number) => {
     const isSelectedGroup = activeGroupIdx === idx;
     if (isSelectedGroup) {
-      // 選択中のグループを閉じる場合 -> タイル選択も解除
       setActiveGroupIdx(null);
-      onSelect(null as any);
     } else {
-      // 別のグループに切り替える場合 -> タイル選択を一度解除
       setActiveGroupIdx(idx);
       setIsContentOpen(true);
       setCollapsedSubGroups({});
-      onSelect(null as any);
     }
   };
 
@@ -62,7 +58,6 @@ export const TilePalette = ({ selectedTile, isEditMode, onSelect, onHoverChange,
   // パレット内の閉じるボタンクリック時
   const handleClosePanel = () => {
     setActiveGroupIdx(null);
-    onSelect(null as any);
   };
 
   // ヘッダー開閉等のレイアウト変更に伴うY座標変更
@@ -269,7 +264,6 @@ export const TilePalette = ({ selectedTile, isEditMode, onSelect, onHoverChange,
           type="button"
           onClick={() => {
             onSelect(" ");
-            setActiveGroupIdx(null);
           }}
           onMouseEnter={(e) => handleMouseEnterButton(e, "消しゴム", "eraser")}
           onMouseLeave={handleMouseLeaveButton}

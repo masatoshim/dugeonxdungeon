@@ -7,7 +7,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Info } from "lucide-react";
+import { Info, X, Trash2 } from "lucide-react";
 
 import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
@@ -129,6 +129,27 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     setEntitiesState,
   );
 
+  // タイル選択状態
+  const [selectedTile, setSelectedTile] = useState<TileConfigKey | null>(null);
+
+  // ペアリングの完全キャンセル＆設置済み1個目のギミック削除関数
+  const handleCancelLinkingAndRemoveEntity = useCallback(() => {
+    if (linkingState.active && linkingState.firstEntityId) {
+      const targetId = linkingState.firstEntityId;
+      const nextEntities = entities.filter((ent) => ent.id !== targetId);
+
+      setEntitiesState(nextEntities);
+      pushHistory({
+        ...getCurrentSnapshot(),
+        entities: nextEntities,
+      });
+
+      toast.info("ペア配置を取り消し、1個目のギミックを削除しました");
+    }
+    cancelLinking();
+    setSelectedTile(null);
+  }, [linkingState, entities, setEntitiesState, pushHistory, getCurrentSnapshot, cancelLinking]);
+
   // Undo / Redo 実行時のペアリング状態解除
   const onUndoAction = useCallback(() => {
     handleUndo();
@@ -144,7 +165,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     }
   }, [handleRedo, cancelLinking]);
 
-  // ダンジョンの初期位置を指定
+  // スクロール位置の初期化
   const resetScrollPosition = useCallback(() => {
     const mainEl = mainRef.current;
     if (!mainEl) return;
@@ -229,9 +250,18 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     }
   }, [userInfo, isEditMode, setValue, getCurrentSnapshot, setHistory]);
 
-  // 編集履歴キーボードショートカット（Undo / Redo）
+  // キーボードショートカット（Undo/Redo & Escで選択解除）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (linkingState.active) {
+          handleCancelLinkingAndRemoveEntity();
+        } else {
+          setSelectedTile(null);
+        }
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
         e.preventDefault();
         onUndoAction();
@@ -243,54 +273,14 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onUndoAction, onRedoAction]);
+  }, [onUndoAction, onRedoAction, linkingState.active, handleCancelLinkingAndRemoveEntity]);
 
-  // タイル配置アクション
-  const [selectedTile, setSelectedTile] = useState<TileConfigKey | null>(null);
-
-  // 消しゴム選択時にペアリングタイル1個目のギミック削除＋ペアリング解除 ───
+  // 消しゴム選択時のペアリング解除自動処理
   useEffect(() => {
-    // ペアリング待機中 かつ 1個目のIDが存在し、消しゴムが選択された場合
-    if (selectedTile === " " && linkingState.active && linkingState.firstEntityId) {
-      const targetId = linkingState.firstEntityId;
-
-      // 1個目に配置したギミックを特定
-      const targetEntity = entities.find((ent) => ent.id === targetId);
-
-      if (targetEntity) {
-        // 対象のエンティティを除外
-        const nextEntities = entities.filter((ent) => ent.id !== targetId);
-
-        const nextTiles = tiles;
-
-        // State更新
-        setTilesState(nextTiles);
-        setEntitiesState(nextEntities);
-
-        // 履歴登録
-        pushHistory({
-          ...getCurrentSnapshot(),
-          tiles: nextTiles,
-          entities: nextEntities,
-        });
-      }
-
-      // ペアリング待機状態を解除
-      cancelLinking();
-      toast.info("ペア配置を取り消し、1個目のギミックを削除しました");
+    if (selectedTile === " " && linkingState.active) {
+      handleCancelLinkingAndRemoveEntity();
     }
-  }, [
-    selectedTile,
-    linkingState.active,
-    linkingState.firstEntityId,
-    tiles,
-    entities,
-    setTilesState,
-    setEntitiesState,
-    pushHistory,
-    getCurrentSnapshot,
-    cancelLinking,
-  ]);
+  }, [selectedTile, linkingState.active, handleCancelLinkingAndRemoveEntity]);
 
   useEffect(() => {
     if (linkingState.active && linkingState.pendingType) {
@@ -379,14 +369,12 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                   selectedTile={selectedTile}
                   isEditMode={isEditMode}
                   isMetadataOpen={isMetadataOpen}
-                  onHoverChange={(isHovered) => {
-                    if (isHovered) setIsMetadataOpen(false);
-                  }}
                   onSelect={(id) => {
                     if (linkingState.active && id !== " " && getEntityType(id) !== linkingState.pendingType) {
                       return toast.error("セット設置を優先するか、消しゴムでキャンセルしてください");
                     }
-                    setSelectedTile(id);
+                    // 同じタイルをタップした場合はトグルで選択解除
+                    setSelectedTile((prev) => (prev === id ? null : id));
                   }}
                 />
 
@@ -454,19 +442,53 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               </div>
             </main>
 
-            {/* ─── ギミック連携ガイド通知 ─── */}
-            {linkingState.active && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-200">
-                <div className="bg-amber-500/10 backdrop-blur-xl border-2 border-amber-500/80 rounded-2xl px-6 py-3 shadow-2xl shadow-amber-500/10 flex items-center gap-3">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            {/* ─── 画面上部中央：ステータス＆選択中通知 ─── */}
+            {linkingState.active ? (
+              <button
+                type="button"
+                onClick={handleCancelLinkingAndRemoveEntity}
+                className="group absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center gap-3 bg-amber-500/10 hover:bg-rose-500/20 backdrop-blur-xl border-2 border-amber-500/80 hover:border-rose-500 rounded-2xl px-5 py-2.5 shadow-2xl shadow-amber-500/10 transition-all duration-200 cursor-pointer"
+                aria-label="ペアリング状態を解除し、設置ギミックを削除"
+              >
+                <span className="relative flex h-3 w-3 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 group-hover:bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500 group-hover:bg-rose-500 transition-colors"></span>
+                </span>
+
+                <p className="text-sm font-bold text-amber-400 group-hover:text-rose-300 tracking-wide transition-colors flex items-center gap-2">
+                  <span className="group-hover:hidden">{getLinkingGuideMessage()}</span>
+                  <span className="hidden group-hover:inline-flex items-center gap-1.5 text-rose-300 font-extrabold">
+                    <Trash2 className="w-4 h-4" />
+                    クリックでペアリング解除＆1個目のギミックを削除
                   </span>
-                  <p className="text-sm font-bold text-amber-400 tracking-wide">
-                    {getLinkingGuideMessage()} （消しゴムで取り消し）
-                  </p>
-                </div>
-              </div>
+                </p>
+
+                <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-1 shrink-0" />
+              </button>
+            ) : (
+              selectedTile !== null && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTile(null)}
+                  className="group absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center gap-2.5 bg-slate-900/90 hover:bg-rose-950/90 border border-cyan-500/50 hover:border-rose-500/80 rounded-full px-5 py-2 shadow-2xl backdrop-blur-md transition-all duration-200 cursor-pointer"
+                  aria-label="選択状態を解除"
+                >
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-200 group-hover:text-rose-200 transition-colors">
+                    <span className="text-[10px] text-cyan-400 group-hover:text-rose-400 uppercase tracking-wider transition-colors">
+                      選択中:
+                    </span>
+                    <span>{selectedTile === " " ? "消しゴム" : TILE_CONFIG[selectedTile]?.name}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 pl-1 border-l border-slate-700/80 group-hover:border-rose-500/40 transition-colors">
+                    <span className="text-[11px] text-slate-400 group-hover:text-rose-300 font-normal transition-colors">
+                      <span className="group-hover:hidden">（Escで解除）</span>
+                      <span className="hidden group-hover:inline font-bold">クリックで解除</span>
+                    </span>
+                    <X className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-300 group-hover:scale-110 transition-all shrink-0" />
+                  </div>
+                </button>
+              )
             )}
 
             {/* ─── ズームコントローラー ─── */}
