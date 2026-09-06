@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,23 @@ export default function Header() {
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   // モバイルドロワーの開閉管理
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // ドロワー開閉時に body のスクロールをロックして右端のズレ・見切れを抑止
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
 
   // 「創る」をクリックしたときの制御
   const handleCreateClick = (e?: React.MouseEvent) => {
@@ -44,12 +62,12 @@ export default function Header() {
 
   return (
     <>
-      <header className="px-4 sm:px-8 py-4 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
+      <header className="px-4 sm:px-8 py-3.5 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
         <div className="flex items-center gap-8">
           {/* ロゴエリア */}
           <Link
             href="/"
-            className="font-black text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors"
+            className="font-black text-lg sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors"
           >
             DUNGEON<span className="text-[#4fd1d1]">×</span>DUNGEON
           </Link>
@@ -109,88 +127,94 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ─── モバイル用スライドイン・ドロワー ─── */}
-      <div
-        className={`fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
-          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsMenuOpen(false)}
-      />
-
-      <aside
-        className={`fixed top-0 right-0 bottom-0 w-72 bg-slate-900 border-l border-slate-800 z-50 p-6 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <span className="font-black text-sm tracking-wider text-slate-400 uppercase">Menu</span>
-            <button
-              type="button"
+      {/* ─── モバイルドロワー ─── */}
+      {mounted &&
+        isMenuOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[999] md:hidden flex justify-end w-screen h-[100dvh] overflow-hidden">
+            {/* 背景オーバーレイ */}
+            <div
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
               onClick={() => setIsMenuOpen(false)}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-            >
-              <X size={18} />
-            </button>
-          </div>
+            />
 
-          <nav className="flex flex-col gap-2">
-            <Link
-              href="/dungeons"
-              onClick={() => handleNavClick()}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all"
-            >
-              <Gamepad2 size={18} className="text-[#4fd1d1]" />
-              遊ぶ
-            </Link>
+            {/* ドロワー本体 */}
+            <aside className="relative w-[260px] max-w-[80vw] h-[100dvh] bg-slate-900 border-l border-slate-800 p-5 flex flex-col justify-between shadow-2xl z-10 box-border overflow-y-auto animate-in slide-in-from-right duration-200">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <span className="font-black text-sm tracking-wider text-slate-400 uppercase">Menu</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
 
-            <button
-              type="button"
-              onClick={() => handleNavClick(() => handleCreateClick())}
-              className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all cursor-pointer bg-transparent border-none"
-            >
-              <Hammer size={18} className="text-[#4fd1d1]" />
-              創る
-            </button>
+                <nav className="flex flex-col gap-2">
+                  <Link
+                    href="/dungeons"
+                    onClick={() => handleNavClick()}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all"
+                  >
+                    <Gamepad2 size={18} className="text-[#4fd1d1]" />
+                    遊ぶ
+                  </Link>
 
-            <Link
-              href="/ranking"
-              onClick={() => handleNavClick()}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all"
-            >
-              <Trophy size={18} className="text-[#4fd1d1]" />
-              競う
-            </Link>
-          </nav>
-        </div>
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick(() => handleCreateClick())}
+                    className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all cursor-pointer bg-transparent border-none"
+                  >
+                    <Hammer size={18} className="text-[#4fd1d1]" />
+                    創る
+                  </button>
 
-        <div className="border-t border-slate-800 pt-4">
-          {session ? (
-            <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80">
-              <div className="flex flex-col min-w-0 pr-2">
-                <span className="text-xs text-slate-400">ログイン中</span>
-                <span className="text-sm font-bold text-slate-200 truncate">
-                  {session.user?.nickName || session.user?.name}
-                </span>
+                  <Link
+                    href="/ranking"
+                    onClick={() => handleNavClick()}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-slate-200 hover:bg-slate-800 hover:text-[#4fd1d1] transition-all"
+                  >
+                    <Trophy size={18} className="text-[#4fd1d1]" />
+                    競う
+                  </Link>
+                </nav>
               </div>
-              <HeaderUserMenu />
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              onClick={() => handleNavClick()}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-[#4fd1d1] hover:bg-[#3db8b8] text-slate-950 font-black text-sm rounded-xl transition-all shadow-lg shadow-[#4fd1d1]/20"
-            >
-              <LogIn size={16} />
-              ログイン / 新規登録
-            </Link>
-          )}
-        </div>
-      </aside>
+
+              {/* ドロワー下部：ユーザー情報＆歯車アイコン */}
+              <div className="border-t border-slate-800 pt-4 mt-auto">
+                {session ? (
+                  <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 gap-2">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-[10px] text-slate-400">ログイン中</span>
+                      <span className="text-sm font-bold text-slate-200 truncate">
+                        {session.user?.nickName || session.user?.name}
+                      </span>
+                    </div>
+                    <div className="shrink-0 flex items-center justify-center">
+                      <HeaderUserMenu />
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => handleNavClick()}
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#4fd1d1] hover:bg-[#3db8b8] text-slate-950 font-black text-sm rounded-xl transition-all shadow-lg shadow-[#4fd1d1]/20"
+                  >
+                    <LogIn size={16} />
+                    ログイン / 新規登録
+                  </Link>
+                )}
+              </div>
+            </aside>
+          </div>,
+          document.body,
+        )}
 
       {/* 未ログインユーザー用のポップアップ */}
       {showLoginAlert && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setShowLoginAlert(false)}
