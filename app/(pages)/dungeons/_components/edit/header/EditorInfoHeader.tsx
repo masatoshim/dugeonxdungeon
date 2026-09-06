@@ -71,11 +71,11 @@ export const EditorInfoHeader = ({
       {/* ─── 1段目：ヘッダーエリア ─── */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full select-none border-b border-slate-800/40 pb-0.5 cursor-pointer group/header"
+        className="flex flex-wrap md:flex-nowrap items-center justify-between w-full select-none border-b border-slate-800/40 pb-1 cursor-pointer group/header gap-y-2 gap-x-2"
       >
         {/* 左側：ナビゲーション・メタ情報 ＋ エラーバッジ */}
-        <div className="flex items-center gap-2 shrink-0 min-w-0">
-          <div className="w-fit" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
+          <div className="w-fit shrink-0" onClick={(e) => e.stopPropagation()}>
             <BackButton isAdmin={isAdmin} />
           </div>
 
@@ -98,7 +98,7 @@ export const EditorInfoHeader = ({
           {/* 折りたたみ時のみ表示されるダンジョン名 */}
           {!isOpen && (
             <span
-              className="text-xs font-bold text-slate-300 truncate max-w-[160px] sm:max-w-[240px] md:max-w-[320px] shrink"
+              className="text-xs font-bold text-slate-300 truncate max-w-[140px] sm:max-w-[240px] md:max-w-[320px] shrink-0"
               title={config.name}
             >
               {config.name}
@@ -110,15 +110,15 @@ export const EditorInfoHeader = ({
           </div>
 
           {errors.name && (
-            <span className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded font-black animate-pulse shrink-0">
+            <span className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded font-black animate-pulse shrink-0 whitespace-nowrap">
               ※ダンジョン名が未入力です
             </span>
           )}
         </div>
 
         {/* 右側：各種操作アクション */}
-        <div className="flex items-center gap-3 shrink-0 pl-4">
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto md:ml-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
             <HistoryActionGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
             <SaveActionGroup
               initialData={initialData}
@@ -133,7 +133,7 @@ export const EditorInfoHeader = ({
           </div>
 
           <div
-            className="flex items-center justify-center w-6 h-6 rounded hover:bg-slate-800/60 transition-colors"
+            className="flex items-center justify-center w-6 h-6 rounded hover:bg-slate-800/60 transition-colors shrink-0"
             title={isOpen ? "折りたたむ" : "展開する"}
           >
             <ChevronDown
@@ -147,9 +147,9 @@ export const EditorInfoHeader = ({
       {/* ─── 2段目・3段目：コンテンツエリア ─── */}
       {isOpen && (
         <div className="flex flex-col gap-2 w-full animate-[fadeIn_0.15s_ease-out]">
-          <div className="flex flex-col md:flex-row md:items-stretch gap-2.5 w-full pt-1.5">
+          <div className="flex flex-col lg:flex-row lg:items-stretch gap-2.5 w-full pt-1.5">
             {/* ダンジョン名入力 */}
-            <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 min-w-[200px] transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/name">
+            <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 min-w-0 transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/name">
               <label className="flex items-center gap-1 text-[11px] font-sans font-black tracking-wider text-slate-400 shrink-0 select-none uppercase">
                 ダンジョン名:
               </label>
@@ -162,17 +162,19 @@ export const EditorInfoHeader = ({
             </div>
 
             {/* サイズ ＆ 制限時間 */}
-            <div className="flex items-center gap-2.5 text-sm text-slate-400 shrink-0 select-none">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 text-sm text-slate-400 shrink-0 select-none w-full lg:w-auto">
               {/* サイズ */}
-              <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 shrink-0 h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/size">
-                <Settings
-                  size={18}
-                  className="text-slate-500 group-focus-within/size:text-cyan-400 transition-colors shrink-0"
-                />
-                <span className="font-black text-[11px] text-slate-400 group-focus-within/size:text-slate-300 transition-colors tracking-wider uppercase leading-none">
-                  サイズ:
-                </span>
-                <div className="flex items-center gap-1.5 font-mono text-slate-200 h-full">
+              <div className="flex items-center justify-between sm:justify-start gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 sm:flex-initial h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/size min-w-0">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Settings
+                    size={18}
+                    className="text-slate-500 group-focus-within/size:text-cyan-400 transition-colors shrink-0"
+                  />
+                  <span className="font-black text-[11px] text-slate-400 group-focus-within/size:text-slate-300 transition-colors tracking-wider uppercase leading-none">
+                    サイズ:
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono text-slate-200 h-full shrink-0">
                   <EditorSizeInput
                     label="縦"
                     initialValue={rows}
@@ -188,23 +190,27 @@ export const EditorInfoHeader = ({
               </div>
 
               {/* 制限時間 */}
-              <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 shrink-0 h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/time">
-                <Clock
-                  size={18}
-                  className="text-slate-500 group-focus-within/time:text-cyan-400 transition-colors shrink-0"
-                />
-                <span className="font-black text-[11px] text-slate-400 group-focus-within/time:text-slate-300 transition-colors tracking-wider uppercase leading-none">
-                  制限時間:
-                </span>
-                <input
-                  type="number"
-                  className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-2 py-0 text-center font-mono font-bold text-slate-100 w-14 h-6 outline-none focus:ring-0 transition-all text-sm m-0"
-                  {...register("timeLimit", {
-                    valueAsNumber: true,
-                    onBlur: onConfigConfirm,
-                  })}
-                />
-                <span className="text-slate-500 font-mono text-xs leading-none">sec</span>
+              <div className="flex items-center justify-between sm:justify-start gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 sm:flex-initial h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/time min-w-0">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Clock
+                    size={18}
+                    className="text-slate-500 group-focus-within/time:text-cyan-400 transition-colors shrink-0"
+                  />
+                  <span className="font-black text-[11px] text-slate-400 group-focus-within/time:text-slate-300 transition-colors tracking-wider uppercase leading-none">
+                    制限時間:
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <input
+                    type="number"
+                    className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-2 py-0 text-center font-mono font-bold text-slate-100 w-14 h-6 outline-none focus:ring-0 transition-all text-sm m-0"
+                    {...register("timeLimit", {
+                      valueAsNumber: true,
+                      onBlur: onConfigConfirm,
+                    })}
+                  />
+                  <span className="text-slate-500 font-mono text-xs leading-none">sec</span>
+                </div>
               </div>
             </div>
           </div>
@@ -218,7 +224,7 @@ export const EditorInfoHeader = ({
             <input
               type="text"
               placeholder="ダンジョンの説明文やキャッチコピーを追加..."
-              className="bg-transparent text-slate-300 outline-none w-full text-xs placeholder-slate-600 py-0.5 focus:ring-0 focus:outline-none"
+              className="bg-transparent text-slate-300 outline-none w-full text-xs placeholder-slate-600 py-0.5 focus:ring-0 focus:outline-none min-w-0"
               {...register("description", { onBlur: onConfigConfirm })}
             />
           </div>
