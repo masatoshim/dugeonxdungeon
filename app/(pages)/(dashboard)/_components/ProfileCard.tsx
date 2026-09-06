@@ -139,103 +139,105 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
 
   return (
     <>
-      <div className="bg-[#1a1d2b] border border-slate-700 rounded-2xl p-8 shadow-xl min-h-[580px] flex flex-col relative">
+      <div className="bg-[#1a1d2b] border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-xl h-full flex flex-col justify-between relative">
         {/* ユーザーステータス */}
         {isAdminMode && (
           <div className="absolute top-4 left-4 z-10">
             {user.deletedFlg ? (
-              /* 1. 削除済みの場合 */
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-red-500/10 text-red-400 border-red-500/20">
+              /* 削除済みの場合 */
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-red-500/10 text-red-400 border-red-500/20">
                 <AlertTriangle size={10} />
                 <span>削除済み</span>
               </span>
             ) : user.isActive ? (
-              /* 2. アクティブの場合 */
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                <span className="w-1 h-1 rounded-full bg-emerald-400" />
+              /* アクティブの場合 */
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span>アクティブ</span>
               </span>
             ) : (
-              /* 3. 非アクティブの場合 */
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-500/10 text-amber-400 border-amber-500/20">
-                <span className="w-1 h-1 rounded-full bg-amber-400" />
+              /* 非アクティブの場合 */
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-amber-500/10 text-amber-400 border-amber-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 <span>非アクティブ</span>
               </span>
             )}
           </div>
         )}
 
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative group">
-            <div
-              className={`w-32 h-32 rounded-full overflow-hidden border-4 bg-slate-800 flex items-center justify-center relative ${
-                user.deletedFlg ? "border-red-500/50" : "border-[#4fd1d1]/20"
-              }`}
-            >
-              {isUploading ? (
-                <Loader2 className="animate-spin text-[#4fd1d1]" />
-              ) : iconUrl ? (
-                <Image
-                  src={iconUrl}
-                  alt="avatar"
-                  width={128}
-                  height={128}
-                  className={`object-cover w-full h-full ${user.deletedFlg ? "grayscale opacity-40" : ""}`}
-                  unoptimized
-                />
-              ) : (
-                <div className="text-slate-500 text-xs text-center p-2">No Image</div>
-              )}
-            </div>
-
-            {!user.deletedFlg && (
-              <label
-                className={`absolute bottom-0 right-0 p-2 rounded-full shadow-lg transition-colors ${
-                  isUploading || isActionLoading || !user.isActive
-                    ? "bg-slate-600 cursor-not-allowed opacity-50" // 無効時の見た目
-                    : "bg-[#4fd1d1] hover:bg-[#3db8b8] cursor-pointer" // 有効時の見た目
+        <div>
+          {/* アイコン */}
+          <div className="flex flex-col items-center my-4">
+            <div className="relative group">
+              <div
+                className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 bg-slate-800 flex items-center justify-center relative ${
+                  user.deletedFlg ? "border-red-500/50" : "border-[#4fd1d1]/30 shadow-[0_0_15px_rgba(79,209,209,0.15)]"
                 }`}
               >
-                <Camera size={18} className="text-[#0f111a]" />
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  disabled={isUploading || isActionLoading || !user.isActive}
-                />
-              </label>
-            )}
-          </div>
-        </div>
+                {isUploading ? (
+                  <Loader2 className="animate-spin text-[#4fd1d1]" />
+                ) : iconUrl ? (
+                  <Image
+                    src={iconUrl}
+                    alt="avatar"
+                    width={128}
+                    height={128}
+                    className={`object-cover w-full h-full ${user.deletedFlg ? "grayscale opacity-40" : ""}`}
+                    unoptimized
+                  />
+                ) : (
+                  <div className="text-slate-500 text-xs text-center p-2">No Image</div>
+                )}
+              </div>
 
-        <div className="space-y-6 flex-1 flex flex-col justify-between">
-          <div className="space-y-6">
+              {!user.deletedFlg && (
+                <label
+                  className={`absolute bottom-0 right-0 p-2.5 rounded-full shadow-lg transition-all ${
+                    isUploading || isActionLoading || !user.isActive
+                      ? "bg-slate-700 cursor-not-allowed opacity-50"
+                      : "bg-[#4fd1d1] hover:bg-[#3db8b8] cursor-pointer hover:scale-105"
+                  }`}
+                >
+                  <Camera size={16} className="text-[#0f111a]" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    disabled={isUploading || isActionLoading || !user.isActive}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* ユーザー情報リスト */}
+          <div className="space-y-5 mt-6">
             {/* ニックネーム */}
             <div>
-              <label className="flex items-center gap-2 text-xs font-mono text-[#4fd1d1] uppercase tracking-widest mb-1">
+              <label className="flex items-center gap-2 text-[11px] font-mono text-[#4fd1d1] uppercase tracking-widest mb-1">
                 ニックネーム
                 <button
                   onClick={() => setIsEditingNickName(!isEditingNickName)}
                   className="hover:text-white transition-colors"
                   disabled={isActionLoading || !user.isActive || user.deletedFlg}
                 >
-                  <Pencil size={14} />
+                  <Pencil size={13} />
                 </button>
               </label>
               {isEditingNickName ? (
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-1">
                   <input
                     type="text"
                     value={nickName}
                     onChange={(e) => setNickName(e.target.value)}
-                    className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-[#4fd1d1]"
+                    className="flex-1 bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#4fd1d1]"
                     autoFocus
                   />
                   <button
                     onClick={handleUpdateNickName}
                     disabled={!isNickNameChanged || isActionLoading || !user.isActive || user.deletedFlg}
-                    className={`text-xs px-2 py-1 rounded font-bold transition-colors ${
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-colors ${
                       isNickNameChanged
                         ? "bg-[#4fd1d1] text-[#0f111a] hover:bg-[#3db8b8]"
                         : "bg-slate-700 text-slate-500 cursor-not-allowed"
@@ -246,7 +248,7 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
                 </div>
               ) : (
                 <p
-                  className={`text-xl font-medium ${user.deletedFlg ? "text-slate-500 line-through" : "text-slate-100"}`}
+                  className={`text-lg font-semibold truncate ${user.deletedFlg ? "text-slate-500 line-through" : "text-slate-100"}`}
                 >
                   {user.nickName || user.userName}
                 </p>
@@ -255,91 +257,93 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
 
             {/* ユーザーネーム */}
             <div>
-              <label className="text-xs font-mono text-[#4fd1d1] uppercase tracking-widest mb-1 block">
+              <label className="text-[11px] font-mono text-[#4fd1d1] uppercase tracking-widest mb-1 block">
                 ユーザーネーム
               </label>
-              <p className="text-lg text-slate-200 font-medium">{user.userName}</p>
+              <p className="text-base text-slate-200 font-medium truncate">{user.userName}</p>
             </div>
 
             {/* メールアドレス */}
             <div>
-              <label className="text-xs font-mono text-[#4fd1d1] uppercase tracking-widest mb-1 block">
+              <label className="text-[11px] font-mono text-[#4fd1d1] uppercase tracking-widest mb-1 block">
                 メールアドレス
               </label>
-              <p className="text-lg text-slate-400 font-medium">{user.email}</p>
+              <p className="text-base text-slate-300 font-medium truncate">{user.email}</p>
             </div>
 
             {/* パスワード変更ボタン */}
             {!isGoogleUser && (
-              <div className="h-12 flex items-end border-t border-slate-700/50 mt-4">
+              <div className="pt-2">
                 <button
                   onClick={() => setIsPasswordModalOpen(true)}
                   disabled={isActionLoading || !user.isActive || user.deletedFlg}
-                  className="flex items-center gap-2 text-sm text-[#4fd1d1] hover:text-white transition-colors group disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 text-xs text-[#4fd1d1] hover:text-white transition-colors group disabled:opacity-20 disabled:cursor-not-allowed"
                 >
-                  <LinkIcon size={14} />
-                  <span className="border-b border-[#4fd1d1] group-hover:border-white">パスワードを変更する</span>
+                  <LinkIcon size={13} />
+                  <span className="border-b border-[#4fd1d1] group-hover:border-white pb-0.5">
+                    パスワードを変更する
+                  </span>
                 </button>
               </div>
             )}
           </div>
-
-          {/* 管理者用操作パネル */}
-          {isAdminMode && (
-            <div className="pt-6 border-t border-slate-700/60 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                {/* アクティブ / 非アクティブ 切替ボタン */}
-                <button
-                  onClick={handleDeactivate}
-                  disabled={isActionLoading || user.deletedFlg}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border disabled:opacity-20 disabled:cursor-not-allowed ${
-                    user.isActive
-                      ? "bg-amber-600/10 hover:bg-amber-600 border-amber-600/40 hover:border-amber-500 text-amber-400 hover:text-white"
-                      : "bg-emerald-600/10 hover:bg-emerald-600 border-emerald-600/40 hover:border-emerald-500 text-emerald-400 hover:text-white"
-                  }`}
-                >
-                  {isActionLoading ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : user.isActive ? (
-                    <>
-                      <span>非アクティブにする</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>アクティブにする</span>
-                    </>
-                  )}
-                </button>
-
-                {/* 削除ボタン */}
-                <button
-                  onClick={handleLogicalDelete}
-                  disabled={isActionLoading || user.deletedFlg}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border disabled:opacity-20 disabled:cursor-not-allowed ${
-                    user.deletedFlg
-                      ? "bg-slate-800 text-slate-500 border-slate-700"
-                      : "bg-red-600/10 hover:bg-red-600 border-red-600/40 hover:border-red-500 text-red-400 hover:text-white"
-                  }`}
-                >
-                  {isActionLoading ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : user.deletedFlg ? (
-                    <span>削除済み（復元不可）</span>
-                  ) : (
-                    <>
-                      <Trash2 size={14} />
-                      <span>削除する</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* パスワード変更モーダル */}
-      {isPasswordModalOpen && <PasswordChangeModal onClose={() => setIsPasswordModalOpen(false)} />}
+        {/* 管理者用操作パネル */}
+        {isAdminMode && (
+          <div className="pt-6 mt-6 border-t border-slate-700/60">
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* アクティブ / 非アクティブ 切替ボタン */}
+              <button
+                onClick={handleDeactivate}
+                disabled={isActionLoading || user.deletedFlg}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border disabled:opacity-20 disabled:cursor-not-allowed ${
+                  user.isActive
+                    ? "bg-amber-600/10 hover:bg-amber-600 border-amber-600/40 hover:border-amber-500 text-amber-400 hover:text-white"
+                    : "bg-emerald-600/10 hover:bg-emerald-600 border-emerald-600/40 hover:border-emerald-500 text-emerald-400 hover:text-white"
+                }`}
+              >
+                {isActionLoading ? (
+                  <Loader2 className="animate-spin" size={14} />
+                ) : user.isActive ? (
+                  <>
+                    <span>非アクティブにする</span>
+                  </>
+                ) : (
+                  <>
+                    <span>アクティブにする</span>
+                  </>
+                )}
+              </button>
+
+              {/* 削除ボタン */}
+              <button
+                onClick={handleLogicalDelete}
+                disabled={isActionLoading || user.deletedFlg}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border disabled:opacity-20 disabled:cursor-not-allowed ${
+                  user.deletedFlg
+                    ? "bg-slate-800 text-slate-500 border-slate-700"
+                    : "bg-red-600/10 hover:bg-red-600 border-red-600/40 hover:border-red-500 text-red-400 hover:text-white"
+                }`}
+              >
+                {isActionLoading ? (
+                  <Loader2 className="animate-spin" size={14} />
+                ) : user.deletedFlg ? (
+                  <span>削除済み（復元不可）</span>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>削除する</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* パスワード変更モーダル */}
+        {isPasswordModalOpen && <PasswordChangeModal onClose={() => setIsPasswordModalOpen(false)} />}
+      </div>
     </>
   );
 }

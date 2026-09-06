@@ -78,14 +78,14 @@ function ProfilePageContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 pb-6 pt-0">
-      <div className="flex flex-col lg:flex-row gap-6 items-start mb-10 w-full">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 pt-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
         {/* プロフィール詳細 */}
-        <div className="w-full lg:w-[380px] shrink-0">
+        <div className="lg:col-span-4 xl:col-span-4">
           <ProfileCard user={user} mutate={mutateUser} update={update} />
         </div>
         {/* 統計情報 */}
-        <div className="flex-1 min-w-0 w-full">
+        <div className="lg:col-span-8 xl:col-span-8">
           <UserStatsCard user={user} />
         </div>
       </div>
@@ -112,7 +112,7 @@ function ProfilePageContent() {
         />
       </div>
 
-      {/* ダンジョン詳細モーダル表示 */}
+      {/* モーダル */}
       {dungeonId && (
         <DungeonDetailModal>
           <DungeonDetailContent id={dungeonId} />
