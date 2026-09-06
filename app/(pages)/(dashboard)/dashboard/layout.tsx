@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { getNavItems } from "@/app/(pages)/_components/navigation";
 
@@ -30,19 +30,6 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        {/* モバイル用：ヘッダー（閉じるボタン） */}
-        <div className="flex md:hidden items-center justify-between px-3 pb-2 border-b border-slate-800/80 mb-2">
-          <span className="text-[10px] font-bold text-slate-400">メニュー</span>
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
-            aria-label="メニューを閉じる"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
         {/* ナビゲーションリスト */}
         <nav className="flex-1 h-0 px-1.5 md:px-4 space-y-2 md:space-y-3 overflow-y-auto custom-scrollbar pt-2">
           {navItems.map((item) => {
@@ -97,7 +84,6 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1a1d2b] border border-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
           >
             <Menu size={18} className="text-cyan-400" />
-            <span>メニュー</span>
           </button>
         </div>
 
