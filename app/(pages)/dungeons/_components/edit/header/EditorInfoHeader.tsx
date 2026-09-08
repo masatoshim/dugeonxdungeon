@@ -264,11 +264,11 @@ export const EditorInfoHeader = ({
         onPointerDown={handleTouchStart}
         onPointerUp={handleTouchEnd}
         className="flex md:hidden w-full h-5 bg-slate-900/40 hover:bg-slate-800/80 active:bg-slate-800 items-center justify-center cursor-pointer transition-colors group/bar select-none relative"
-        title={isOpen ? "上にスワイプまたはタップで折りたたむ" : "下にスワイプまたはタップで展開"}
+        title={isOpen ? "折りたたむ" : "展開する"}
       >
-        <div className="w-10 h-1 bg-slate-600 group-hover/bar:bg-cyan-400 rounded-full transition-colors flex items-center justify-center"></div>
+        <div className="w-10 h-3 bg-slate-600 group-hover/bar:bg-cyan-400 rounded-full transition-colors flex items-center justify-center"></div>
         <ChevronDown
-          size={12}
+          size={15}
           className={`absolute text-slate-500 group-hover/bar:text-slate-300 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
         />
       </div>
