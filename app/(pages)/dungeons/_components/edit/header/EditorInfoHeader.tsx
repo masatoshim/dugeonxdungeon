@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { DungeonStatus } from "@prisma/client";
 import { Clock, FileText, Settings, ChevronDown } from "lucide-react";
@@ -56,6 +56,32 @@ export const EditorInfoHeader = ({
   } = useFormContext<DungeonFormData>();
   const config = watch();
 
+  // スワイプ検知用の座標保持用 ref
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent | React.PointerEvent) => {
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    touchStartY.current = clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent | React.PointerEvent) => {
+    if (touchStartY.current === null) return;
+    const clientY = "changedTouches" in e ? e.changedTouches[0].clientY : e.clientY;
+    const diffY = clientY - touchStartY.current;
+
+    // 縦方向の移動量が30px以上の場合にスワイプと判定
+    if (Math.abs(diffY) > 30) {
+      if (diffY < 0) {
+        // 上方向へのスワイプ → 折りたたむ
+        setIsOpen(false);
+      } else {
+        // 下方向へのスワイプ → 展開する
+        setIsOpen(true);
+      }
+    }
+    touchStartY.current = null;
+  };
+
   const statusStyles =
     {
       DRAFT: "bg-amber-500/10 text-amber-400 border-amber-500/30",
@@ -68,11 +94,8 @@ export const EditorInfoHeader = ({
 
   return (
     <div className="flex flex-col gap-0.5 flex-1 min-w-0 w-full transition-all duration-300">
-      {/* ─── 1段目：ヘッダーエリア ─── */}
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex flex-wrap md:flex-nowrap items-center justify-between w-full select-none border-b border-slate-800/40 pb-1 cursor-pointer group/header gap-y-2 gap-x-2"
-      >
+      {/* ─── 1段目：メインヘッダーエリア ─── */}
+      <div className="flex flex-wrap md:flex-nowrap items-center justify-between w-full select-none pb-1 group/header gap-y-2 gap-x-2">
         {/* 左側：ナビゲーション・メタ情報 ＋ エラーバッジ */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
           <div className="w-fit shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -132,8 +155,10 @@ export const EditorInfoHeader = ({
             />
           </div>
 
+          {/* 折り畳みボタン */}
           <div
-            className="flex items-center justify-center w-6 h-6 rounded hover:bg-slate-800/60 transition-colors shrink-0"
+            onClick={() => setIsOpen(!isOpen)}
+            className="hidden md:flex items-center justify-center w-6 h-6 rounded hover:bg-slate-800/60 transition-colors shrink-0 cursor-pointer"
             title={isOpen ? "折りたたむ" : "展開する"}
           >
             <ChevronDown
@@ -146,8 +171,8 @@ export const EditorInfoHeader = ({
 
       {/* ─── 2段目・3段目：コンテンツエリア ─── */}
       {isOpen && (
-        <div className="flex flex-col gap-2 w-full animate-[fadeIn_0.15s_ease-out]">
-          <div className="flex flex-col lg:flex-row lg:items-stretch gap-2.5 w-full pt-1.5">
+        <div className="flex flex-col gap-2 w-full animate-[fadeIn_0.15s_ease-out] border-b border-slate-800/40 pb-1.5">
+          <div className="flex flex-col lg:flex-row lg:items-stretch gap-2.5 w-full pt-0.5">
             {/* ダンジョン名入力 */}
             <div className="flex items-center gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 min-w-0 transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/name">
               <label className="flex items-center gap-1 text-[11px] font-sans font-black tracking-wider text-slate-400 shrink-0 select-none uppercase">
@@ -215,7 +240,7 @@ export const EditorInfoHeader = ({
             </div>
           </div>
 
-          {/* 3段目：説明文 */}
+          {/* 説明文 */}
           <div className="flex items-center gap-2 bg-slate-950/20 px-3.5 py-1 rounded-xl border border-slate-800/40 w-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/40 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/desc">
             <FileText
               size={13}
@@ -230,6 +255,23 @@ export const EditorInfoHeader = ({
           </div>
         </div>
       )}
+
+      {/* トグルバー（画面幅が狭いときのみ表示） */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onPointerDown={handleTouchStart}
+        onPointerUp={handleTouchEnd}
+        className="flex md:hidden w-full h-5 bg-slate-900/40 hover:bg-slate-800/80 active:bg-slate-800 items-center justify-center cursor-pointer transition-colors group/bar select-none relative"
+        title={isOpen ? "上にスワイプまたはタップで折りたたむ" : "下にスワイプまたはタップで展開"}
+      >
+        <div className="w-10 h-1 bg-slate-600 group-hover/bar:bg-cyan-400 rounded-full transition-colors flex items-center justify-center"></div>
+        <ChevronDown
+          size={12}
+          className={`absolute text-slate-500 group-hover/bar:text-slate-300 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
+        />
+      </div>
     </div>
   );
 };
