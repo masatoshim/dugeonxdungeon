@@ -12,7 +12,6 @@ type Props = {
   onSelect: (id: TileConfigKey) => void;
   onHoverChange?: (isHovered: boolean) => void;
   isMetadataOpen?: boolean;
-  onCurrentTileInActiveGroupChange?: (isInActiveGroup: boolean) => void;
   onGroupChange?: () => void;
 };
 
@@ -22,7 +21,6 @@ export const TilePalette = ({
   onSelect,
   onHoverChange,
   isMetadataOpen = false,
-  onCurrentTileInActiveGroupChange,
   onGroupChange,
 }: Props) => {
   const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(isEditMode ? null : 0);
@@ -114,21 +112,6 @@ export const TilePalette = ({
 
   // 表示対象のグループ（選択中のグループ）
   const currentGroup = activeGroupIdx !== null ? TILE_PALETTE_SCHEMA[activeGroupIdx] : null;
-
-  // 現在開いているパレット内に selectedTile が含まれているか判定
-  useEffect(() => {
-    if (!currentGroup || isMetadataOpen || !selectedTile) {
-      onCurrentTileInActiveGroupChange?.(false);
-      return;
-    }
-
-    // パレット内の全 items を走査して選択中タイルが含まれるかチェック
-    const existsInCurrentGroup = currentGroup.subGroups.some((sub) =>
-      sub.items.some((item) => item.id === selectedTile),
-    );
-
-    onCurrentTileInActiveGroupChange?.(existsInCurrentGroup);
-  }, [currentGroup, selectedTile, isMetadataOpen, onCurrentTileInActiveGroupChange]);
 
   // 最小のY開始座標
   const computedTop = Math.max(panelTop, 64);

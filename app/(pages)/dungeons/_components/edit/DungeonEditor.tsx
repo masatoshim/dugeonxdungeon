@@ -85,9 +85,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const startScrollRef = useRef({ left: 0, top: 0 });
 
   const isEditMode = !!initialData?.id;
-  const [isPaletteOpen, setIsPaletteOpen] = useState<boolean>(!isEditMode);
-  // 選択中のタイルがアクティブなパレット内に存在するかの状態を持たせる
-  const [isTileInActivePalette, setIsTileInActivePalette] = useState<boolean>(false);
 
   // React Hook Form の初期化
   const methods = useForm<DungeonFormData>({
@@ -366,7 +363,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
           {/* ─── メインレイアウト ─── */}
           <div className="relative flex-1 min-h-0 w-full overflow-hidden">
             {/* 左サイドバー */}
-            <div className="absolute top-4 left-4 z-30 pointer-events-auto">
+            <div className="absolute top-10 left-4 z-30 pointer-events-auto">
               <div className="flex flex-col gap-3 relative">
                 <TilePalette
                   selectedTile={selectedTile}
@@ -381,7 +378,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                     setSelectedTile((prev) => (prev === id ? null : id));
                   }}
                   isMetadataOpen={isMetadataOpen}
-                  onCurrentTileInActiveGroupChange={setIsTileInActivePalette}
                   onGroupChange={() => setIsMetadataOpen(false)}
                 />
 
@@ -448,7 +444,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </main>
 
             {/* ─── 画面上部中央：ステータス＆選択中通知 ─── */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-col items-center">
+            <div className="absolute top-1 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-col items-center">
               {linkingState.active ? (
                 <button
                   type="button"
@@ -481,8 +477,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                   <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-0.5 shrink-0" />
                 </button>
               ) : (
-                // 選択中のタイルが現在のパレット内に存在しない、かつ、タイルが選択中の時のみ表示
-                !isTileInActivePalette &&
+                // タイルが選択中の時に表示
                 selectedTile !== null && (
                   <div className="flex flex-col items-center group relative">
                     <button
