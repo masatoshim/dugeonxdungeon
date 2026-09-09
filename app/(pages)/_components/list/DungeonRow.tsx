@@ -142,7 +142,9 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
         <span className="text-gray-400 font-mono text-xs shrink-0">{dungeon.code}</span>
 
         {/* ダンジョン名 */}
-        <span className="font-bold text-white text-sm lg:text-base break-all flex-1 min-w-[150px]">{dungeon.name}</span>
+        <span className="font-bold text-white text-sm lg:text-base truncate flex-1 min-w-[120px]" title={dungeon.name}>
+          {dungeon.name}
+        </span>
 
         {/* サイズ & 時間 */}
         <div className="flex items-center gap-3 lg:gap-4 text-gray-400 text-xs lg:text-sm shrink-0 ml-auto lg:ml-0">

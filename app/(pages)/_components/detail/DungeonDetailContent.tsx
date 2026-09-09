@@ -6,8 +6,6 @@ import { RankingSkeleton } from "./RankingSkeleton";
 import { useGetDungeon, useGetDungeonRankings } from "@/app/_hooks";
 import { Loader2 } from "lucide-react";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export function DungeonDetailContent({ id }: { id: string }) {
   // ダンジョン基本情報の取得
   const { dungeon, error: dungeonError } = useGetDungeon(id);

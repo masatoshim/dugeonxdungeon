@@ -127,7 +127,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
       </div>
 
       {/* 説明文 */}
-      <p className="mt-1.5 text-[12px] leading-tight font-light text-slate-500 line-clamp-2 italic">
+      <p className="mt-1.5 text-[12px] leading-tight font-light text-slate-500 truncate whitespace-nowrap italic">
         {dungeon.description || "説明文はありません。"}
       </p>
 
