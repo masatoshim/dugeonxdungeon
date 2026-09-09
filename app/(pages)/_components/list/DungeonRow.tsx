@@ -119,35 +119,33 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
       )}
 
       {/* ─ 上段情報 ─ */}
-      <div className="flex flex-wrap lg:flex-nowrap items-center gap-2.5 lg:gap-6 flex-1 min-w-0">
+      <div className="flex flex-wrap items-center gap-2.5 lg:gap-6 flex-1 min-w-0">
         {/* ステータスバッジ */}
-        <span className={`w-20 lg:w-24 text-center py-1 rounded-md text-xs font-bold shrink-0 ${config.className}`}>
+        <span className={`text-center px-3 py-1 rounded-md text-xs font-bold shrink-0 ${config.className}`}>
           {config.label}
         </span>
 
         {/* ユーザー情報 */}
         {isAdmin && !isAdminTab && (
-          <div className="flex items-center gap-3 w-40 lg:w-48 shrink-0 border-l border-gray-700 pl-3 lg:pl-4">
-            <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0 border-l border-gray-700 pl-3">
+            <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
               {dungeon.nickName?.[0] || "U"}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-gray-500 truncate">{dungeon.userName}</span>
-              <span className="text-sm text-gray-300 truncate font-medium">{dungeon.nickName}</span>
+              <span className="text-[10px] text-gray-500 truncate">{dungeon.userName}</span>
+              <span className="text-xs text-gray-300 truncate font-medium">{dungeon.nickName}</span>
             </div>
           </div>
         )}
 
         {/* コード */}
-        <span className="text-gray-400 font-mono text-xs w-20 lg:w-24 shrink-0">{dungeon.code}</span>
+        <span className="text-gray-400 font-mono text-xs shrink-0">{dungeon.code}</span>
 
         {/* ダンジョン名 */}
-        <span className="w-full sm:w-auto lg:flex-1 font-bold text-white truncate order-3 lg:order-none">
-          {dungeon.name}
-        </span>
+        <span className="font-bold text-white text-sm lg:text-base break-all flex-1 min-w-[150px]">{dungeon.name}</span>
 
         {/* サイズ & 時間 */}
-        <div className="flex items-center gap-3 lg:gap-4 text-gray-400 text-xs lg:text-sm shrink-0">
+        <div className="flex items-center gap-3 lg:gap-4 text-gray-400 text-xs lg:text-sm shrink-0 ml-auto lg:ml-0">
           <span className="flex items-center gap-1.5">
             <Maximize size={14} className="text-gray-500" /> {dungeon.mapSizeHeight}x{dungeon.mapSizeWidth}
           </span>
