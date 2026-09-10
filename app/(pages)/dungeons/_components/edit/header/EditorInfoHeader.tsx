@@ -94,7 +94,7 @@ export const EditorInfoHeader = ({
 
   return (
     <div className="flex flex-col gap-0.5 flex-1 min-w-0 w-full transition-all duration-300">
-      {/* ─── 1段目：メインヘッダーエリア ─── */}
+      {/* 1段目：メインヘッダーエリア */}
       <div className="flex flex-wrap md:flex-nowrap items-center justify-between w-full select-none pb-1 group/header gap-y-2 gap-x-2">
         {/* 左側：ナビゲーション・メタ情報 ＋ エラーバッジ */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
@@ -134,7 +134,17 @@ export const EditorInfoHeader = ({
 
           {errors.name && (
             <span className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded font-black animate-pulse shrink-0 whitespace-nowrap">
-              ※ダンジョン名が未入力です
+              {errors.name.message}
+            </span>
+          )}
+          {errors.description && (
+            <span className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded font-black animate-pulse shrink-0 whitespace-nowrap">
+              {errors.description.message}
+            </span>
+          )}
+          {errors.timeLimit && (
+            <span className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded font-black animate-pulse shrink-0 whitespace-nowrap">
+              {errors.timeLimit.message}
             </span>
           )}
         </div>
@@ -228,7 +238,7 @@ export const EditorInfoHeader = ({
                 <div className="flex items-center gap-1.5 shrink-0">
                   <input
                     type="number"
-                    className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-2 py-0 text-center font-mono font-bold text-slate-100 w-14 h-6 outline-none focus:ring-0 transition-all text-sm m-0"
+                    className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-2 py-0 text-center font-mono font-bold text-slate-100 w-18 h-6 outline-none focus:ring-0 transition-all text-sm m-0"
                     {...register("timeLimit", {
                       valueAsNumber: true,
                       onBlur: onConfigConfirm,

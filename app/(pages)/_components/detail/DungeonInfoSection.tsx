@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useState } from "react";
-import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
+import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star, Play } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
 import {
@@ -131,7 +131,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
               className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-bold text-sm px-5 py-2 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(34,211,238,0.3)] shrink-0"
             >
               ダンジョンで遊ぶ
-              <Maximize size={16} />
+              <Play size={12} fill="currentColor" />
             </button>
           </div>
         </div>
