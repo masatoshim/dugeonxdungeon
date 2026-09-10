@@ -204,8 +204,8 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
         onClick={handleSubmit(onTestPlaySubmit)}
         className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500 hover:bg-cyan-400 rounded-md text-xs font-black shadow-lg shadow-cyan-500/10 border border-transparent focus:border-white/40 outline-none transition-all text-slate-950 active:scale-95 shrink-0"
       >
-        <Play size={12} fill="currentColor" />
         {status === "DRAFT" || isDirty ? "テストプレイして公開" : "テストプレイ"}
+        <Play size={12} fill="currentColor" />
       </button>
     </div>
   );

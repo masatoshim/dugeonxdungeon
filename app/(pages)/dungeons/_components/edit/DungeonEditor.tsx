@@ -24,7 +24,7 @@ const dungeonSchema = z.object({
   name: z.string().min(1, "ダンジョン名は必須入力です").max(50, "ダンジョン名は50文字以内で入力してください"),
   description: z.string().max(500, "説明文は500文字以内で入力してください"),
   timeLimit: z
-    .number()
+    .number("制限時間を入力してください")
     .min(1, "制限時間は1秒以上に設定してください")
     .max(3600, "制限時間は1時間以内に設定してください"),
   mapDataCheck: z.any(), // 変更検知用の隠しフィールド（バリデーションは通すだけ）
