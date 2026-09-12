@@ -89,22 +89,22 @@ export default function UserRankingPage() {
                 アカウントを作成すると、あなた自身のスコアがこのランキングに記録され、マイページでいつでもプレイログの確認ができるようになります。
               </p>
 
-              {/* アクションボタン（2カラム） */}
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowLoginAlert(false)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-colors border border-slate-700 cursor-pointer"
-                >
-                  閉じる
-                </button>
+              {/* アクションボタン */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={() => router.push("/login")}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
+                  className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] sm:text-xs font-black py-2.5 px-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
                 >
-                  <LogIn size={14} />
-                  ログイン / 新規登録
+                  <span>ログイン / 新規登録</span>
+                  <LogIn size={14} className="shrink-0" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLoginAlert(false)}
+                  className="w-full sm:flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-colors border border-slate-700 cursor-pointer"
+                >
+                  閉じる
                 </button>
               </div>
             </div>
