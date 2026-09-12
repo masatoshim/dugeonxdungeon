@@ -189,7 +189,7 @@ export default function Header() {
               <div className="border-t border-slate-800 pt-4 mt-auto">
                 {session ? (
                   <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80">
-                    <HeaderUserMenu />
+                    <HeaderUserMenu onClose={() => setIsMenuOpen(false)} />
                   </div>
                 ) : (
                   <Link

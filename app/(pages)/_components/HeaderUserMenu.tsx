@@ -6,7 +6,11 @@ import { Settings, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { getNavItems } from "@/app/(pages)/_components/navigation";
 
-export function HeaderUserMenu() {
+interface HeaderUserMenuProps {
+  onClose?: () => void;
+}
+
+export function HeaderUserMenu({ onClose }: HeaderUserMenuProps) {
   const { data: session } = useSession();
   const navItems = getNavItems(session?.user?.role);
   const [isOpen, setIsOpen] = useState(false);
@@ -49,7 +53,10 @@ export function HeaderUserMenu() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  onClose?.();
+                }}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
               >
                 <item.icon size={15} className="text-[#4fd1d1]" />
@@ -61,6 +68,7 @@ export function HeaderUserMenu() {
               type="button"
               onClick={() => {
                 setIsOpen(false);
+                onClose?.();
                 signOut({ callbackUrl: "/login" });
               }}
               className="flex items-center gap-3 px-3 py-2 w-full text-left text-xs font-bold text-pink-400 hover:bg-pink-500/10 rounded-lg transition-colors cursor-pointer"
