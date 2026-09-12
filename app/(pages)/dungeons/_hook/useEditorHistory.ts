@@ -53,11 +53,24 @@ export function useEditorHistory(
   // 履歴を積む共通関数
   const pushHistory = useCallback(
     (customSnapshot?: EditorSnapshot) => {
-      if (isApplyingHistory.current || isPushing.current) return;
+      if (isApplyingHistory.current || isPushing.current || history.length === 0) return;
 
       const nextSnapshot = customSnapshot ?? getCurrentSnapshot();
+      const initialSnapshot = history[0];
 
-      if (history.length > 0 && pointer >= 0) {
+      // マップ・時間・メタデータが初期状態と完全に一致したか判定
+      const isMapOrTimeEqualInitial =
+        initialSnapshot.rows === nextSnapshot.rows &&
+        initialSnapshot.cols === nextSnapshot.cols &&
+        initialSnapshot.timeLimit === nextSnapshot.timeLimit &&
+        JSON.stringify(initialSnapshot.tiles) === JSON.stringify(nextSnapshot.tiles) &&
+        JSON.stringify(initialSnapshot.entities) === JSON.stringify(nextSnapshot.entities);
+
+      const isMetaEqualInitial =
+        initialSnapshot.name === nextSnapshot.name && initialSnapshot.description === nextSnapshot.description;
+
+      // 直前の履歴と同じなら何もしない
+      if (pointer >= 0) {
         const last = history[pointer];
         if (
           last &&
@@ -74,24 +87,27 @@ export function useEditorHistory(
       }
 
       isPushing.current = true;
+
+      if (isMapOrTimeEqualInitial && isMetaEqualInitial) {
+        setPointer(0);
+        methods.setValue("mapDataCheck", 0, { shouldDirty: true });
+        methods.setValue("metaDataCheck", 0, { shouldDirty: true });
+        setTimeout(() => {
+          isPushing.current = false;
+        }, 50);
+        return;
+      }
+
       const nextPointer = pointer + 1;
       setHistory((prev) => [...prev.slice(0, pointer + 1), nextSnapshot]);
       setPointer(nextPointer);
 
-      // 直前のスナップショットと比較して、何が変わったかを判定
-      const last = pointer >= 0 ? history[pointer] : null;
+      // 通常の変更判定
+      const isMapOrTimeChanged = !isMapOrTimeEqualInitial;
+      const isMetaChanged = !isMetaEqualInitial;
 
-      const isMapOrTimeChanged =
-        !last ||
-        last.rows !== nextSnapshot.rows ||
-        last.cols !== nextSnapshot.cols ||
-        last.timeLimit !== nextSnapshot.timeLimit ||
-        JSON.stringify(last.tiles) !== JSON.stringify(nextSnapshot.tiles) ||
-        JSON.stringify(last.entities) !== JSON.stringify(nextSnapshot.entities);
-
-      if (isMapOrTimeChanged) {
-        methods.setValue("mapDataCheck", nextPointer, { shouldDirty: true });
-      }
+      methods.setValue("mapDataCheck", isMapOrTimeChanged ? nextPointer : 0, { shouldDirty: true });
+      methods.setValue("metaDataCheck", isMetaChanged ? nextPointer : 0, { shouldDirty: true });
 
       setTimeout(() => {
         isPushing.current = false;
@@ -109,7 +125,7 @@ export function useEditorHistory(
     }
   }, [rows, cols, history, pointer, pushHistory]);
 
-  // 状態の適用
+  // 状態の適用（Undo / Redo）
   const applySnapshot = useCallback(
     (snapshot: EditorSnapshot, targetPointer: number) => {
       isApplyingHistory.current = true;
@@ -133,8 +149,13 @@ export function useEditorHistory(
         JSON.stringify(initialSnapshot.tiles) !== JSON.stringify(snapshot.tiles) ||
         JSON.stringify(initialSnapshot.entities) !== JSON.stringify(snapshot.entities);
 
-      // 初期状態に戻っている場合は初期値をセット
+      const isMetaChanged =
+        !initialSnapshot ||
+        initialSnapshot.name !== snapshot.name ||
+        initialSnapshot.description !== snapshot.description;
+
       methods.setValue("mapDataCheck", isMapOrTimeChanged ? targetPointer : 0, { shouldDirty: true });
+      methods.setValue("metaDataCheck", isMetaChanged ? targetPointer : 0, { shouldDirty: true });
 
       setTimeout(() => {
         isApplyingHistory.current = false;
@@ -159,6 +180,30 @@ export function useEditorHistory(
     }
   }, [pointer, history, applySnapshot]);
 
+  const checkAndResetIfInitial = useCallback(() => {
+    if (history.length === 0) return;
+    const nextSnapshot = getCurrentSnapshot();
+
+    const baseSnapshot = history[0];
+
+    const isMapOrTimeEqualInitial =
+      baseSnapshot.rows === nextSnapshot.rows &&
+      baseSnapshot.cols === nextSnapshot.cols &&
+      baseSnapshot.timeLimit === nextSnapshot.timeLimit &&
+      JSON.stringify(baseSnapshot.tiles) === JSON.stringify(nextSnapshot.tiles) &&
+      JSON.stringify(baseSnapshot.entities) === JSON.stringify(nextSnapshot.entities);
+
+    const isMetaEqualInitial =
+      baseSnapshot.name === nextSnapshot.name && baseSnapshot.description === nextSnapshot.description;
+
+    // 現在の入力値が初期値と完全に一致している場合
+    if (isMapOrTimeEqualInitial && isMetaEqualInitial) {
+      setPointer(0);
+      methods.setValue("mapDataCheck", 0, { shouldDirty: true });
+      methods.setValue("metaDataCheck", 0, { shouldDirty: true });
+    }
+  }, [history, getCurrentSnapshot, methods, setPointer]);
+
   return {
     canUndo: pointer > 0,
     canRedo: pointer < history.length - 1,
@@ -167,5 +212,6 @@ export function useEditorHistory(
     pushHistory,
     getCurrentSnapshot,
     setHistory,
+    checkAndResetIfInitial,
   };
 }

@@ -28,6 +28,7 @@ const dungeonSchema = z.object({
     .min(1, "制限時間は1秒以上に設定してください")
     .max(3600, "制限時間は1時間以内に設定してください"),
   mapDataCheck: z.any(), // 変更検知用の隠しフィールド（バリデーションは通すだけ）
+  metaDataCheck: z.any(),
 });
 export type DungeonFormData = z.infer<typeof dungeonSchema>;
 
@@ -95,6 +96,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       description: initialData?.description || "",
       timeLimit: initialData?.timeLimit || DUNGEON_DEFAULT.TIME_LIMIT,
       mapDataCheck: 0,
+      metaDataCheck: 0,
     },
   });
 
@@ -117,17 +119,16 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     cancelLinking,
   } = useDungeonEditorLogic(initialData);
 
-  const { canUndo, canRedo, handleUndo, handleRedo, pushHistory, getCurrentSnapshot, setHistory } = useEditorHistory(
-    methods,
-    tiles,
-    entities,
-    rows,
-    cols,
-    setRows,
-    setCols,
-    setTilesState,
-    setEntitiesState,
-  );
+  const {
+    canUndo,
+    canRedo,
+    handleUndo,
+    handleRedo,
+    pushHistory,
+    getCurrentSnapshot,
+    setHistory,
+    checkAndResetIfInitial,
+  } = useEditorHistory(methods, tiles, entities, rows, cols, setRows, setCols, setTilesState, setEntitiesState);
 
   // タイル選択状態
   const [selectedTile, setSelectedTile] = useState<TileConfigKey | null>(null);
@@ -342,7 +343,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               status={initialData?.status ?? "DRAFT"}
               cols={cols}
               rows={rows}
-              onConfigConfirm={() => pushHistory()}
+              onConfigConfirm={() => {
+                pushHistory();
+                checkAndResetIfInitial();
+              }}
               onSizeChange={(r, c) => {
                 setRows(r);
                 setCols(c);

@@ -52,6 +52,7 @@ export const EditorInfoHeader = ({
   const {
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useFormContext<DungeonFormData>();
   const config = watch();
@@ -238,12 +239,40 @@ export const EditorInfoHeader = ({
                 <div className="flex items-center gap-1.5 shrink-0">
                   <input
                     type="number"
+                    defaultValue={config.timeLimit}
+                    key={config.timeLimit}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      const isSpinButton = (e.nativeEvent as any).inputType === undefined;
+                      if (isSpinButton && newValue !== "") {
+                        const num = Number(newValue);
+                        setValue("timeLimit", num, { shouldValidate: true });
+                        onConfigConfirm();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                        setTimeout(() => {
+                          const num = Number((e.target as HTMLInputElement).value);
+                          if (!isNaN(num)) {
+                            setValue("timeLimit", num, { shouldValidate: true });
+                            onConfigConfirm();
+                          }
+                        }, 0);
+                      } else if (e.key === "Enter") {
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const num = Number(e.target.value);
+                      if (!isNaN(num)) {
+                        setValue("timeLimit", num, { shouldValidate: true });
+                      }
+                      onConfigConfirm();
+                    }}
                     className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:bg-slate-700/50 rounded px-2 py-0 text-center font-mono font-bold text-slate-100 w-18 h-6 outline-none focus:ring-0 transition-all text-sm m-0"
-                    {...register("timeLimit", {
-                      valueAsNumber: true,
-                      onBlur: onConfigConfirm,
-                    })}
                   />
+
                   <span className="text-slate-500 font-mono text-xs leading-none">sec</span>
                 </div>
               </div>

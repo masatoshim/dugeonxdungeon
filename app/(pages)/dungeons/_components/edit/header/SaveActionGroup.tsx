@@ -135,7 +135,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
     }
 
     try {
-      const { mapDataCheck, ...rest } = data;
+      const { mapDataCheck, metaDataCheck, ...rest } = data;
       let savedDungeon: DungeonResponse;
 
       // テストプレイ前に編集データを一旦保存
