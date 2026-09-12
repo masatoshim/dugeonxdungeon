@@ -31,37 +31,65 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
   ];
 
   return (
-    <div className="bg-[#1a1d2b] border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-xl h-full flex flex-col justify-between">
+    <div className="bg-[#1a1d2b] border border-slate-700/80 rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl h-full flex flex-col justify-between">
       {/* 上部：ハイライトメトリクス */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
         {topMetrics.map((metric, idx) => (
           <div
             key={idx}
-            className="bg-slate-800/40 rounded-xl p-3.5 border border-slate-700/60 flex flex-col justify-center items-center text-center"
+            className={`bg-slate-800/40 rounded-xl p-3 sm:p-3.5 border border-slate-700/60 flex flex-col justify-center items-center text-center ${
+              idx === 2 ? "col-span-2 sm:col-span-1" : "col-span-1"
+            }`}
           >
-            <span className="text-[#4fd1d1] text-[10px] font-mono tracking-widest uppercase mb-1">{metric.label}</span>
-            <span className="text-xl sm:text-2xl font-bold text-white font-mono leading-tight truncate w-full">
-              {metric.value}{" "}
-              {metric.unit && <span className="text-xs font-normal text-slate-400 ml-0.5">{metric.unit}</span>}
+            <span
+              className={`text-[#4fd1d1] font-mono tracking-wider uppercase mb-1 whitespace-nowrap ${
+                metric.label.length > 8 ? "text-[9px] sm:text-[10px]" : "text-[10px] sm:text-xs"
+              }`}
+            >
+              {metric.label}
+            </span>
+            <span className="text-lg sm:text-xl lg:text-2xl font-bold text-white font-mono leading-tight whitespace-nowrap">
+              {(() => {
+                const valStr = String(metric.value);
+                if (valStr.includes(".")) {
+                  const [intPart, decimalPart] = valStr.split(".");
+                  return (
+                    <>
+                      <span>{intPart}</span>
+                      <span className="text-xs sm:text-sm font-normal text-slate-400">.{decimalPart}</span>
+                    </>
+                  );
+                }
+                return metric.value;
+              })()}
+              {metric.unit && (
+                <span className="text-xs sm:text-sm font-normal text-slate-400 ml-0.5">{metric.unit}</span>
+              )}
             </span>
           </div>
         ))}
       </div>
 
       {/* 下部：数値リスト & 円グラフ */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-center flex-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center flex-1">
         {/* 左：数値リスト */}
-        <div className="xl:col-span-7 space-y-2.5">
+        <div className="lg:col-span-7 space-y-2.5 min-w-0">
           {statItems.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between border-b border-slate-700/40 pb-1.5">
-              <span className="text-xs sm:text-sm text-[#4fd1d1]">{item.label}</span>
-              <span className="text-base sm:text-lg text-slate-100 font-mono font-semibold">{item.value}</span>
+            <div key={idx} className="flex items-center justify-between border-b border-slate-700/40 pb-1.5 gap-2">
+              <span
+                className={`text-[#4fd1d1] whitespace-nowrap ${
+                  item.label.length > 10 ? "text-[11px] sm:text-xs" : "text-xs sm:text-sm"
+                }`}
+              >
+                {item.label}
+              </span>
+              <span className="text-base sm:text-lg text-slate-100 font-mono font-semibold shrink-0">{item.value}</span>
             </div>
           ))}
         </div>
 
         {/* 右：円グラフ */}
-        <div className="xl:col-span-5 h-[220px] sm:h-[260px] w-full relative flex items-center justify-center">
+        <div className="lg:col-span-5 h-[200px] sm:h-[240px] lg:h-[260px] w-full relative flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart key={user.id}>
               <Pie

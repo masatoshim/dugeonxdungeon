@@ -97,7 +97,7 @@ export interface UserResponse extends UserBase {
   failurePlayCount: number;
   interruptPlayCount: number;
   publishedDungeonCount: number;
-  dungeonCount?: number;
+  dungeonCount: number;
   dungeons?: { dungeonCode?: string }[] | null;
   playHistories?: { dungeonCode?: string; userId: string; createdAt?: string }[] | null;
   favoriteDungeons?: { dungeonCode?: string }[] | null;
