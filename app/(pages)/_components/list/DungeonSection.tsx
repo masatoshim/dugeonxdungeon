@@ -13,7 +13,7 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
     <section className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
       {/* セクションヘッダー */}
       <div className="flex justify-between items-end mb-6 border-l-4 border-[#4fd1d1] pl-4">
-        <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>
+        <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{title}</h3>
         <Link href={viewMoreLink} className="text-xs text-slate-500 hover:text-[#4fd1d1] transition-colors font-mono">
           詳細をみる &gt;&gt;
         </Link>
