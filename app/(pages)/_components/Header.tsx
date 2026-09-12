@@ -63,17 +63,17 @@ export default function Header() {
   return (
     <>
       <header className="px-4 sm:px-8 py-3.5 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 min-w-0">
           {/* ロゴエリア */}
           <Link
             href="/"
-            className="font-black text-lg sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors"
+            className="font-black text-lg sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors shrink-0"
           >
             DUNGEON<span className="text-[#4fd1d1]">×</span>DUNGEON
           </Link>
 
           {/* PC用ナビゲーションリンク */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6 shrink-0">
             <Link href="/dungeons" className="text-sm font-medium hover:text-[#4fd1d1] transition-colors">
               遊ぶ
             </Link>
@@ -93,22 +93,25 @@ export default function Header() {
         </div>
 
         {/* 右側領域（ユーザーメニュー / モバイル用ハンバーガー） */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {/* PC表示用ユーザーエリア */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4 min-w-0">
             {status === "loading" ? (
               <span className="text-xs text-slate-500 font-mono animate-pulse">LOADING...</span>
             ) : session ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-slate-300">
-                  {session.user?.nickName || session.user?.name} <span className="text-xs text-slate-500">さん</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-sm font-medium text-slate-300 min-w-0 truncate max-w-[260px] lg:max-w-[260px] xl:max-w-none">
+                  {session.user?.nickName || session.user?.name}
+                  <span className="text-xs text-slate-500 ml-1 shrink-0">さん</span>
                 </span>
-                <HeaderUserMenu />
+                <div className="shrink-0">
+                  <HeaderUserMenu />
+                </div>
               </div>
             ) : (
               <Link
                 href="/login"
-                className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all"
+                className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all shrink-0"
               >
                 ログイン
               </Link>
@@ -119,7 +122,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="md:hidden p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors cursor-pointer"
+            className="md:hidden p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors cursor-pointer shrink-0"
             aria-label={isMenuOpen ? "メニューを閉じる" : "メニューを開く"}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -185,10 +188,8 @@ export default function Header() {
               {/* ドロワー下部：ユーザー情報＆歯車アイコン */}
               <div className="border-t border-slate-800 pt-4 mt-auto">
                 {session ? (
-                  <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 gap-2">
-                    <div className="shrink-0 flex items-center justify-center">
-                      <HeaderUserMenu />
-                    </div>
+                  <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80">
+                    <HeaderUserMenu />
                   </div>
                 ) : (
                   <Link
