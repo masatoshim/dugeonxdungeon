@@ -30,7 +30,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
   const {
     handleSubmit,
     reset,
-    formState: { isDirty },
+    formState: { isDirty, dirtyFields },
   } = useFormContext<DungeonFormData>();
   const { create, isCreating } = useCreateDungeon();
   const { update, isUpdating } = useUpdateDungeon(initialData?.id || "");
@@ -62,7 +62,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
           mapSizeWidth: cols,
           mapSize: cols * rows,
           difficulty: initialData?.difficulty ?? 3,
-          status: "DRAFT" as const,
+          status: dirtyFields.mapDataCheck ? "DRAFT" : status,
           tagIds: [],
           versionMajor: initialData?.versionMajor ?? 1,
           versionMinor: (initialData?.versionMinor ?? 0) + 1,
@@ -204,7 +204,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
         onClick={handleSubmit(onTestPlaySubmit)}
         className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500 hover:bg-cyan-400 rounded-md text-xs font-black shadow-lg shadow-cyan-500/10 border border-transparent focus:border-white/40 outline-none transition-all text-slate-950 active:scale-95 shrink-0"
       >
-        {status === "DRAFT" || isDirty ? "テストプレイして公開" : "テストプレイ"}
+        {status === "DRAFT" || dirtyFields.mapDataCheck ? "テストプレイして公開" : "テストプレイ"}
         <Play size={12} fill="currentColor" />
       </button>
     </div>

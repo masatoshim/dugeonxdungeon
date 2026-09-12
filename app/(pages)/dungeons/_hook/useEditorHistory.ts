@@ -27,6 +27,7 @@ export function useEditorHistory(
   const [history, setHistory] = useState<EditorSnapshot[]>([]);
   const [pointer, setPointer] = useState(-1);
   const isApplyingHistory = useRef(false);
+  const isPushing = useRef(false);
 
   const getCurrentSnapshot = useCallback(
     (): EditorSnapshot => ({
@@ -77,7 +78,20 @@ export function useEditorHistory(
       setHistory((prev) => [...prev.slice(0, pointer + 1), nextSnapshot]);
       setPointer(nextPointer);
 
-      methods.setValue("mapDataCheck", nextPointer, { shouldDirty: true });
+      // 直前のスナップショットと比較して、何が変わったかを判定
+      const last = pointer >= 0 ? history[pointer] : null;
+
+      const isMapOrTimeChanged =
+        !last ||
+        last.rows !== nextSnapshot.rows ||
+        last.cols !== nextSnapshot.cols ||
+        last.timeLimit !== nextSnapshot.timeLimit ||
+        JSON.stringify(last.tiles) !== JSON.stringify(nextSnapshot.tiles) ||
+        JSON.stringify(last.entities) !== JSON.stringify(nextSnapshot.entities);
+
+      if (isMapOrTimeChanged) {
+        methods.setValue("mapDataCheck", nextPointer, { shouldDirty: true });
+      }
 
       setTimeout(() => {
         isPushing.current = false;
@@ -85,8 +99,6 @@ export function useEditorHistory(
     },
     [pointer, history, getCurrentSnapshot, methods],
   );
-
-  const isPushing = useRef(false);
 
   // サイズ変更自動検知
   useEffect(() => {
@@ -109,13 +121,26 @@ export function useEditorHistory(
       methods.setValue("name", snapshot.name, { shouldValidate: true, shouldDirty: true });
       methods.setValue("description", snapshot.description, { shouldDirty: true });
       methods.setValue("timeLimit", snapshot.timeLimit, { shouldDirty: true });
-      methods.setValue("mapDataCheck", targetPointer, { shouldDirty: true });
+
+      // 履歴の先頭と比較
+      const initialSnapshot = history[0];
+
+      const isMapOrTimeChanged =
+        !initialSnapshot ||
+        initialSnapshot.rows !== snapshot.rows ||
+        initialSnapshot.cols !== snapshot.cols ||
+        initialSnapshot.timeLimit !== snapshot.timeLimit ||
+        JSON.stringify(initialSnapshot.tiles) !== JSON.stringify(snapshot.tiles) ||
+        JSON.stringify(initialSnapshot.entities) !== JSON.stringify(snapshot.entities);
+
+      // 初期状態に戻っている場合は初期値をセット
+      methods.setValue("mapDataCheck", isMapOrTimeChanged ? targetPointer : 0, { shouldDirty: true });
 
       setTimeout(() => {
         isApplyingHistory.current = false;
       }, 0);
     },
-    [methods, setRows, setCols, setTilesState, setEntitiesState],
+    [methods, setRows, setCols, setTilesState, setEntitiesState, history],
   );
 
   const handleUndo = useCallback(() => {
