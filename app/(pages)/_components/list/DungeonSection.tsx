@@ -12,14 +12,17 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
       {/* セクションヘッダー */}
-      <div className="flex justify-between items-end mb-6 border-l-4 border-[#4fd1d1] pl-4">
-        <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{title}</h3>
-        <Link href={viewMoreLink} className="text-xs text-slate-500 hover:text-[#4fd1d1] transition-colors font-mono">
+      <div className="flex flex-wrap justify-between items-end gap-x-4 gap-y-2 mb-6 border-l-4 border-[#4fd1d1] pl-4">
+        <h3 className="text-xs sm:text-sm md:text-base font-bold text-white tracking-tight">{title}</h3>
+        <Link
+          href={viewMoreLink}
+          className="text-[10px] sm:text-xs text-slate-500 hover:text-[#4fd1d1] transition-colors font-mono"
+        >
           詳細をみる &gt;&gt;
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         {isLoading ? (
           // ローディング中のスケルトン表示（4件分）
           [...Array(4)].map((_, i) => (

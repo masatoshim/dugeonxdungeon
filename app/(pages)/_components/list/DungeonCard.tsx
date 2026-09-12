@@ -82,7 +82,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   };
 
   const cardContent = (
-    <div className="group relative max-w-[320px] bg-[#1a233a] border border-slate-700 rounded-lg p-2.5 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all hover:-translate-y-1 cursor-pointer flex flex-col">
+    <div className="group relative max-w-[320px] min-w-[200px] bg-[#1a233a] border border-slate-700 rounded-lg p-2.5 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all hover:-translate-y-1 cursor-pointer flex flex-col">
       {/* ヘッダー */}
       <div className="flex justify-between items-start mb-1.5">
         <span className="text-[10px] font-mono text-slate-500 tracking-wider">{dungeon.code}</span>
@@ -113,15 +113,15 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
       <div className="scale-90 origin-left -mb-1">{renderDifficulty(dungeon.difficulty || 2)}</div>
 
       {/* ダンジョンサイズ & 制限時間 */}
-      <div className="space-y-0.5 mt-2 text-[11px] text-slate-300">
+      <div className="space-y-0.5 mt-2 text-[11px] text-slate-300 min-w-0">
         <p className="flex justify-start gap-2">
-          <span className="text-slate-500 w-20">サイズ</span>
+          <span className="text-slate-500 w-16">サイズ</span>
           <span className="font-mono">
             {dungeon.mapSizeWidth} x {dungeon.mapSizeHeight}
           </span>
         </p>
         <p className="flex justify-start gap-2">
-          <span className="text-slate-500 w-20">制限時間</span>
+          <span className="text-slate-500 w-16">制限時間</span>
           <span className="font-mono text-amber-400">{dungeon.timeLimit}sec</span>
         </p>
       </div>
@@ -160,7 +160,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   }
 
   return (
-    <Link href={destinationHref} scroll={shouldNavigateToGame ? false : undefined}>
+    <Link href={destinationHref} scroll={shouldNavigateToGame ? false : undefined} className="w-full block">
       {cardContent}
     </Link>
   );
