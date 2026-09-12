@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { Heart, CheckSquare } from "lucide-react";
+import { Heart, CheckSquare, Square } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import {
   useGetFavoriteDungeonStatus,
@@ -82,7 +82,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   };
 
   const cardContent = (
-    <div className="group relative max-w-[320px] bg-[#1a233a] border border-slate-700 rounded-lg p-2.5 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all hover:-translate-y-1 cursor-pointer">
+    <div className="group relative max-w-[320px] bg-[#1a233a] border border-slate-700 rounded-lg p-2.5 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all hover:-translate-y-1 cursor-pointer flex flex-col">
       {/* ヘッダー */}
       <div className="flex justify-between items-start mb-1.5">
         <span className="text-[10px] font-mono text-slate-500 tracking-wider">{dungeon.code}</span>
@@ -99,7 +99,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
           </button>
           {/* クリア済みチェック */}
           <div className={`${isCleared ? "text-blue-400" : "text-slate-600"}`}>
-            <CheckSquare className="w-4 h-4" />
+            {isCleared ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
           </div>
         </div>
       </div>
@@ -132,8 +132,8 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
       </p>
 
       {/* フッター */}
-      <div className="mt-2 pt-1.5 border-t border-slate-800/50 flex justify-end items-center gap-1.5">
-        <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white overflow-hidden border border-slate-700">
+      <div className="mt-2 pt-1.5 border-t border-slate-800/50 flex justify-end items-center gap-1.5 min-w-0">
+        <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white overflow-hidden border border-slate-700 shrink-0">
           {iconUrl ? (
             <Image
               src={iconUrl}
@@ -147,7 +147,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
             <span className="text-[9px] font-bold leading-none">☺</span>
           )}
         </div>
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">
+        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight truncate min-w-0">
           {dungeon.nickName || "USER_NAME"}
         </span>
       </div>

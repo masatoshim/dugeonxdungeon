@@ -51,7 +51,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
    */
   const onDraftSubmit = async (data: DungeonFormData) => {
     try {
-      const { mapDataCheck, ...rest } = data;
+      const { mapDataCheck, metaDataCheck, ...rest } = data;
       let savedDungeon: DungeonResponse;
 
       if (isEditMode) {

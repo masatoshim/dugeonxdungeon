@@ -20,6 +20,8 @@ interface ProfileCardProps {
   isAdminMode?: boolean;
 }
 
+const MAX_NICKNAME_LENGTH = 20;
+
 export function ProfileCard({ user, mutate, update, remove, isAdminMode }: ProfileCardProps) {
   const router = useRouter();
   const { update: updateSession } = useSession();
@@ -30,7 +32,9 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
   // 処理用のローディング状態
   const [isActionLoading, setIsActionLoading] = useState(false);
 
+  const trimmedNickName = nickName.trim();
   const isNickNameChanged = user && nickName !== (user.nickName || user.userName);
+  const isNickNameValid = trimmedNickName.length > 0 && trimmedNickName.length <= MAX_NICKNAME_LENGTH;
   const { iconUrl } = useProfileIcon(user?.iconImageKey);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -78,9 +82,11 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
 
   // ニックネーム更新処理
   const handleUpdateNickName = async () => {
+    if (!isNickNameValid) return;
+
     try {
-      await update({ nickName });
-      await updateSession({ nickName });
+      await update({ nickName: trimmedNickName });
+      await updateSession({ nickName: trimmedNickName });
       setIsEditingNickName(false);
       mutate();
     } catch (error) {
@@ -219,32 +225,47 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
                 ニックネーム
                 <button
                   onClick={() => setIsEditingNickName(!isEditingNickName)}
-                  className="hover:text-white transition-colors"
+                  className="flex items-center gap-1 bg-slate-800/80 hover:bg-[#4fd1d1]/20 border border-slate-700/80 hover:border-[#4fd1d1]/50 px-2 py-0.5 rounded-md text-slate-300 hover:text-[#4fd1d1] transition-all"
                   disabled={isActionLoading || !user.isActive || user.deletedFlg}
+                  title="ニックネームを編集"
                 >
-                  <Pencil size={13} />
+                  <Pencil size={11} />
+                  <span className="text-[10px] font-sans">編集</span>
                 </button>
               </label>
               {isEditingNickName ? (
-                <div className="flex gap-2 mt-1">
-                  <input
-                    type="text"
-                    value={nickName}
-                    onChange={(e) => setNickName(e.target.value)}
-                    className="flex-1 bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#4fd1d1]"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleUpdateNickName}
-                    disabled={!isNickNameChanged || isActionLoading || !user.isActive || user.deletedFlg}
-                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-colors ${
-                      isNickNameChanged
-                        ? "bg-[#4fd1d1] text-[#0f111a] hover:bg-[#3db8b8]"
-                        : "bg-slate-700 text-slate-500 cursor-not-allowed"
-                    }`}
-                  >
-                    保存
-                  </button>
+                <div className="mt-1 space-y-1">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={nickName}
+                      onChange={(e) => setNickName(e.target.value)}
+                      maxLength={MAX_NICKNAME_LENGTH}
+                      className="w-full sm:flex-1 min-w-0 bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#4fd1d1]"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleUpdateNickName}
+                      disabled={
+                        !isNickNameChanged || !isNickNameValid || isActionLoading || !user.isActive || user.deletedFlg
+                      }
+                      className={`w-full sm:w-auto shrink-0 text-xs px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                        isNickNameChanged && isNickNameValid
+                          ? "bg-[#4fd1d1] text-[#0f111a] hover:bg-[#3db8b8]"
+                          : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                      }`}
+                    >
+                      保存
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] px-1">
+                    <span className={trimmedNickName.length === 0 ? "text-red-400" : "text-slate-400"}>
+                      {trimmedNickName.length === 0 ? "1文字以上入力してください" : ""}
+                    </span>
+                    <span className="font-mono text-slate-400 ml-auto">
+                      {nickName.length} / {MAX_NICKNAME_LENGTH}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <p
