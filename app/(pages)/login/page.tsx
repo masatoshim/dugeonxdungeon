@@ -104,7 +104,12 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">パスワード</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">パスワード</label>
+              <Link href="/login/forgot-password" className="text-xs text-blue-600 hover:underline">
+                パスワードをお忘れですか？
+              </Link>
+            </div>
             <input
               type="password"
               className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"

@@ -11,10 +11,18 @@ import { toast } from "sonner";
 import { Suspense } from "react";
 
 // バリデーションスキーマの定義
+const passwordSchema = z
+  .string()
+  .min(8, "8文字以上で入力してください")
+  .max(100)
+  .regex(/[a-z]/, "小文字を含めてください")
+  .regex(/[A-Z]/, "大文字を含めてください")
+  .regex(/[0-9]/, "数字を含めてください");
+
 const signupSchema = z.object({
   userName: z.string().min(3, "ユーザー名は3文字以上で入力してください"),
   email: z.string().email("有効なメールアドレスを入力してください"),
-  password: z.string().min(8, "パスワードは8文字以上必要です"),
+  password: passwordSchema,
 });
 
 type SignupSchema = z.infer<typeof signupSchema>;

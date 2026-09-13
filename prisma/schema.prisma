@@ -15,6 +15,7 @@ model User {
   role               Role                @default(USER)
   createDungeonLimit Int                 @default(10)
   metaData           Json?                
+  
   // --- ゲーム統計情報 ---
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
@@ -22,9 +23,11 @@ model User {
   playDungeonCount   Int                 @default(0) // 1ダンジョンにつき初回クリア時のみ加算
   totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
+  
   // --- ステータスフラグ ---
   isActive           Boolean             @default(true)
   deletedFlg         Boolean             @default(false)
+  
   // --- 監査・追跡情報 ---
   lastLoginAt        DateTime?
   createdBy          String?
@@ -32,10 +35,16 @@ model User {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   emailVerified      DateTime?
+  
+  // --- パスワード再設定用 ---
+  resetToken         String?   @unique
+  resetTokenExpires  DateTime?
+  
   // --- 認証用 ---
   hashedPassword     String?
   accounts           Account[]
   sessions           Session[]
+
   // --- リレーション設定 ---
   dungeons           Dungeon[]
   favoriteDungeons   FavoritesDungeon[]
