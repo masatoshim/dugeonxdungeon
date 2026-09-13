@@ -48,7 +48,7 @@ export default function EditPage() {
     return (
       <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white gap-4">
         <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-400 animate-pulse">ダンジョンデータを読み込み中...</p>
+        <p className="text-gray-400 animate-pulse">読み込み中...</p>
       </div>
     );
   }

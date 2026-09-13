@@ -38,7 +38,7 @@ export function DungeonRankingPanel({ rankings, myRecord }: Props) {
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   <div className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase shrink-0">
-                    Your Best
+                    あなたの順位
                   </div>
                   <span className="text-xs sm:text-sm font-bold text-blue-200 truncate">{myRecord.rank}位</span>
                 </div>

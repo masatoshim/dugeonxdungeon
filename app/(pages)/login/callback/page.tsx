@@ -7,7 +7,7 @@ import { Suspense } from "react";
 
 export default function LoginCallbackPage() {
   return (
-    <Suspense fallback={<div className="text-slate-400">Loading...</div>}>
+    <Suspense fallback={<div className="text-slate-400">読み込み中...</div>}>
       <LoginCallbackPageContent />
     </Suspense>
   );

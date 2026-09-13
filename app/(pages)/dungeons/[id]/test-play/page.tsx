@@ -24,7 +24,7 @@ export default function TestPlayPage() {
   const { update } = useUpdateDungeon(dungeonId);
 
   if (isLoading)
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading...</div>;
+    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">読み込み中...</div>;
   if (!dungeon || !dungeonId) return notFound();
 
   const parsedMapData: MapData = (dungeon.mapData as unknown as MapData) ?? {
@@ -70,7 +70,7 @@ export default function TestPlayPage() {
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      <Suspense fallback={<div className="text-white">Loading Dungeon...</div>}>
+      <Suspense fallback={<div className="text-white">読み込み中...</div>}>
         <PlayGameContent
           key={gameKey}
           dungeon={dungeon}

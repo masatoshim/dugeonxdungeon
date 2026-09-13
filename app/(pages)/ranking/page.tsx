@@ -1,29 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Trophy, Play, BarChart2, AlertCircle, LogIn } from "lucide-react";
 import { useGetUsers } from "@/app/_hooks";
+import { Pagination } from "@/app/(pages)/_components/Pagination";
 import { UserRankingTop3Detail } from "./_componets/UserRankingTop3Detail";
 import { UserRankingRowDetail } from "./_componets/UserRankingRowDetail";
 
 export default function UserRankingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white p-6">読み込み中...</div>}>
+      <UserRankingPageContent />
+    </Suspense>
+  );
+}
+
+function UserRankingPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // 未ログイン時の「登録して挑戦しよう」メッセージの表示制御
   const [showLoginAlert, setShowLoginAlert] = useState(false);
 
-  const { users, isLoading } = useGetUsers({
+  // ページングパラメータの取得
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = 10;
+  const index = (page - 1) * limit;
+
+  const { users, totalCount, isLoading } = useGetUsers({
     playDungeonCountFrom: 1,
     sort: "totalPlayScore",
     order: "desc",
+    limit,
+    index,
   });
 
-  // 1〜3位と4位以下にデータを分離
-  const topThree = users.slice(0, 3);
-  const remainingUsers = users.slice(3);
+  const totalPages = Math.ceil((totalCount || 0) / limit);
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  // 1ページ目の場合は最初の3人を上位パネル用にする
+  const topThree = page === 1 ? users.slice(0, 3) : [];
+  // 1ページ目は4位〜10位、2ページ目以降は全件を行表示にする
+  const remainingUsers = page === 1 ? users.slice(3) : users;
 
   // 「ランキングを確認する」ボタンの遷移先制御
   const handleCheckRanking = () => {
@@ -58,7 +85,7 @@ export default function UserRankingPage() {
 
             {/* モーダル本体 */}
             <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 max-w-md w-full relative z-10 shadow-2xl animate-in fade-in zoom-in-95 duration-200 space-y-6">
-              {/* 閉じるボタン（右上） */}
+              {/* 閉じるボタン */}
               <button
                 type="button"
                 onClick={() => setShowLoginAlert(false)}
@@ -144,13 +171,15 @@ export default function UserRankingPage() {
         </header>
 
         {/* 1位〜3位：表彰台トップパネルエリア */}
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {topThree.map((user, index) => (
-            <UserRankingTop3Detail key={user.id} user={user} index={index} />
-          ))}
-        </section>
+        {page === 1 && topThree.length > 0 && (
+          <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {topThree.map((user, index) => (
+              <UserRankingTop3Detail key={user.id} user={user} index={index} />
+            ))}
+          </section>
+        )}
 
-        {/* 4位以下：リストビューエリア */}
+        {/* 4位以下または2ページ目以降：リストビューエリア */}
         <section className="bg-slate-900/50 border border-slate-900 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
@@ -166,13 +195,16 @@ export default function UserRankingPage() {
               </thead>
               <tbody className="divide-y divide-slate-900 text-xs">
                 {remainingUsers.map((user, index) => {
-                  const rank = index + 4;
+                  const rank = page === 1 ? index + 4 : (page - 1) * limit + index + 1;
                   return <UserRankingRowDetail key={user.id} user={user} rank={rank} />;
                 })}
               </tbody>
             </table>
           </div>
         </section>
+
+        {/* ページネーション */}
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
       </div>
     </div>
   );

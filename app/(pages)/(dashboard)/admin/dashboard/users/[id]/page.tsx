@@ -20,7 +20,7 @@ import { Suspense } from "react";
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div className="text-slate-400">Loading...</div>}>
+    <Suspense fallback={<div className="text-slate-400">読み込み中...</div>}>
       <ProfilePageContent />
     </Suspense>
   );
@@ -79,7 +79,7 @@ function ProfilePageContent() {
   if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="text-[#4fd1d1] font-mono animate-pulse uppercase tracking-widest">Loading Profile...</div>
+        <div className="text-[#4fd1d1] font-mono animate-pulse uppercase tracking-widest">読み込み中...</div>
       </div>
     );
   }

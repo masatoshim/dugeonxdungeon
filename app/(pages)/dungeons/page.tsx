@@ -10,7 +10,7 @@ import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDe
 
 export default function DungeonsPage() {
   return (
-    <Suspense fallback={<div className="text-white">Loading...</div>}>
+    <Suspense fallback={<div className="text-white">読み込み中...</div>}>
       <DungeonsPageContent />
     </Suspense>
   );

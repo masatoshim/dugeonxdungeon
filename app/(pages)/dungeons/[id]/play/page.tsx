@@ -98,7 +98,7 @@ export default function GamePlayPage() {
   if (isLoading || !dungeonId) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white font-mono">
-        PREPARING DUNGEON...
+        読み込み中...
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function GamePlayPage() {
     settings: { isDark: false, ambientLight: 1.0 },
   };
 
-  if (isLoading || !dungeon) return <div className="text-white">Loading...</div>;
+  if (isLoading || !dungeon) return <div className="text-white">読み込み中...</div>;
 
   return (
     <div className="relative w-full h-screen bg-black">

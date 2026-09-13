@@ -23,7 +23,7 @@ export function DungeonDetailContent({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 text-slate-500">
         <Loader2 className="animate-spin" size={32} />
-        <p className="font-mono text-sm tracking-widest uppercase">Initializing Dungeon...</p>
+        <p className="font-mono text-sm tracking-widest uppercase">読み込み中...</p>
       </div>
     );
   }

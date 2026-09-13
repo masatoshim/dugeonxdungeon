@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">読み込み中...</div>}>
       <LoginForm />
     </Suspense>
   );
