@@ -117,23 +117,6 @@ export function useDungeonEditorLogic(initialData?: any) {
       // ペアリングチェック
       const isPairingGimmick = isGimmick && incomingType !== null;
 
-      // // リンク待機中のチェック
-      // if (linkingRef.current.active && !isEraser) {
-      //   if (!isGimmick || incomingType !== linkingRef.current.pendingType) {
-      //     toast.error("正しく対になるギミックを設置してください");
-      //     return null;
-      //   }
-      // }
-
-      // // プレイヤー単一チェック
-      // if (category === TILE_CATEGORIES.PLAYER) {
-      //   const hasPlayer = tiles.flat().some((t) => TILE_CONFIG[t]?.category === TILE_CATEGORIES.PLAYER);
-      //   if (hasPlayer) {
-      //     toast.error("プレイヤーは1つのみです");
-      //     return null;
-      //   }
-      // }
-
       const newId = `${selectedTile}_${nanoid(8)}`;
       let isPairingCompleteRoute = false;
       let currentFirstEntityId: string | null = null;

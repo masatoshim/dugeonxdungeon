@@ -29,18 +29,18 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
   };
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 transition-all duration-300">
+    <div className="bg-gray-900/95 backdrop-blur-md border border-gray-800 rounded-xl p-3.5 sm:p-4 w-full shadow-2xl">
       {/* ヘッダー（クリックで開閉） */}
       <div
-        className="flex items-center justify-between cursor-pointer group select-none"
+        className="flex items-center justify-between cursor-pointer group select-none gap-2"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h2 className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors uppercase tracking-wider">
+        <h2 className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors uppercase tracking-wider truncate">
           Dungeon Info
         </h2>
 
         {/* ボタン群 */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
             className="text-gray-500 group-hover:text-white p-1 hover:bg-gray-800 rounded transition-colors"
@@ -63,20 +63,23 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
       {/* 最小化時のアニメーションラッパー */}
       <div
         className={`grid transition-all duration-300 ease-in-out ${
-          isOpen ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0 pointer-events-none mt-0"
+          isOpen ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0 pointer-events-none mt-0"
         }`}
       >
         <div className="overflow-hidden">
-          <div className="text-[11px] space-y-2.5 text-gray-400 font-mono">
-            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5">
-              <span>ダンジョンコード:</span>
-              <span>{initialData.code}</span>
+          <div className="text-[11px] space-y-2 text-gray-400 font-mono">
+            {/* ダンジョンコード */}
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">ダンジョンコード:</span>
+              <span className="text-gray-200 font-bold truncate" title={initialData.code}>
+                {initialData.code}
+              </span>
             </div>
 
             {/* バージョン */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>バージョン:</span>
-              <span className="text-gray-200 font-bold">
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">バージョン:</span>
+              <span className="text-gray-200 font-bold shrink-0">
                 v{initialData.versionMajor ?? 1}.{initialData.versionMinor ?? 0}
               </span>
             </div>
@@ -84,23 +87,23 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
             {isAdmin && (
               <>
                 {/* ユーザーID */}
-                <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-                  <span>作成者ID:</span>
-                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.userId}>
+                <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+                  <span className="shrink-0">作成者ID:</span>
+                  <span className="text-gray-200 truncate max-w-[110px] text-right" title={initialData.userId}>
                     {initialData.userId}
                   </span>
                 </div>
                 {/* ユーザーネーム */}
-                <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-                  <span>ユーザーネーム:</span>
-                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.userName ?? ""}>
+                <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+                  <span className="shrink-0">ユーザーネーム:</span>
+                  <span className="text-gray-200 truncate max-w-[110px] text-right" title={initialData.userName ?? ""}>
                     {initialData.userName}
                   </span>
                 </div>
                 {/* ニックネーム */}
-                <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-                  <span>ニックネーム:</span>
-                  <span className="text-gray-200 truncate max-w-[140px]" title={initialData.nickName ?? ""}>
+                <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+                  <span className="shrink-0">ニックネーム:</span>
+                  <span className="text-gray-200 truncate max-w-[110px] text-right" title={initialData.nickName ?? ""}>
                     {initialData.nickName}
                   </span>
                 </div>
@@ -108,45 +111,45 @@ export const DungeonMetadataCard = ({ initialData, isEditMode, isAdmin, defaultO
             )}
 
             {/* お気に入り登録数 */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>お気に入り登録数:</span>
-              <span className="text-gray-200 font-bold">{initialData.favoritesCount ?? 0}</span>
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">お気に入り登録数:</span>
+              <span className="text-gray-200 font-bold shrink-0">{initialData.favoritesCount ?? 0}</span>
             </div>
 
             {/* 遊ばれた回数 */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>遊ばれた回数:</span>
-              <span className="text-gray-200 font-bold">{initialData.totalPlayCount ?? 0}</span>
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">遊ばれた回数:</span>
+              <span className="text-gray-200 font-bold shrink-0">{initialData.totalPlayCount ?? 0}</span>
             </div>
 
             {/* クリア回数 */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>クリア回数:</span>
-              <span className="text-gray-200 font-bold">{initialData.clearPlayCount ?? 0}</span>
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">クリア回数:</span>
+              <span className="text-gray-200 font-bold shrink-0">{initialData.clearPlayCount ?? 0}</span>
             </div>
 
             {/* 失敗回数 */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>失敗回数:</span>
-              <span className="text-gray-200 font-bold">{initialData.failurePlayCount ?? 0}</span>
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">失敗回数:</span>
+              <span className="text-gray-200 font-bold shrink-0">{initialData.failurePlayCount ?? 0}</span>
             </div>
 
             {/* 中断回数 */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>中断回数:</span>
-              <span className="text-gray-200 font-bold">{initialData.interruptPlayCount ?? 0}</span>
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">中断回数:</span>
+              <span className="text-gray-200 font-bold shrink-0">{initialData.interruptPlayCount ?? 0}</span>
             </div>
 
             {/* 作成日時 */}
-            <div className="flex justify-between border-b border-gray-800/60 pb-1.5">
-              <span>作成日時:</span>
-              <span className="text-gray-200">{formatDate(initialData.createdAt)}</span>
+            <div className="flex justify-between items-center border-b border-gray-800/60 pb-1.5 gap-2">
+              <span className="shrink-0">作成日時:</span>
+              <span className="text-gray-200 truncate shrink-0">{formatDate(initialData.createdAt)}</span>
             </div>
 
             {/* 最終更新日時 */}
-            <div className="flex justify-between">
-              <span>最終更新:</span>
-              <span className="text-gray-200">{formatDate(initialData.updatedAt)}</span>
+            <div className="flex justify-between items-center gap-2">
+              <span className="shrink-0">最終更新:</span>
+              <span className="text-gray-200 truncate shrink-0">{formatDate(initialData.updatedAt)}</span>
             </div>
           </div>
         </div>

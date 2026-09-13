@@ -218,7 +218,7 @@ export interface DungeonRankingEntry {
   rank: number;
   user: RankingUser;
   playScore: number;
-  clearTime: number | null;
+  clearTime: number;
 }
 
 // 自分の記録

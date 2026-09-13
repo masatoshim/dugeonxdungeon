@@ -36,10 +36,10 @@ export function DungeonDetailModal({ children }: { children: React.ReactNode }) 
         {/* 閉じるボタン：右上に固定 */}
         <button
           onClick={onDismiss}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors z-50 bg-slate-800/80 hover:bg-slate-700 p-2 rounded-full border border-slate-600"
+          className="absolute top-2 right-6 text-slate-400 hover:text-white transition-colors z-50 bg-slate-800/80 hover:bg-slate-700 p-2 rounded-full border border-slate-600"
           aria-label="Close modal"
         >
-          <X size={24} />
+          <X size={12} />
         </button>
 
         {/* スクロール可能なコンテンツエリア */}

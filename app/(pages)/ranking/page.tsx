@@ -46,7 +46,7 @@ export default function UserRankingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* 未ログインユーザー用のポップアップ */}
         {showLoginAlert && (
@@ -62,7 +62,7 @@ export default function UserRankingPage() {
               <button
                 type="button"
                 onClick={() => setShowLoginAlert(false)}
-                className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors p-1 cursor-pointer"
                 aria-label="閉じる"
               >
                 <svg
@@ -89,22 +89,25 @@ export default function UserRankingPage() {
                 アカウントを作成すると、あなた自身のスコアがこのランキングに記録され、マイページでいつでもプレイログの確認ができるようになります。
               </p>
 
-              {/* アクションボタン（2カラム） */}
-              <div className="flex gap-3">
+              {/* アクションボタン */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowLoginAlert(false)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-colors border border-slate-700"
+                  onClick={() => {
+                    setShowLoginAlert(false);
+                    router.push("/login");
+                  }}
+                  className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] sm:text-xs font-black py-2.5 px-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
                 >
-                  閉じる
+                  <span>ログイン / 新規登録</span>
+                  <LogIn size={14} className="shrink-0" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.push("/login")}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95"
+                  onClick={() => setShowLoginAlert(false)}
+                  className="w-full sm:flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-colors border border-slate-700 cursor-pointer"
                 >
-                  <LogIn size={14} />
-                  ログイン / 新規登録
+                  閉じる
                 </button>
               </div>
             </div>
@@ -112,36 +115,36 @@ export default function UserRankingPage() {
         )}
 
         {/* ヘッダー・ナビゲーションエリア */}
-        <header className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-900 pb-6">
-          <div className="flex items-center gap-3">
-            <Trophy className="text-amber-400 w-8 h-8 animate-bounce" />
-            <h1 className="text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-900 pb-6">
+          <div className="flex items-center gap-3 min-w-0">
+            <Trophy className="text-amber-400 w-7 h-7 sm:w-8 sm:h-8 shrink-0 animate-bounce" />
+            <h1 className="text-sm sm:text-lg md:text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
               Dungeon × Ranking
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 w-full lg:w-auto">
             <button
               type="button"
               onClick={handleCheckRanking}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-xs font-bold px-4 py-2.5 rounded-lg transition-colors text-slate-200"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-xs font-bold px-4 py-2.5 rounded-lg transition-colors text-slate-200 cursor-pointer"
             >
-              <BarChart2 size={14} />
               ランキングを確認する
+              <BarChart2 size={14} className="shrink-0" />
             </button>
             <button
               type="button"
               onClick={handleChallengeDungeon}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
             >
-              <Play size={14} fill="currentColor" />
               ダンジョンに挑戦する
+              <Play size={14} fill="currentColor" className="shrink-0" />
             </button>
           </div>
         </header>
 
         {/* 1位〜3位：表彰台トップパネルエリア */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {topThree.map((user, index) => (
             <UserRankingTop3Detail key={user.id} user={user} index={index} />
           ))}

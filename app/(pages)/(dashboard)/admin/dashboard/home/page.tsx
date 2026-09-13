@@ -150,7 +150,7 @@ function AdminHomeContent() {
 
   return (
     <div className="p-6 pt-0">
-      <div className="flex flex-col lg:flex-row gap-6 items-start mb-10 w-full">
+      <div className="mb-10 w-full">
         <AdminStatsOverview userStats={userStatsData} dungeonStats={dungeonStatsData} />
       </div>
       {/* 各ダンジョンリスト */}

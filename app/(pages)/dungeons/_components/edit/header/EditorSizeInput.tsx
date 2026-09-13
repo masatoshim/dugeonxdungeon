@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DUNGEON_DEFAULT } from "@/game-core/types";
 
 interface EditorSizeInputProps {
-  label: string; // "R" や "C" など識別用
+  label: string;
   initialValue: number;
   onConfirm: (newValue: number) => void;
 }

@@ -23,14 +23,16 @@ function DungeonsPageContent() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-8">
-      <header className="max-w-7xl mx-auto mb-12 flex justify-between items-end">
-        <div>
-          <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-            EXPLORE DUNGEONS
-          </h1>
-          <p className="text-slate-400 mt-2">世界中のクリエイターが作成したダンジョンに挑もう</p>
+      <header className="max-w-7xl mx-auto mb-8 flex flex-wrap justify-between items-end gap-x-6 gap-y-3 border-l-4 border-[#4fd1d1] pl-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">EXPLORE DUNGEONS</h1>
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+            世界中のプレイヤーが公開した多彩な迷宮を探索する
+          </p>
         </div>
-        <div className="text-sm text-slate-500 font-mono">TOTAL: {dungeons?.length || 0} DUNGEONS</div>
+        <div className="text-xs font-mono text-slate-400 shrink-0">
+          TOTAL : <span className="text-slate-200 font-bold">{dungeons?.length || 0}</span>
+        </div>
       </header>
 
       {/* ダンジョン一覧 */}

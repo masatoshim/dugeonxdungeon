@@ -6,8 +6,6 @@ import { RankingSkeleton } from "./RankingSkeleton";
 import { useGetDungeon, useGetDungeonRankings } from "@/app/_hooks";
 import { Loader2 } from "lucide-react";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export function DungeonDetailContent({ id }: { id: string }) {
   // ダンジョン基本情報の取得
   const { dungeon, error: dungeonError } = useGetDungeon(id);
@@ -31,19 +29,14 @@ export function DungeonDetailContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-8">
       {/* 上部：基本情報セクション */}
       <DungeonInfoSection dungeon={dungeon} isCleared={!!rankingData?.myRecord} />
 
-      <hr className="border-slate-800" />
+      {/* <hr className="border-slate-800" /> */}
 
       {/* 下部：ランキングセクション */}
       <section>
-        <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3 italic uppercase tracking-wider">
-          <span className="w-2 h-6 bg-cyan-400 block -skew-x-12" />
-          Dungeon Rankings
-        </h3>
-
         {isRankingLoading ? (
           // ランキング取得中はスケルトンを表示
           <RankingSkeleton />

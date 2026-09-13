@@ -24,10 +24,11 @@ const dungeonSchema = z.object({
   name: z.string().min(1, "ダンジョン名は必須入力です").max(50, "ダンジョン名は50文字以内で入力してください"),
   description: z.string().max(500, "説明文は500文字以内で入力してください"),
   timeLimit: z
-    .number()
+    .number("制限時間を入力してください")
     .min(1, "制限時間は1秒以上に設定してください")
     .max(3600, "制限時間は1時間以内に設定してください"),
   mapDataCheck: z.any(), // 変更検知用の隠しフィールド（バリデーションは通すだけ）
+  metaDataCheck: z.any(),
 });
 export type DungeonFormData = z.infer<typeof dungeonSchema>;
 
@@ -85,9 +86,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const startScrollRef = useRef({ left: 0, top: 0 });
 
   const isEditMode = !!initialData?.id;
-  const [isPaletteOpen, setIsPaletteOpen] = useState<boolean>(!isEditMode);
-  // 選択中のタイルがアクティブなパレット内に存在するかの状態を持たせる
-  const [isTileInActivePalette, setIsTileInActivePalette] = useState<boolean>(false);
 
   // React Hook Form の初期化
   const methods = useForm<DungeonFormData>({
@@ -98,6 +96,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       description: initialData?.description || "",
       timeLimit: initialData?.timeLimit || DUNGEON_DEFAULT.TIME_LIMIT,
       mapDataCheck: 0,
+      metaDataCheck: 0,
     },
   });
 
@@ -120,17 +119,16 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     cancelLinking,
   } = useDungeonEditorLogic(initialData);
 
-  const { canUndo, canRedo, handleUndo, handleRedo, pushHistory, getCurrentSnapshot, setHistory } = useEditorHistory(
-    methods,
-    tiles,
-    entities,
-    rows,
-    cols,
-    setRows,
-    setCols,
-    setTilesState,
-    setEntitiesState,
-  );
+  const {
+    canUndo,
+    canRedo,
+    handleUndo,
+    handleRedo,
+    pushHistory,
+    getCurrentSnapshot,
+    setHistory,
+    checkAndResetIfInitial,
+  } = useEditorHistory(methods, tiles, entities, rows, cols, setRows, setCols, setTilesState, setEntitiesState);
 
   // タイル選択状態
   const [selectedTile, setSelectedTile] = useState<TileConfigKey | null>(null);
@@ -345,7 +343,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               status={initialData?.status ?? "DRAFT"}
               cols={cols}
               rows={rows}
-              onConfigConfirm={() => pushHistory()}
+              onConfigConfirm={() => {
+                pushHistory();
+                checkAndResetIfInitial();
+              }}
               onSizeChange={(r, c) => {
                 setRows(r);
                 setCols(c);
@@ -366,7 +367,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
           {/* ─── メインレイアウト ─── */}
           <div className="relative flex-1 min-h-0 w-full overflow-hidden">
             {/* 左サイドバー */}
-            <div className="absolute top-4 left-4 z-30 pointer-events-auto">
+            <div className="absolute top-10 left-4 z-30 pointer-events-auto">
               <div className="flex flex-col gap-3 relative">
                 <TilePalette
                   selectedTile={selectedTile}
@@ -381,7 +382,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                     setSelectedTile((prev) => (prev === id ? null : id));
                   }}
                   isMetadataOpen={isMetadataOpen}
-                  onCurrentTileInActiveGroupChange={setIsTileInActivePalette}
                   onGroupChange={() => setIsMetadataOpen(false)}
                 />
 
@@ -402,16 +402,14 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                 </button>
 
                 {isMetadataOpen && (
-                  <div className="absolute top-0 left-15 z-40 w-80 animate-in fade-in slide-in-from-left-2 duration-150">
-                    <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-4 max-h-[calc(100vh-7rem)] overflow-y-auto custom-scrollbar">
-                      <DungeonMetadataCard
-                        initialData={initialData}
-                        isEditMode={isEditMode}
-                        isAdmin={isAdmin}
-                        defaultOpen={true}
-                        onClose={() => setIsMetadataOpen(false)}
-                      />
-                    </div>
+                  <div className="absolute top-16 left-16 z-50 w-[calc(100vw-80px)] max-w-[300px] sm:max-w-[320px] animate-in fade-in slide-in-from-left-2 duration-150">
+                    <DungeonMetadataCard
+                      initialData={initialData}
+                      isEditMode={isEditMode}
+                      isAdmin={isAdmin}
+                      defaultOpen={true}
+                      onClose={() => setIsMetadataOpen(false)}
+                    />
                   </div>
                 )}
               </div>
@@ -450,60 +448,70 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </main>
 
             {/* ─── 画面上部中央：ステータス＆選択中通知 ─── */}
-            {linkingState.active ? (
-              <button
-                type="button"
-                onClick={handleCancelLinkingAndRemoveEntity}
-                className="group absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center gap-3 bg-amber-500/10 hover:bg-rose-500/20 backdrop-blur-xl border-2 border-amber-500/80 hover:border-rose-500 rounded-2xl px-5 py-2.5 shadow-2xl shadow-amber-500/10 transition-all duration-200 cursor-pointer"
-                aria-label="ペアリング状態を解除し、設置ギミックを削除"
-              >
-                <span className="relative flex h-3 w-3 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 group-hover:bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500 group-hover:bg-rose-500 transition-colors"></span>
-                </span>
-
-                <p className="text-sm font-bold text-amber-400 group-hover:text-rose-300 tracking-wide transition-colors flex items-center gap-2">
-                  <span className="group-hover:hidden">{getLinkingGuideMessage()}</span>
-                  <span className="hidden group-hover:inline-flex items-center gap-1.5 text-rose-300 font-extrabold">
-                    <Trash2 className="w-4 h-4" />
-                    クリックでペアリング解除＆1個目のギミックを削除
+            <div className="absolute top-1 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-col items-center">
+              {linkingState.active ? (
+                <button
+                  type="button"
+                  onClick={handleCancelLinkingAndRemoveEntity}
+                  className="group flex items-center gap-2.5 bg-amber-500/10 hover:bg-rose-500/20 backdrop-blur-xl border-2 border-amber-500/80 hover:border-rose-500 rounded-2xl px-3.5 py-2 sm:px-5 sm:py-2.5 shadow-2xl shadow-amber-500/10 transition-all duration-200 cursor-pointer max-w-[calc(100vw-2rem)] w-max"
+                  aria-label="ペアリング状態を解除し、設置ギミックを削除"
+                >
+                  <span className="relative flex h-3 w-3 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 group-hover:bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500 group-hover:bg-rose-500 transition-colors"></span>
                   </span>
-                </p>
 
-                <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-1 shrink-0" />
-              </button>
-            ) : (
-              // 選択中のタイルが現在のパレット内に存在しない、かつ、タイルが選択中の時のみ表示
-              !isTileInActivePalette &&
-              selectedTile !== null && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex flex-col items-center group">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTile(null)}
-                    className="flex items-center gap-2.5 bg-slate-900/90 hover:bg-rose-950/90 border border-cyan-500/50 hover:border-rose-500/80 rounded-full px-4 py-1.5 shadow-2xl backdrop-blur-md transition-all duration-200 cursor-pointer"
-                    aria-label="選択状態を解除"
-                  >
-                    <span className="text-[10px] font-bold text-cyan-400 group-hover:text-rose-400 uppercase tracking-wider transition-colors shrink-0">
-                      選択中:
+                  <p className="text-xs sm:text-sm font-bold text-amber-400 group-hover:text-rose-300 tracking-wide transition-colors flex items-center gap-2 whitespace-normal sm:whitespace-nowrap leading-tight text-left min-w-0">
+                    {/* ペアリング用メッセージ */}
+                    <span className="group-hover:hidden">
+                      {getLinkingGuideMessage()}
+                      {/* タッチデバイスの時だけ末尾に追加 */}
+                      <span className="inline pointer-fine:hidden text-[10px] sm:text-xs opacity-80 ml-1">
+                        （タップで取り消し）
+                      </span>
                     </span>
 
-                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-black/40 border border-slate-700/60 group-hover:border-rose-500/50 shrink-0 overflow-hidden transition-colors">
-                      {selectedTile === " " ? (
-                        <Eraser className="w-4 h-4 text-red-400 group-hover:text-rose-300 transition-colors" />
-                      ) : (
-                        <TileIconForm tileId={selectedTile} size={24} />
-                      )}
+                    {/* ホバー時メッセージ */}
+                    <span className="hidden group-hover:inline-flex items-center gap-1.5 text-rose-300 font-extrabold">
+                      <Trash2 className="w-4 h-4 shrink-0" />
+                      <span>クリックでペアリング解除＆1個目のギミックを削除</span>
+                    </span>
+                  </p>
+
+                  <X className="w-4 h-4 text-amber-400 group-hover:text-rose-300 group-hover:scale-110 transition-all ml-0.5 shrink-0" />
+                </button>
+              ) : (
+                // タイルが選択中の時に表示
+                selectedTile !== null && (
+                  <div className="flex flex-col items-center group relative">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTile(null)}
+                      className="flex items-center gap-2 sm:gap-2.5 bg-slate-900/95 hover:bg-rose-950/90 border border-cyan-500/50 hover:border-rose-500/80 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 shadow-2xl backdrop-blur-md transition-all duration-200 cursor-pointer"
+                      aria-label="選択状態を解除"
+                    >
+                      <span className="text-[10px] font-bold text-cyan-400 group-hover:text-rose-400 uppercase tracking-wider transition-colors shrink-0">
+                        選択中:
+                      </span>
+
+                      <div className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-black/40 border border-slate-700/60 group-hover:border-rose-500/50 shrink-0 overflow-hidden transition-colors">
+                        {selectedTile === " " ? (
+                          <Eraser className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 group-hover:text-rose-300 transition-colors" />
+                        ) : (
+                          <TileIconForm tileId={selectedTile} size={24} />
+                        )}
+                      </div>
+
+                      <X className="w-4 h-4 text-slate-400 group-hover:text-rose-300 group-hover:scale-110 transition-all shrink-0 ml-0.5" />
+                    </button>
+
+                    <div className="absolute top-full mt-2 px-2.5 py-1 bg-slate-900/95 text-[11px] font-semibold text-rose-300 border border-rose-500/40 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 shadow-lg backdrop-blur-sm z-50">
+                      クリックで解除
                     </div>
-
-                    <X className="w-4 h-4 text-slate-400 group-hover:text-rose-300 group-hover:scale-110 transition-all shrink-0 ml-0.5" />
-                  </button>
-
-                  <div className="absolute top-full mt-2 px-2.5 py-1 bg-slate-900/95 text-[11px] font-semibold text-rose-300 border border-rose-500/40 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 shadow-lg backdrop-blur-sm z-50">
-                    クリックで解除
                   </div>
-                </div>
-              )
-            )}
+                )
+              )}
+            </div>
 
             {/* ─── ズームコントローラー ─── */}
             <div className="absolute bottom-4 right-4 z-30 pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-1 text-xs text-slate-300 shadow-2xl">

@@ -50,7 +50,18 @@ export function UserRankingRowDetail({ user, rank }: UserRankingRowDetailProps) 
       <td className="py-3.5 px-6 text-right font-mono text-slate-300">{user.clearPlayCount}</td>
 
       {/* トータルプレイ時間 */}
-      <td className="py-3.5 px-6 text-right font-mono text-slate-400">{formatTime(user.totalPlayTime)}</td>
+      <td className="py-3.5 px-6 text-right font-mono text-slate-400">
+        {(() => {
+          const [integer, decimal] = user.totalPlayTime.toLocaleString().split(".");
+          return (
+            <>
+              {integer}
+              {decimal && <span className="text-[10px]">.{decimal}</span>}
+              <span className="text-[10px] text-slate-400 font-normal ml-1">sec</span>
+            </>
+          );
+        })()}
+      </td>
     </tr>
   );
 }

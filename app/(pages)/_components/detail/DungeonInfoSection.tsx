@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useState } from "react";
-import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star } from "lucide-react";
+import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star, Play } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
 import {
@@ -59,11 +59,11 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
   ];
 
   return (
-    <div className="text-white space-y-6">
+    <div className="text-white space-y-4">
       {/* ユーザー情報 & お気に入り・攻略状況 */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-wrap justify-between items-center gap-y-3 pt-1">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400 overflow-hidden">
+          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold border border-indigo-400 overflow-hidden shrink-0">
             {iconUrl ? (
               <Image
                 src={iconUrl}
@@ -79,7 +79,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
           </div>
           <span className="font-bold text-slate-200">{dungeon.nickName}</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleFavoriteClick}
             className={`flex items-center gap-1 px-1.5 py-0 rounded-full text-[11px] transition-colors ${
@@ -103,19 +103,37 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         </div>
       </div>
 
-      {/* タイトル & 難易度 */}
+      {/* タイトル & 難易度 & プレイボタン */}
       <div>
         <div className="text-slate-500 font-mono text-sm mb-1">{dungeon.code}</div>
-        <h2 className="text-4xl font-black tracking-tight mb-2 uppercase italic">{dungeon.name}</h2>
-        <div className="flex gap-1 text-yellow-400">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              size={20}
-              fill={i < (dungeon.difficulty || 5) ? "currentColor" : "none"}
-              className={i >= (dungeon.difficulty || 5) ? "text-slate-600" : ""}
-            />
-          ))}
+        <h2 className="text-2xl sm:text-2xl font-black tracking-tight mb-2 uppercase italic break-words">
+          {dungeon.name}
+        </h2>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex gap-1 text-yellow-400 shrink-0">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={20}
+                fill={i < (dungeon.difficulty || 5) ? "currentColor" : "none"}
+                className={i >= (dungeon.difficulty || 5) ? "text-slate-600" : ""}
+              />
+            ))}
+          </div>
+
+          <div className="flex justify-end w-full sm:w-auto">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.assign(`/dungeons/${dungeon.id}/play`);
+              }}
+              className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-bold text-sm px-5 py-2 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(34,211,238,0.3)] shrink-0"
+            >
+              ダンジョンで遊ぶ
+              <Play size={12} fill="currentColor" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -133,33 +151,21 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
         ))}
       </div>
 
-      {/* タグ */}
-      <div className="flex flex-wrap gap-2">
-        {dungeon.tags?.map((tag: string) => (
-          <span key={tag} className="bg-white text-slate-900 text-[10px] font-black px-2 py-0.5 rounded italic">
-            {tag.toUpperCase()}
-          </span>
-        ))}
-      </div>
+      {/* タグ & 説明文 */}
+      <div className="space-y-2">
+        {/* タグ */}
+        <div className="flex flex-wrap gap-2">
+          {dungeon.tags?.map((tag: string) => (
+            <span key={tag} className="bg-white text-slate-900 text-[10px] font-black px-2 py-0.5 rounded italic">
+              {tag.toUpperCase()}
+            </span>
+          ))}
+        </div>
 
-      {/* 説明文 */}
-      <p className="text-slate-300 leading-relaxed text-sm bg-slate-900/30 p-4 rounded-xl border border-slate-800">
-        {dungeon.description || "このダンジョンに説明はありません。"}
-      </p>
-
-      {/* プレイボタン */}
-      <div className="flex justify-end pt-4">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            // router.push(`/dungeons/${dungeon.id}/play`);
-            window.location.assign(`/dungeons/${dungeon.id}/play`);
-          }}
-          className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-        >
-          ダンジョンで遊ぶ
-          <Maximize size={18} />
-        </button>
+        {/* 説明文 */}
+        <p className="text-slate-300 leading-relaxed text-sm bg-slate-900/30 p-4 rounded-xl border border-slate-800">
+          {dungeon.description || "このダンジョンに説明はありません。"}
+        </p>
       </div>
     </div>
   );
