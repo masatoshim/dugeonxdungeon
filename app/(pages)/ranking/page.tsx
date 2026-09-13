@@ -93,7 +93,10 @@ export default function UserRankingPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={() => router.push("/login")}
+                  onClick={() => {
+                    setShowLoginAlert(false);
+                    router.push("/login");
+                  }}
                   className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] sm:text-xs font-black py-2.5 px-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
                 >
                   <span>ログイン / 新規登録</span>

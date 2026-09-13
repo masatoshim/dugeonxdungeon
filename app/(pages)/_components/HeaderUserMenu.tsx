@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Settings, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -14,11 +14,28 @@ export function HeaderUserMenu({ onClose }: HeaderUserMenuProps) {
   const { data: session } = useSession();
   const navItems = getNavItems(session?.user?.role);
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // メニューが開いているときに、コンポーネント外のクリックを検知して閉じる
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   if (!session) return null;
 
   return (
-    <div className="w-full md:w-auto">
+    <div className="w-full md:w-auto relative" ref={menuRef}>
       {/* モバイル表示 */}
       <div className="md:hidden w-full">
         <div className={`flex items-center w-full ${isOpen ? "justify-end" : "justify-between"}`}>
@@ -81,7 +98,7 @@ export function HeaderUserMenu({ onClose }: HeaderUserMenuProps) {
       </div>
 
       {/* PC表示 */}
-      <div className="hidden md:block relative">
+      <div className="hidden md:block">
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
@@ -90,8 +107,6 @@ export function HeaderUserMenu({ onClose }: HeaderUserMenuProps) {
         >
           <Settings size={20} className="hover:rotate-45 transition-transform duration-300" />
         </button>
-
-        {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
 
         {isOpen && (
           <div className="absolute right-0 top-full mt-2 w-56 z-50 animate-in fade-in zoom-in-95 duration-150">
