@@ -15,7 +15,7 @@ import { toast } from "sonner";
 interface DungeonInfoProps {
   dungeon: DungeonResponse;
   isCleared: boolean;
-  targetPage: number;
+  targetPage?: number;
 }
 
 export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonInfoProps) {
@@ -64,7 +64,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
     e.stopPropagation();
 
     // プレイ後の遷移ページを設定
-    sessionStorage.setItem("dungeon_list_return_url", `/dungeons/?page=${targetPage}`);
+    sessionStorage.setItem("dungeon_list_return_url", targetPage ? `/dungeons/?page=${targetPage}` : `/dungeons`);
 
     // プレイ画面へ遷移
     router.push(`/dungeons/${dungeon.id}/play`);

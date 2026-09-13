@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 interface DungeonDetailProps {
   id: string;
-  targetPage: number;
+  targetPage?: number;
 }
 
 export function DungeonDetailContent({ id, targetPage }: DungeonDetailProps) {

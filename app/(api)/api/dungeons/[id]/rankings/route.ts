@@ -59,7 +59,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             iconImageKey: user?.iconImageKey || null,
           },
           playScore: item._max.playScore ?? 0,
-          clearTime: bestPlay?.playTime ?? null,
+          clearTime: bestPlay?.playTime ?? 0,
         };
       }),
     );
