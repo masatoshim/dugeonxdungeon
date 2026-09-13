@@ -123,7 +123,7 @@ export default function UserRankingPage() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 w-full lg:w-auto">
             <button
               type="button"
               onClick={handleCheckRanking}
