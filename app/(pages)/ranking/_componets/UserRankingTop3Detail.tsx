@@ -11,9 +11,6 @@ interface UserRankingTop3DetailPageProps {
 
 export function UserRankingTop3Detail({ user, index }: UserRankingTop3DetailPageProps) {
   const { iconUrl } = useProfileIcon(user.iconImageKey);
-  // スコア・時間のフォーマット補助
-  const formatScore = (score: number) => score.toLocaleString() + " pt";
-  const formatTime = (seconds: number) => seconds.toLocaleString() + " sec";
 
   // 1〜3位のパネル用スタイルマッピング
   const rankStyles = [
@@ -38,7 +35,7 @@ export function UserRankingTop3Detail({ user, index }: UserRankingTop3DetailPage
   return (
     <div
       key={user.id}
-      className={`border rounded-2xl p-5 flex items-center gap-5 backdrop-blur-sm relative overflow-hidden ${style.bg}`}
+      className={`border rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 backdrop-blur-sm relative overflow-hidden max-w-xl mx-auto w-full ${style.bg}`}
     >
       {/* 左側：大きなアイコンと順位バッジ */}
       <div className="flex flex-col items-center gap-2 flex-shrink-0">
@@ -53,25 +50,42 @@ export function UserRankingTop3Detail({ user, index }: UserRankingTop3DetailPage
         </div>
         <span className={`text-xl font-black font-mono tracking-tighter ${style.text}`}>{style.badge}</span>
       </div>
+      {/* メタ情報エリア */}
+      <div className="flex-1 w-full min-w-0 space-y-2 text-xs">
+        <h2 className="text-base font-black truncate text-white mb-2 text-center sm:text-left">{user.nickName}</h2>
 
-      {/* 右側：メタ情報（縦並び） */}
-      <div className="flex-1 min-w-0 space-y-1 text-xs">
-        <h2 className="text-base font-black truncate text-white mb-2">{user.nickName}</h2>
-        <div className="flex justify-between text-slate-400">
-          <span>トータルスコア:</span>
-          <span className="font-bold text-slate-200">{formatScore(user.totalPlayScore)}</span>
+        <div className="grid grid-cols-1 min-[300px]:grid-cols-2 items-center text-slate-400 gap-0.5 min-[300px]:gap-4">
+          <span className="text-[11px]">トータルスコア:</span>
+          <span className="font-bold text-slate-200 text-right text-sm">
+            {user.totalPlayScore.toLocaleString()}
+            <span className="text-[10px] text-slate-400 font-normal ml-1">pt</span>
+          </span>
         </div>
-        <div className="flex justify-between text-slate-400">
-          <span>プレイ回数:</span>
-          <span className="font-bold text-slate-200">{user.totalPlayCount}</span>
+
+        <div className="grid grid-cols-1 min-[300px]:grid-cols-2 items-center text-slate-400 gap-0.5 min-[300px]:gap-4">
+          <span className="text-[11px]">プレイ回数:</span>
+          <span className="font-bold text-slate-200 text-right text-sm">{user.totalPlayCount.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between text-slate-400">
-          <span>ダンジョン踏破数:</span>
-          <span className="font-bold text-slate-200">{user.clearPlayCount}</span>
+
+        <div className="grid grid-cols-1 min-[300px]:grid-cols-2 items-center text-slate-400 gap-0.5 min-[300px]:gap-4">
+          <span className="text-[11px]">ダンジョン踏破数:</span>
+          <span className="font-bold text-slate-200 text-right text-sm">{user.clearPlayCount.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between text-slate-400">
-          <span>トータルプレイ時間:</span>
-          <span className="font-bold text-slate-200">{formatTime(user.totalPlayTime)}</span>
+
+        <div className="grid grid-cols-1 min-[300px]:grid-cols-2 items-center text-slate-400 gap-0.5 min-[300px]:gap-4">
+          <span className="text-[11px]">トータルプレイ時間:</span>
+          <span className="font-bold text-slate-200 text-right text-sm">
+            {(() => {
+              const [integer, decimal] = user.totalPlayTime.toLocaleString().split(".");
+              return (
+                <>
+                  {integer}
+                  {decimal && <span className="text-[10px]">.{decimal}</span>}
+                  <span className="text-[10px] text-slate-400 font-normal ml-1">sec</span>
+                </>
+              );
+            })()}
+          </span>
         </div>
       </div>
     </div>

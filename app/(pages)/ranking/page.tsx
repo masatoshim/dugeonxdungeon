@@ -144,7 +144,7 @@ export default function UserRankingPage() {
         </header>
 
         {/* 1位〜3位：表彰台トップパネルエリア */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {topThree.map((user, index) => (
             <UserRankingTop3Detail key={user.id} user={user} index={index} />
           ))}
