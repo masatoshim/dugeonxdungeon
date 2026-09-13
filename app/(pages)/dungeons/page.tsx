@@ -2,8 +2,9 @@
 
 import { Suspense } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
+import { Pagination } from "@/app/(pages)/_components/Pagination";
 import { useGetDungeons } from "@/app/_hooks";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 
@@ -16,10 +17,28 @@ export default function DungeonsPage() {
 }
 
 function DungeonsPageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const dungeonId = searchParams.get("dungeonId");
-  // 公開済みダンジョン一覧を取得
-  const { dungeons, isLoading, error } = useGetDungeons({ status: "PUBLISHED" });
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = 20;
+  const index = (page - 1) * limit;
+
+  const { dungeons, totalCount, isLoading, error } = useGetDungeons({
+    status: "PUBLISHED",
+    limit,
+    index,
+  });
+
+  const totalPages = Math.ceil((totalCount || 0) / limit);
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-8">
@@ -31,12 +50,15 @@ function DungeonsPageContent() {
           </p>
         </div>
         <div className="text-xs font-mono text-slate-400 shrink-0">
-          TOTAL : <span className="text-slate-200 font-bold">{dungeons?.length || 0}</span>
+          TOTAL : <span className="text-slate-200 font-bold">{totalCount || 0}</span>
         </div>
       </header>
 
       {/* ダンジョン一覧 */}
       <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+
+      {/* ページネーション */}
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
 
       {/* ダンジョン詳細モーダル表示 */}
       {dungeonId && (
