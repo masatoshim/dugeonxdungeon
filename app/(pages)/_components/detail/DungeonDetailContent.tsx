@@ -6,7 +6,12 @@ import { RankingSkeleton } from "./RankingSkeleton";
 import { useGetDungeon, useGetDungeonRankings } from "@/app/_hooks";
 import { Loader2 } from "lucide-react";
 
-export function DungeonDetailContent({ id }: { id: string }) {
+interface DungeonDetailProps {
+  id: string;
+  targetPage: number;
+}
+
+export function DungeonDetailContent({ id, targetPage }: DungeonDetailProps) {
   // ダンジョン基本情報の取得
   const { dungeon, error: dungeonError } = useGetDungeon(id);
 
@@ -31,7 +36,7 @@ export function DungeonDetailContent({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-8">
       {/* 上部：基本情報セクション */}
-      <DungeonInfoSection dungeon={dungeon} isCleared={!!rankingData?.myRecord} />
+      <DungeonInfoSection dungeon={dungeon} isCleared={!!rankingData?.myRecord} targetPage={targetPage} />
 
       {/* <hr className="border-slate-800" /> */}
 

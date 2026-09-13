@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { Pagination } from "@/app/(pages)/_components/Pagination";
 import { useGetDungeons } from "@/app/_hooks";
@@ -23,6 +23,7 @@ function DungeonsPageContent() {
 
   const dungeonId = searchParams.get("dungeonId");
   const page = Number(searchParams.get("page")) || 1;
+  const [targetPage, setTargetPage] = useState(page);
   const limit = 20;
   const index = (page - 1) * limit;
 
@@ -35,6 +36,7 @@ function DungeonsPageContent() {
   const totalPages = Math.ceil((totalCount || 0) / limit);
 
   const handlePageChange = (newPage: number) => {
+    setTargetPage(newPage);
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
     router.push(`${pathname}?${params.toString()}`, { scroll: true });
@@ -63,7 +65,7 @@ function DungeonsPageContent() {
       {/* ダンジョン詳細モーダル表示 */}
       {dungeonId && (
         <DungeonDetailModal>
-          <DungeonDetailContent id={dungeonId} />
+          <DungeonDetailContent id={dungeonId} targetPage={targetPage} />
         </DungeonDetailModal>
       )}
     </div>

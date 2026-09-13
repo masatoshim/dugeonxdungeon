@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star, Play } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
@@ -14,9 +15,11 @@ import { toast } from "sonner";
 interface DungeonInfoProps {
   dungeon: DungeonResponse;
   isCleared: boolean;
+  targetPage: number;
 }
 
-export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
+export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonInfoProps) {
+  const router = useRouter();
   const { status } = useSession();
   const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
@@ -48,7 +51,6 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
     }
   };
 
-  // const router = useRouter();
   // スタッツ項目を配列化してループで表示
   const stats = [
     { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
@@ -57,6 +59,16 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
     { icon: LogOut, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人` },
     { icon: Timer, label: "平均踏破時間", value: `${dungeon.averageClearTime ?? "--"}sec` },
   ];
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // プレイ後の遷移ページを設定
+    sessionStorage.setItem("dungeon_list_return_url", `/dungeons/?page=${targetPage}`);
+
+    // プレイ画面へ遷移
+    router.push(`/dungeons/${dungeon.id}/play`);
+  };
 
   return (
     <div className="text-white space-y-4">
@@ -124,10 +136,7 @@ export function DungeonInfoSection({ dungeon, isCleared }: DungeonInfoProps) {
 
           <div className="flex justify-end w-full sm:w-auto">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.assign(`/dungeons/${dungeon.id}/play`);
-              }}
+              onClick={handlePlay}
               className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-bold text-sm px-5 py-2 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(34,211,238,0.3)] shrink-0"
             >
               ダンジョンで遊ぶ

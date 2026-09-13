@@ -35,6 +35,7 @@ function DungeonsPageContent() {
   // ダンジョン一覧取得パラメータ作成
   // todo: 別コンポーネントに検索項目を増やす
   const params: DungeonFilter = {
+    limit: 100,
     sort: currentSort,
     //  index: Number(currentPage),
     isTemplate: isAdminMode ? "true" : "false",

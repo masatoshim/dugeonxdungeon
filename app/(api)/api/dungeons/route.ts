@@ -335,7 +335,7 @@ export async function POST(request: Request) {
     // ユーザーの設定している作成上限（createDungeonLimit）を取得
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { createDungeonLimit: true },
+      select: { createDungeonLimit: true, role: true },
     });
 
     if (!user) {
@@ -353,7 +353,7 @@ export async function POST(request: Request) {
     });
 
     // 上限を超えている場合はエラーを返す
-    if (activeDungeonCount >= user.createDungeonLimit) {
+    if (user.role == "USER" && activeDungeonCount >= user.createDungeonLimit) {
       return NextResponse.json(
         {
           message: `ダンジョンの作成上限（最大 ${user.createDungeonLimit} 個）に達しているため、新しく作成できません。`,
