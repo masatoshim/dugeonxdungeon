@@ -11,6 +11,7 @@ import { useProfileIcon } from "@/app/_hooks";
 import { deleteOldImage } from "@/app/_libs/storage";
 import { PasswordChangeModal } from "./PasswordChangeModal";
 import { UserResponse } from "@/app/_types";
+import { toast } from "sonner";
 
 interface ProfileCardProps {
   user: UserResponse;
@@ -31,6 +32,9 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
 
   // 処理用のローディング状態
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  // 確認モーダルの状態管理
+  const [confirmModalType, setConfirmModalType] = useState<"deactivate" | "delete" | null>(null);
 
   const trimmedNickName = nickName.trim();
   const isNickNameChanged = user && nickName !== (user.nickName || user.userName);
@@ -74,7 +78,7 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
 
       mutate();
     } catch (error: any) {
-      alert("エラーが発生しました: " + error.message);
+      console.error("エラーが発生しました: " + error.message);
     } finally {
       setIsUploading(false);
     }
@@ -90,18 +94,14 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
       setIsEditingNickName(false);
       mutate();
     } catch (error) {
-      alert("更新に失敗しました");
+      toast.error("更新に失敗しました");
     }
   };
 
-  // アクティブ / 非アクティブ（トグル切り替え）処理
-  const handleDeactivate = async () => {
+  // アクティブ切替の実行
+  const executeDeactivate = async () => {
     const nextActiveState = !user.isActive;
     const actionText = nextActiveState ? "アクティブ化" : "非アクティブ化";
-
-    if (!window.confirm(`ユーザー「${user.nickName || user.userName}」を${actionText}にしますか？`)) {
-      return;
-    }
 
     setIsActionLoading(true);
     try {
@@ -109,39 +109,44 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
         isActive: nextActiveState,
       });
       mutate();
-      alert(`ユーザーを${actionText}にしました。`);
+      toast.success(`ユーザーを${actionText}にしました。`);
     } catch (error) {
       console.error(error);
-      alert("処理に失敗しました。");
+      toast.error("処理に失敗しました。");
     } finally {
       setIsActionLoading(false);
+      setConfirmModalType(null);
     }
   };
 
-  // 削除（論理削除・取り消し不可）処理
-  const handleLogicalDelete = async () => {
-    if (
-      !window.confirm(
-        `⚠️【警告】ユーザー「${user.nickName || user.userName}」を削除しますか？\nこの操作は画面上から取り消すことができません。`,
-      )
-    ) {
-      return;
-    }
-
+  // 削除の実行
+  const executeLogicalDelete = async () => {
     setIsActionLoading(true);
     try {
       if (remove) {
         await remove();
       }
       mutate();
-      alert("ユーザーを削除しました。");
+      toast.success("ユーザーを削除しました。");
     } catch (error) {
       console.error(error);
-      alert("削除処理に失敗しました。");
+      toast.error("削除処理に失敗しました。");
     } finally {
       setIsActionLoading(false);
+      setConfirmModalType(null);
     }
   };
+
+  const handleConfirmAction = () => {
+    if (confirmModalType === "deactivate") {
+      executeDeactivate();
+    } else if (confirmModalType === "delete") {
+      executeLogicalDelete();
+    }
+  };
+
+  const nextActiveState = !user.isActive;
+  const actionText = nextActiveState ? "アクティブ化" : "非アクティブ化";
 
   return (
     <>
@@ -316,7 +321,7 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
             <div className="grid grid-cols-2 gap-2.5">
               {/* アクティブ / 非アクティブ 切替ボタン */}
               <button
-                onClick={handleDeactivate}
+                onClick={() => setConfirmModalType("deactivate")}
                 disabled={isActionLoading || user.deletedFlg}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border disabled:opacity-20 disabled:cursor-not-allowed ${
                   user.isActive
@@ -327,19 +332,15 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
                 {isActionLoading ? (
                   <Loader2 className="animate-spin" size={14} />
                 ) : user.isActive ? (
-                  <>
-                    <span>非アクティブにする</span>
-                  </>
+                  <span>非アクティブにする</span>
                 ) : (
-                  <>
-                    <span>アクティブにする</span>
-                  </>
+                  <span>アクティブにする</span>
                 )}
               </button>
 
               {/* 削除ボタン */}
               <button
-                onClick={handleLogicalDelete}
+                onClick={() => setConfirmModalType("delete")}
                 disabled={isActionLoading || user.deletedFlg}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border disabled:opacity-20 disabled:cursor-not-allowed ${
                   user.deletedFlg
@@ -358,6 +359,44 @@ export function ProfileCard({ user, mutate, update, remove, isAdminMode }: Profi
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* 統合確認モーダル */}
+        {confirmModalType !== null && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+              <h3 className="text-lg font-bold text-white">
+                {confirmModalType === "deactivate" ? "ステータス変更の確認" : "ユーザー削除の確認"}
+              </h3>
+              <p className="text-sm text-slate-300">
+                {confirmModalType === "deactivate"
+                  ? `ユーザー「${user.nickName || user.userName}」を${actionText}にしますか？`
+                  : `⚠️【警告】ユーザー「${user.nickName || user.userName}」を削除しますか？\nこの操作は画面上から取り消すことができません。`}
+              </p>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmModalType(null)}
+                  disabled={isActionLoading}
+                  className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmAction}
+                  disabled={isActionLoading}
+                  className={`px-4 py-2 text-xs font-bold text-white rounded-xl transition-colors shadow-lg disabled:opacity-50 ${
+                    confirmModalType === "deactivate"
+                      ? "bg-amber-600 hover:bg-amber-500 shadow-amber-900/30"
+                      : "bg-red-600 hover:bg-red-500 shadow-red-900/30"
+                  }`}
+                >
+                  {isActionLoading ? "処理中..." : "削除する"}
+                </button>
+              </div>
             </div>
           </div>
         )}

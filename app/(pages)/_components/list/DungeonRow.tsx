@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Maximize, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -38,6 +39,15 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null); // スクロール用の参照
 
+  // サーバーサイドレンダリング（SSR）時のエラーを防ぐためのマウント判定
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 削除確認カスタムモーダルの開閉状態
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   // ハイライト時に画面内へスクロールさせる処理
   useEffect(() => {
     if (isHighlighted) {
@@ -68,8 +78,7 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
     mutate();
   };
 
-  const handleDelete = async () => {
-    if (!confirm("このダンジョンを削除してもよろしいですか？")) return;
+  const handleConfirmDelete = async () => {
     try {
       if (isAdmin) {
         await remove();
@@ -81,6 +90,7 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
         });
       }
       toast.success("ダンジョンを削除しました");
+      setShowDeleteModal(false);
       mutate();
     } catch (e) {
       toast.error("削除に失敗しました");
@@ -94,6 +104,34 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
       router.replace(window.location.pathname, { scroll: false });
     }
   };
+
+  // 削除確認モーダルの JSX
+  const deleteModalContent = showDeleteModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+        <h3 className="text-lg font-bold text-white">ダンジョンの削除</h3>
+        <p className="text-sm text-slate-300">このダンジョンを削除してもよろしいですか？</p>
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(false)}
+            disabled={isLoading}
+            className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmDelete}
+            disabled={isLoading}
+            className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-xl transition-colors shadow-lg shadow-red-900/30 disabled:opacity-50"
+          >
+            {isLoading ? "処理中..." : "削除する"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -187,7 +225,7 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
             </button>
             <button
               type="button"
-              onClick={() => handleDelete()}
+              onClick={() => setShowDeleteModal(true)}
               disabled={isLoading}
               className="flex-1 lg:flex-none px-3 lg:px-4 py-1.5 rounded text-xs lg:text-sm font-bold transition-colors bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-800/50 leading-tight flex items-center justify-center min-h-[36px] text-center"
             >
@@ -196,6 +234,9 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
           </>
         )}
       </div>
+
+      {/* 削除確認モーダル（Portalでbody直下に描画） */}
+      {mounted && showDeleteModal && createPortal(deleteModalContent, document.body)}
     </div>
   );
 }
