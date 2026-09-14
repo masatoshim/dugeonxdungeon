@@ -97,7 +97,7 @@ export default function Header() {
           {/* PC表示用ユーザーエリア */}
           <div className="hidden md:flex items-center gap-4 min-w-0">
             {status === "loading" ? (
-              <span className="text-xs text-slate-500 font-mono animate-pulse">LOADING...</span>
+              <span className="text-xs text-slate-500 font-mono animate-pulse">読み込み中...</span>
             ) : session ? (
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className="text-sm font-medium text-slate-300 min-w-0 truncate max-w-[260px] lg:max-w-[260px] xl:max-w-none">

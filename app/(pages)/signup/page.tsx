@@ -32,7 +32,7 @@ export default function SignupPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white font-mono">
-          LOADING...
+          読み込み中...
         </div>
       }
     >
