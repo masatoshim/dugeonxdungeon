@@ -55,6 +55,8 @@ function DungeonsPageContent() {
     mapSizeWidthTo: getParam("mapSizeWidthTo") || "",
     mapSizeHeightFrom: getParam("mapSizeHeightFrom") || "",
     mapSizeHeightTo: getParam("mapSizeHeightTo") || "",
+    timeLimitFrom: getParam("timeLimitFrom") || "",
+    timeLimitTo: getParam("timeLimitTo") || "",
     playStatusList: getParam("playStatusList") ? getParam("playStatusList")!.split(",") : [],
     isFavoritesList: getParam("isFavoritesList") ? getParam("isFavoritesList")!.split(",") : [],
   };
@@ -113,6 +115,8 @@ function DungeonsPageContent() {
     ...(getParam("mapSizeWidthTo") && { mapSizeWidthTo: Number(getParam("mapSizeWidthTo")) }),
     ...(getParam("mapSizeHeightFrom") && { mapSizeHeightFrom: Number(getParam("mapSizeHeightFrom")) }),
     ...(getParam("mapSizeHeightTo") && { mapSizeHeightTo: Number(getParam("mapSizeHeightTo")) }),
+    ...(getParam("timeLimitFrom") && { timeLimitFrom: Number(getParam("timeLimitFrom")) }),
+    ...(getParam("timeLimitTo") && { timeLimitTo: Number(getParam("timeLimitTo")) }),
     ...(getParam("playStatusList") && { playStatusList: getParam("playStatusList")?.split(",") as any }),
     ...(getParam("isFavoritesList") && { isFavoritesList: getParam("isFavoritesList") }),
   });

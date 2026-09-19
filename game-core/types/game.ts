@@ -16,6 +16,8 @@ export const DUNGEON_DEFAULT = {
   TIME_LIMIT: 60,
   MIN_SIZE: 4,
   MAX_SIZE: 99,
+  MIN_TIME_LIMIT: 1,
+  MAX_TIME_LIMIT: 3600,
 } as const;
 
 export interface EntityData {
