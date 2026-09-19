@@ -73,7 +73,7 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
   return (
     <div className="w-full h-auto text-white">
       {/* ヘッダー */}
-      <header className="max-w-7xl mx-auto mb-8 flex justify-between items-start">
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-200">
             {user && `${user.nickName}さん の`}
@@ -82,8 +82,8 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
         </div>
 
         {/* ソート */}
-        <div className="flex flex-col items-end gap-2">
-          <div className="hidden md:block">
+        <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
             <SortSelect
               sort={sort}
               order={order}
