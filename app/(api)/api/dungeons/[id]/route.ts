@@ -33,7 +33,7 @@ function mapToDungeonResponse(
 /**
  * GET: ダンジョン詳細取得
  */
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     // 認証セッションの取得
     const session = await getServerSession(authOptions);
@@ -160,7 +160,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 /**
  * DELETE: ダンジョン削除
  */
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     // 権限チェック：管理者（ADMIN）のみ許可
     const session = await getServerSession(authOptions);

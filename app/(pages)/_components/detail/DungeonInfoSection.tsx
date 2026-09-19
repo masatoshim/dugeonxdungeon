@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star, Play } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
@@ -26,6 +26,10 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
   const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
+
+  useEffect(() => {
+    setFavoritesCount(dungeon.favoritesCount);
+  }, [dungeon.favoritesCount]);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Link の遷移を防止

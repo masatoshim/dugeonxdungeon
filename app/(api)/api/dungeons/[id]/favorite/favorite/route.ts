@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { FavoriteDungeonResponse } from "@/app/_types";
 import { prisma } from "@/app/_libs/prisma";
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   if (!userId) return NextResponse.json({ message: "認証が必要です" }, { status: 401 });

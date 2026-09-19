@@ -22,7 +22,6 @@ interface DungeonCardProps {
 export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   const { data: session, status } = useSession();
   const currentUserId = session?.user?.id;
-
   const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const [isDraftStatus] = useState(dungeon.status === "DRAFT");
