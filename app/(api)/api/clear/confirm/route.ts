@@ -25,6 +25,20 @@ export async function POST(req: Request) {
       if (!pending) throw new Error("データが見つかりません");
       if (new Date() > pending.expiresAt) throw new Error("有効期限切れです");
 
+      // ダンジョンの情報を取得して、自分の作成したダンジョンかチェック
+      const dungeon = await tx.dungeon.findUnique({
+        where: { id: pending.dungeonId },
+        select: { userId: true },
+      });
+
+      // 自分のダンジョンであれば、履歴は作成せず、一時データだけ削除して専用のレスポンスを返す
+      if (dungeon && dungeon.userId === session.user.id) {
+        await tx.pendingClear.delete({
+          where: { id: pendingId },
+        });
+        return { isMyDungeon: true };
+      }
+
       // 正式な履歴テーブルへ保存
       const history = await tx.playHistory.create({
         data: {
