@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { Pagination } from "@/app/(pages)/_components/Pagination";
 import { useGetDungeons } from "@/app/_hooks";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
+import { useSWRConfig } from "swr";
 
 export default function DungeonsPage() {
   return (
@@ -20,12 +21,24 @@ function DungeonsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { mutate: dmutate } = useSWRConfig();
 
   const dungeonId = searchParams.get("dungeonId");
   const page = Number(searchParams.get("page")) || 1;
   const [targetPage, setTargetPage] = useState(page);
   const limit = 20;
   const index = (page - 1) * limit;
+
+  // 前回dungeonIdが存在していたかどうかを保持する
+  const prevDungeonIdRef = useRef(dungeonId);
+
+  // モーダルが開いていた状態から閉じた状態に変わった瞬間を検知
+  useEffect(() => {
+    if (prevDungeonIdRef.current && !dungeonId) {
+      dmutate((key) => Array.isArray(key) && key[0] === "/api/dungeons", undefined, { revalidate: true });
+    }
+    prevDungeonIdRef.current = dungeonId;
+  }, [dungeonId, dmutate]);
 
   const { dungeons, totalCount, isLoading, error } = useGetDungeons({
     status: "PUBLISHED",

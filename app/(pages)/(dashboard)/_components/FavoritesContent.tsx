@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
 import { useGetFavoriteDungeons } from "@/app/_hooks";
@@ -9,6 +9,7 @@ import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDeta
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 import { UserResponse } from "@/app/_types";
 import { Pagination } from "@/app/(pages)/_components/Pagination";
+import { useSWRConfig } from "swr";
 
 // お気に入り画面用のソート項目定義
 const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
@@ -27,6 +28,7 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { mutate: dmutate } = useSWRConfig();
 
   const userId = user && user.id;
   const dungeonId = searchParams.get("dungeonId");
@@ -39,6 +41,17 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
   const handleOrderToggle = (currentOrder: "asc" | "desc") => {
     setOrder(currentOrder);
   };
+
+  // 前回dungeonIdが存在していたかどうかを保持する
+  const prevDungeonIdRef = useRef(dungeonId);
+
+  // モーダルが開いていた状態から閉じた状態に変わった瞬間を検知
+  useEffect(() => {
+    if (prevDungeonIdRef.current && !dungeonId) {
+      dmutate((key) => Array.isArray(key) && key[0] === "/api/dungeons/favorite", undefined, { revalidate: true });
+    }
+    prevDungeonIdRef.current = dungeonId;
+  }, [dungeonId, dmutate]);
 
   // お気に入りダンジョン一覧を取得
   const { dungeons, totalCount, isLoading, error } = useGetFavoriteDungeons({
