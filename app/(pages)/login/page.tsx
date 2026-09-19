@@ -156,6 +156,11 @@ function LoginForm() {
             新規登録はこちら
           </Link>
         </div>
+        <div>
+          <Link href="/login/resend" className="text-xs text-gray-500 hover:text-blue-600 transition-colors">
+            確認メールが届いていない方はこちら
+          </Link>
+        </div>
       </div>
     </div>
   );

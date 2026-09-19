@@ -19,12 +19,20 @@ export async function POST(request: Request) {
       },
     });
 
+    // セキュリティ上、一律成功時と同じレスポンスを返す
     if (!user) {
-      return NextResponse.json({ message: "ユーザーが見つかりませんでした" }, { status: 404 });
+      return NextResponse.json(
+        { message: "確認メールを再送信しました。24時間以内にリンクをクリックして登録を完了してください。" },
+        { status: 200 },
+      );
     }
 
+    // セキュリティ上、一律成功時と同じレスポンスを返す
     if (user.emailVerified && user.isActive) {
-      return NextResponse.json({ message: "このメールアドレスは既に認証されています。" }, { status: 400 });
+      return NextResponse.json(
+        { message: "確認メールを再送信しました。24時間以内にリンクをクリックして登録を完了してください。" },
+        { status: 200 },
+      );
     }
 
     // 新しいトークンと有効期限を発行
