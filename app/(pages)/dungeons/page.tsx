@@ -3,15 +3,25 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { DungeonCardList } from "@/app/(pages)/_components/list/DungeonCardList";
 import { Pagination } from "@/app/(pages)/_components/Pagination";
+import { SortSelect, SortOptionItem } from "@/app/(pages)/_components/SortSelect";
+import { DungeonSearchFilterModal, DungeonFilterValues } from "@/app/(pages)/_components/DungeonSearchFilterModal";
 import { useGetDungeons } from "@/app/_hooks";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 import { useSWRConfig } from "swr";
 
+// 一覧画面用のソート項目定義
+const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
+  { value: "createdAt", label: "最新（作成日）" },
+  { value: "mapSize", label: "ダンジョンサイズ" },
+  { value: "difficulty", label: "ダンジョン難しさ" },
+  { value: "timeLimit", label: "制限時間" },
+];
+
 export default function DungeonsPage() {
   return (
-    <Suspense fallback={<div className="text-white">読み込み中...</div>}>
+    <Suspense fallback={<div className="text-white p-8">読み込み中...</div>}>
       <DungeonsPageContent />
     </Suspense>
   );
@@ -29,7 +39,58 @@ function DungeonsPageContent() {
   const limit = 20;
   const index = (page - 1) * limit;
 
-  // 前回dungeonIdが存在していたかどうかを保持する
+  const sort = searchParams.get("sort") || "createdAt";
+  const order = (searchParams.get("order") === "asc" ? "asc" : "desc") as "asc" | "desc";
+
+  const getParam = (key: string) => {
+    const val = searchParams.get(key);
+    if (!val || val === "undefined" || val === "") return undefined;
+    return val;
+  };
+  // 検索コンポーネントに渡す初期値の復元
+  const initialFilterValues: DungeonFilterValues = {
+    text: getParam("text") || "",
+    difficultyList: getParam("difficultyList") ? getParam("difficultyList")!.split(",").map(Number) : [],
+    mapSizeWidthFrom: getParam("mapSizeWidthFrom") || "",
+    mapSizeWidthTo: getParam("mapSizeWidthTo") || "",
+    mapSizeHeightFrom: getParam("mapSizeHeightFrom") || "",
+    mapSizeHeightTo: getParam("mapSizeHeightTo") || "",
+    playStatusList: getParam("playStatusList") ? getParam("playStatusList")!.split(",") : [],
+    isFavoritesList: getParam("isFavoritesList") ? getParam("isFavoritesList")!.split(",") : [],
+  };
+
+  const handleSortChange = (val: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sort", val);
+    params.set("page", "1");
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  const handleOrderToggle = (currentOrder: "asc" | "desc") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("order", currentOrder);
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  // 検索コンポーネントからクエリ文字列を受け取ってURLに反映
+  const handleSearch = (queryString: string) => {
+    // 既存パラメータを引き継ぎ
+    const params = new URLSearchParams(queryString);
+    params.set("sort", sort);
+    params.set("order", order);
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  // ページネーション
+  const handlePageChange = (newPage: number) => {
+    setTargetPage(newPage);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  // 前回dungeonIdが存在していたかどうか
   const prevDungeonIdRef = useRef(dungeonId);
 
   // モーダルが開いていた状態から閉じた状態に変わった瞬間を検知
@@ -42,30 +103,48 @@ function DungeonsPageContent() {
 
   const { dungeons, totalCount, isLoading, error } = useGetDungeons({
     status: "PUBLISHED",
+    sort,
+    order,
     limit,
     index,
+    ...(getParam("text") && { text: getParam("text") }),
+    ...(getParam("difficultyList") && { difficultyList: getParam("difficultyList") }),
+    ...(getParam("mapSizeWidthFrom") && { mapSizeWidthFrom: Number(getParam("mapSizeWidthFrom")) }),
+    ...(getParam("mapSizeWidthTo") && { mapSizeWidthTo: Number(getParam("mapSizeWidthTo")) }),
+    ...(getParam("mapSizeHeightFrom") && { mapSizeHeightFrom: Number(getParam("mapSizeHeightFrom")) }),
+    ...(getParam("mapSizeHeightTo") && { mapSizeHeightTo: Number(getParam("mapSizeHeightTo")) }),
+    ...(getParam("playStatusList") && { playStatusList: getParam("playStatusList")?.split(",") as any }),
+    ...(getParam("isFavoritesList") && { isFavoritesList: getParam("isFavoritesList") }),
   });
 
   const totalPages = Math.ceil((totalCount || 0) / limit);
 
-  const handlePageChange = (newPage: number) => {
-    setTargetPage(newPage);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    router.push(`${pathname}?${params.toString()}`, { scroll: true });
-  };
-
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white p-8">
-      <header className="max-w-7xl mx-auto mb-8 flex flex-wrap justify-between items-end gap-x-6 gap-y-3 border-l-4 border-[#4fd1d1] pl-4">
+    <div className="min-h-screen bg-[#0f172a] text-white p-4 sm:p-8">
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-l-4 border-[#4fd1d1] pl-4">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">EXPLORE DUNGEONS</h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
             世界中のプレイヤーが公開した多彩な迷宮を探索する
           </p>
         </div>
-        <div className="text-xs font-mono text-slate-400 shrink-0">
-          TOTAL : <span className="text-slate-200 font-bold">{totalCount || 0}</span>
+
+        <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            <DungeonSearchFilterModal initialValues={initialFilterValues} onSearch={handleSearch} />
+            <div className="hidden md:block">
+              <SortSelect
+                sort={sort}
+                order={order}
+                options={DUNGEON_SORT_OPTIONS}
+                onSelect={handleSortChange}
+                onOrderToggle={handleOrderToggle}
+              />
+            </div>
+          </div>
+          <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
+            Total: <span className="text-slate-400">{totalCount || 0}</span> dungeons
+          </div>
         </div>
       </header>
 
