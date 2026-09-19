@@ -91,7 +91,7 @@ export function DungeonCanvasView({
     >
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-amber-500 z-10">
-          Loading Assets...
+          読み込み中...
         </div>
       )}
 

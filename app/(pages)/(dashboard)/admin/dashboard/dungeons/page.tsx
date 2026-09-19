@@ -11,7 +11,7 @@ import { DungeonFilter } from "@/app/_types";
 
 export default function AdminDungeonsPage() {
   return (
-    <Suspense fallback={<div className="text-white">Loading...</div>}>
+    <Suspense fallback={<div className="text-white">読み込み中...</div>}>
       <DungeonsPageContent />
     </Suspense>
   );
@@ -35,6 +35,7 @@ function DungeonsPageContent() {
   // ダンジョン一覧取得パラメータ作成
   // todo: 別コンポーネントに検索項目を増やす
   const params: DungeonFilter = {
+    limit: 100,
     sort: currentSort,
     //  index: Number(currentPage),
     isTemplate: isAdminMode ? "true" : "false",
@@ -45,7 +46,7 @@ function DungeonsPageContent() {
   if (currentStatusList && currentStatusList !== "all") params.statusList = currentStatusList;
   const { dungeons, isLoading, mutate } = useGetDungeons(params);
 
-  if (isLoading) return <div className="text-white">Loading...</div>;
+  if (isLoading) return <div className="text-white">読み込み中...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

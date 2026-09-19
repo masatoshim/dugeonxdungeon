@@ -28,6 +28,19 @@ export default function GamePlayPage() {
   const { create: createPending, isCreating: isPendingCreating } = useCreatePendingClear();
   const { confirm: confirmClear, isCreating: isConfirming } = useConfirmClear();
 
+  // 一覧画面に戻るためのURLを保持
+  const [returnUrl, setReturnUrl] = useState("/dungeons");
+
+  useEffect(() => {
+    // sessionStorageから保持していた一覧ページのURLを取得する
+    if (typeof window !== "undefined") {
+      const savedUrl = sessionStorage.getItem("dungeon_list_return_url");
+      if (savedUrl) {
+        setReturnUrl(savedUrl);
+      }
+    }
+  }, []);
+
   // ログイン画面からのリダイレクト時に発火
   useEffect(() => {
     // ２重起動防止
@@ -98,7 +111,7 @@ export default function GamePlayPage() {
   if (isLoading || !dungeonId) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white font-mono">
-        PREPARING DUNGEON...
+        読み込み中...
       </div>
     );
   }
@@ -113,7 +126,7 @@ export default function GamePlayPage() {
     settings: { isDark: false, ambientLight: 1.0 },
   };
 
-  if (isLoading || !dungeon) return <div className="text-white">Loading...</div>;
+  if (isLoading || !dungeon) return <div className="text-white">読み込み中...</div>;
 
   return (
     <div className="relative w-full h-screen bg-black">
@@ -223,7 +236,7 @@ export default function GamePlayPage() {
                 もう一回挑戦する
               </button>
               <button
-                onClick={() => router.push("/dungeons")}
+                onClick={() => router.push(returnUrl)}
                 className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all"
               >
                 一覧画面に戻る

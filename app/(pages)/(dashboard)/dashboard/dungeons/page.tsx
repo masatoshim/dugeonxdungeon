@@ -9,7 +9,7 @@ import { useState, Suspense } from "react";
 
 export default function MyDungeonsPage() {
   return (
-    <Suspense fallback={<div className="text-white">Loading...</div>}>
+    <Suspense fallback={<div className="text-white">読み込み中...</div>}>
       <DungeonsPageContent />
     </Suspense>
   );
@@ -31,7 +31,7 @@ function DungeonsPageContent() {
   const [dungeonLimit, setDungeonLimit] = useState(user?.createDungeonLimit ?? 10);
   const highlightId = searchParams.get("highlight");
 
-  if (isLoading) return <div className="text-white">Loading...</div>;
+  if (isLoading) return <div className="text-white">読み込み中...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

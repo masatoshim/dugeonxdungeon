@@ -116,7 +116,7 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
           {/* データがない場合のガード */}
           {user.clearPlayCount + user.failurePlayCount + user.interruptPlayCount === 0 && (
             <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-xs font-mono bg-[#1a1d2b]/60 rounded-xl">
-              NO DATA
+              データなし
             </div>
           )}
         </div>

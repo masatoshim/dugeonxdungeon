@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Heart, CheckSquare, Square } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import {
@@ -19,12 +19,23 @@ interface DungeonCardProps {
   isCleared?: boolean;
 }
 
-export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
+export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
   const { data: session, status } = useSession();
   const currentUserId = session?.user?.id;
 
-  const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
+  const { isFavorited: serverIsFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
+
+  const [isFavorited, setIsFavorited] = useState(serverIsFavorited);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
+
+  useEffect(() => {
+    setIsFavorited(serverIsFavorited);
+  }, [serverIsFavorited]);
+
+  useEffect(() => {
+    setFavoritesCount(dungeon.favoritesCount);
+  }, [dungeon.favoritesCount]);
+
   const [isDraftStatus] = useState(dungeon.status === "DRAFT");
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
@@ -67,17 +78,32 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
     }
 
     if (isCreating || isDeleting) return;
+
+    // レスポンスを待たずに即座に画面上のカウントとアイコン状態を反転させる
+    const previousIsFavorited = isFavorited;
+    const previousCount = favoritesCount;
+    const nextIsFavorited = !previousIsFavorited;
+    const nextCount = nextIsFavorited ? previousCount + 1 : Math.max(0, previousCount - 1);
+
+    setIsFavorited(nextIsFavorited);
+    setFavoritesCount(nextCount);
+
     try {
       let result: FavoriteDungeonResponse;
-      if (isFavorited) {
+      if (previousIsFavorited) {
         result = await remove(dungeon.id);
       } else {
         result = await create(dungeon.id);
       }
+
       setFavoritesCount(result.count);
       mutate();
     } catch (err) {
       console.error(err);
+      // エラー時は元の状態に戻す
+      setIsFavorited(previousIsFavorited);
+      setFavoritesCount(previousCount);
+      toast.error("お気に入り処理に失敗しました");
     }
   };
 
@@ -89,6 +115,7 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
         <div className="flex items-center gap-2">
           {/* お気に入り */}
           <button
+            type="button"
             onClick={handleFavoriteClick}
             className={`flex items-center gap-1 px-1.5 py-0 rounded-full text-[11px] transition-colors ${
               isFavorited ? "bg-pink-500/20 text-pink-500" : "bg-slate-800 text-slate-400 hover:text-pink-400"
@@ -164,4 +191,4 @@ export function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
       {cardContent}
     </Link>
   );
-}
+});

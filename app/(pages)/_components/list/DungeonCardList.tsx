@@ -20,13 +20,13 @@ export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListP
   return (
     <main className="max-w-7xl mx-auto">
       {isLoading ? (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,280px))] gap-4 justify-start">
           {[...Array(8)].map((_, i) => (
             <DungeonCardSkeleton key={i} />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,280px))] gap-4 justify-start animate-in fade-in slide-in-from-bottom-4 duration-700">
           {dungeons?.map((dungeon) => (
             <DungeonCard key={dungeon.id} dungeon={dungeon} isCleared={dungeon.isCleared} />
           ))}

@@ -34,7 +34,7 @@ export default function NewPage() {
 
   // ロード中
   if (status === "loading") {
-    return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
+    return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">読み込み中...</div>;
   }
 
   // 未ログイン時の表示

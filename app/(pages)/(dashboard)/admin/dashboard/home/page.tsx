@@ -19,7 +19,7 @@ const getPastDateISO = (daysOffset: number, hoursOffset: number = 0): string => 
 
 export default function AdminHomePage() {
   return (
-    <Suspense fallback={<div className="p-8 text-slate-400">Loading Dashboard...</div>}>
+    <Suspense fallback={<div className="p-8 text-slate-400">読み込み中...</div>}>
       <AdminHomeContent />
     </Suspense>
   );

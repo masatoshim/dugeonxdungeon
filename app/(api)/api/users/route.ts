@@ -204,7 +204,7 @@ export async function GET(request: Request) {
         totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
         publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
         // 管理者のみ、または本人のみ取得可能にする項目
-        dungeonCount: hasPrivateAccess ? u.dungeons.length : undefined,
+        dungeonCount: hasPrivateAccess ? u.dungeons.length : 0,
         createdBy: hasPrivateAccess ? u.createdBy : undefined,
         updatedBy: hasPrivateAccess ? u.updatedBy : undefined,
         createdAt: hasPrivateAccess ? u.createdAt.toISOString() : undefined,

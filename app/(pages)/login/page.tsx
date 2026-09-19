@@ -9,7 +9,11 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">読み込み中...</div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
@@ -79,35 +83,43 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4 text-slate-900">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">ログイン</h1>
+    <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen bg-white p-4 py-8 sm:py-4 text-slate-900">
+      <div className="w-full max-w-[400px] bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl text-slate-100 my-auto">
+        <h1 className="text-2xl font-bold text-white mb-8 text-center tracking-tight">ログイン</h1>
 
         {/* 認証完了バナー */}
         {verified === "true" && (
-          <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-md text-center animate-pulse">
+          <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-lg text-center animate-pulse font-medium">
             メール確認が取れました
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">メールアドレス</label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* メールアドレス */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-300 ml-1">メールアドレス</label>
             <input
               type="email"
-              className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="name@example.com"
+              className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all text-sm"
+              placeholder="email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isSubmitting}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">パスワード</label>
+
+          {/* パスワード */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between ml-1">
+              <label className="text-sm font-medium text-slate-300">パスワード</label>
+              <Link href="/login/forgot-password" className="text-xs text-[#4fd1d1] hover:underline">
+                パスワードをお忘れですか？
+              </Link>
+            </div>
             <input
               type="password"
-              className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all text-sm"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -119,37 +131,52 @@ function LoginForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300 transition-colors"
+            className="mt-2 w-full bg-[#4fd1d1] hover:bg-[#3dbdbd] disabled:bg-slate-700 text-slate-950 font-bold py-3 rounded-lg transition-colors cursor-pointer text-sm"
           >
             {isSubmitting ? "認証中..." : "ログイン"}
           </button>
         </form>
 
-        <div className="relative my-6">
+        <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-300"></span>
+            <span className="w-full border-t border-slate-800"></span>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">または</span>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-slate-900 px-2 text-slate-500 font-mono">OR</span>
           </div>
         </div>
 
+        {/* Googleログインボタン */}
         <button
           onClick={handleGoogleSubmit}
-          className="w-full flex items-center justify-center py-2.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-lg transition-colors cursor-pointer shadow-md text-sm"
         >
           <img className="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
           Googleでログイン
         </button>
 
-        <div className="mt-8 text-center text-sm">
-          <p className="text-gray-600">アカウントをお持ちでない方</p>
-          <Link
-            href={`/signup${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
-            className="mt-2 inline-block text-blue-600 hover:underline font-medium"
-          >
-            新規登録はこちら
-          </Link>
+        {/* フッターリンク */}
+        <div className="mt-8 text-center flex flex-col gap-4 border-t border-slate-800/80 pt-6 text-sm">
+          {/* 新規登録 */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-slate-400 text-xs">アカウントをお持ちでない方</p>
+            <Link
+              href={`/signup${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
+              className="text-[#4fd1d1] text-xs font-bold hover:underline"
+            >
+              新規登録はこちら
+            </Link>
+          </div>
+
+          {/* 確認メール再送への導線 */}
+          <div className="pt-2">
+            <Link
+              href="/login/resend"
+              className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors underline underline-offset-4"
+            >
+              確認メールが届いていない方はこちら
+            </Link>
+          </div>
         </div>
       </div>
     </div>

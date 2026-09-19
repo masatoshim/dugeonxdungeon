@@ -17,7 +17,9 @@ export async function GET(req: Request) {
 
     // トークンの存在と有効期限のチェック
     if (!verificationToken || verificationToken.expires < new Date()) {
-      return NextResponse.json({ error: "トークンが無効か、期限が切れています" }, { status: 400 });
+      const errorUrl = new URL("/login/verify-error", req.url);
+      errorUrl.searchParams.set("reason", "expired");
+      return NextResponse.redirect(errorUrl);
     }
 
     // ユーザーを有効化（isActive を true に）
@@ -44,6 +46,8 @@ export async function GET(req: Request) {
     return NextResponse.redirect(loginUrl);
   } catch (error) {
     console.error("Verification Error:", error);
-    return NextResponse.json({ error: "認証処理中にエラーが発生しました" }, { status: 500 });
+    const errorUrl = new URL("/login/verify-error", req.url);
+    errorUrl.searchParams.set("reason", "server_error");
+    return NextResponse.redirect(errorUrl);
   }
 }

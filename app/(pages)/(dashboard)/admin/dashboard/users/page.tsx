@@ -16,7 +16,7 @@ const USER_SORT_OPTIONS: SortOptionItem[] = [
 
 export default function AdminUserListPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-slate-400">Loading Dashboard...</div>}>
+    <Suspense fallback={<div className="p-8 text-slate-400">読み込み中...</div>}>
       <AdminUserListPageContent />
     </Suspense>
   );
