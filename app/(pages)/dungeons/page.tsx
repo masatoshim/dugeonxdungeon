@@ -121,18 +121,18 @@ function DungeonsPageContent() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white p-4 sm:p-8">
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-l-4 border-[#4fd1d1] pl-4">
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
+        {/* タイトル領域 */}
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">EXPLORE DUNGEONS</h1>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            世界中のプレイヤーが公開した多彩な迷宮を探索する
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">EXPLORE DUNGEONS</h1>
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-1">世界中のプレイヤーが公開した多彩な迷宮を探索する</p>
         </div>
 
-        <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+        {/* 右側の検索・ソートボタン群など */}
+        <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2 w-full md:w-auto">
           <div className="flex items-center gap-2 w-full md:w-auto justify-end">
             <DungeonSearchFilterModal initialValues={initialFilterValues} onSearch={handleSearch} />
-            <div className="hidden md:block">
+            <div>
               <SortSelect
                 sort={sort}
                 order={order}
