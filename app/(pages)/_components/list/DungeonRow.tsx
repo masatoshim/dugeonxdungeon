@@ -190,7 +190,7 @@ export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted
             <Maximize size={14} className="text-gray-500" /> {dungeon.mapSizeHeight}x{dungeon.mapSizeWidth}
           </span>
           <span className="flex items-center gap-1.5">
-            <Clock size={14} className="text-gray-500" /> {dungeon.timeLimit}s
+            <Clock size={14} className="text-gray-500" /> {dungeon.timeLimit} sec
           </span>
         </div>
       </div>

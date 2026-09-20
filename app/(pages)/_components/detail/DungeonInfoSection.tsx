@@ -61,7 +61,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
     { icon: Clock, label: "制限時間", value: `${dungeon.timeLimit}sec` },
     { icon: Footprints, label: "挑戦者の足跡", value: `${dungeon.totalPlayCount}回` },
     { icon: LogOut, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人` },
-    { icon: Timer, label: "平均踏破時間", value: `${dungeon.averageClearTime ?? "--"}sec` },
+    { icon: Timer, label: "平均踏破時間", value: `${dungeon.averageClearTime ?? "--"} sec` },
   ];
 
   const handlePlay = (e: React.MouseEvent) => {

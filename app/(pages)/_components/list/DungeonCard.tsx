@@ -149,7 +149,7 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
         </p>
         <p className="flex justify-start gap-2">
           <span className="text-slate-500 w-16">制限時間</span>
-          <span className="font-mono text-amber-400">{dungeon.timeLimit}sec</span>
+          <span className="font-mono text-amber-400">{dungeon.timeLimit} sec</span>
         </p>
       </div>
 

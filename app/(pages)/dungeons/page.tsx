@@ -129,7 +129,9 @@ function DungeonsPageContent() {
         {/* タイトル領域 */}
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">EXPLORE DUNGEONS</h1>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-1">世界中のプレイヤーが公開した多彩な迷宮を探索する</p>
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
+            世界中のクリエイターが作成したダンジョンに挑もう！
+          </p>
         </div>
 
         {/* 右側の検索・ソートボタン群など */}
