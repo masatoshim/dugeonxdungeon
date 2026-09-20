@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star, Play } from "lucide-react";
+import { Heart, Maximize, Clock, Footprints, Timer, Star, Play } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
 import {
@@ -60,7 +60,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
     { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
     { icon: Clock, label: "制限時間", value: `${dungeon.timeLimit}sec` },
     { icon: Footprints, label: "挑戦者の足跡", value: `${dungeon.totalPlayCount}回` },
-    { icon: LogOut, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人` },
+    { icon: Footprints, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人`, isFlippedVertical: true },
     { icon: Timer, label: "平均踏破時間", value: `${dungeon.averageClearTime ?? "--"} sec` },
   ];
 
@@ -157,7 +157,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
             key={i}
             className="bg-slate-800/60 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2"
           >
-            <stat.icon size={14} className="text-slate-400" />
+            <stat.icon size={14} className={`text-stone-400 ${stat.isFlippedVertical ? "scale-y-[-1]" : ""}`} />
             <span className="text-[10px] text-slate-500 font-bold uppercase">{stat.label}</span>
             <span className="text-sm font-mono font-bold text-slate-200">{stat.value}</span>
           </div>
