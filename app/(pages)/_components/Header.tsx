@@ -206,8 +206,8 @@ export default function Header() {
                     onClick={() => handleNavClick()}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-[#4fd1d1] hover:bg-[#3db8b8] text-slate-950 font-black text-sm rounded-xl transition-all shadow-lg shadow-[#4fd1d1]/20"
                   >
-                    ログイン / 新規登録
                     <LogIn size={16} />
+                    ログイン / 新規登録
                   </Link>
                 )}
               </div>
@@ -259,8 +259,8 @@ export default function Header() {
                 }}
                 className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] sm:text-xs font-black py-2.5 px-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
               >
-                <span>ログイン / 新規登録</span>
                 <LogIn size={14} className="shrink-0" />
+                <span>ログイン / 新規登録</span>
               </button>
               <button
                 type="button"

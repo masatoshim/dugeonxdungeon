@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { MapData } from "@/game-core/types";
 import { AlertTriangle, LogOut } from "lucide-react";

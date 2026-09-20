@@ -196,8 +196,17 @@ function GamePlayContentWrapper() {
               >
                 {isClear ? "STAGE CLEARED" : "MISSION FAILED"}
               </span>
+
+              {dungeon?.name && (
+                <div className="mt-2.5 px-2">
+                  <p className="text-xs text-slate-400 font-mono tracking-wide truncate" title={dungeon.name}>
+                    <span className="text-slate-200 font-semibold">{dungeon.name}</span>
+                  </p>
+                </div>
+              )}
+
               <h2
-                className={`text-5xl sm:text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mt-3 italic tracking-tighter drop-shadow-md`}
+                className={`text-5xl sm:text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mt-2 italic tracking-tighter drop-shadow-md`}
               >
                 {isClear ? "FINISH!" : "GAME OVER"}
               </h2>

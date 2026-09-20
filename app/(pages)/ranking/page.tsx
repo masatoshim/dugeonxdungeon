@@ -126,8 +126,8 @@ function UserRankingPageContent() {
                   }}
                   className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] sm:text-xs font-black py-2.5 px-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
                 >
-                  <span>ログイン / 新規登録</span>
                   <LogIn size={14} className="shrink-0" />
+                  <span>ログイン / 新規登録</span>
                 </button>
                 <button
                   type="button"
@@ -156,16 +156,16 @@ function UserRankingPageContent() {
               onClick={handleCheckRanking}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-xs font-bold px-4 py-2.5 rounded-lg transition-colors text-slate-200 cursor-pointer"
             >
-              ランキングを確認する
               <BarChart2 size={14} className="shrink-0" />
+              ランキングを確認する
             </button>
             <button
               type="button"
               onClick={handleChallengeDungeon}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
             >
-              ダンジョンに挑戦する
               <Play size={14} fill="currentColor" className="shrink-0" />
+              ダンジョンに挑戦する
             </button>
           </div>
         </header>
