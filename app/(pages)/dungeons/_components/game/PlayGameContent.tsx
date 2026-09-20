@@ -52,17 +52,18 @@ export function PlayGameContent({
   return (
     <main className="flex flex-col items-center p-6 sm:p-8 bg-stone-950 min-h-screen text-stone-100">
       {/* ヘッダーエリア */}
-      <div className="w-full max-w-4xl flex items-center justify-between mb-4">
-        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-amber-400 tracking-wide">{dungeon.name}</h1>
+      <div className="w-full max-w-4xl flex items-center justify-between mb-4 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-amber-400 tracking-wide truncate min-w-0 flex-1">
+          {dungeon.name}
+        </h1>
         <button
           onClick={() => setIsConfirmOpen(true)}
-          className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
+          className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm shrink-0"
         >
           <LogOut size={14} />
           <span>中断して戻る</span>
         </button>
       </div>
-
       {/* ゲームエリア */}
       <div className="relative border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black">
         {enabled ? (
