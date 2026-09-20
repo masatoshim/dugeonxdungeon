@@ -11,7 +11,7 @@ import { useGetDungeon, useUpdateDungeon } from "@/app/_hooks";
 
 export default function TestPlayPage() {
   const [isGameOver, setIsGameOver] = useState(false);
-  const [isClear, setIsClear] = useState(false); // クリア状態を追加
+  const [isClear, setIsClear] = useState(false);
   const [gameKey, setGameKey] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -36,6 +36,7 @@ export default function TestPlayPage() {
   const handleRetry = () => {
     setIsGameOver(false);
     setIsClear(false);
+    setIsFinished(false);
     setGameKey((prev) => prev + 1);
   };
 
@@ -83,6 +84,12 @@ export default function TestPlayPage() {
             setIsGameOver(true);
             setIsFinished(true);
           }}
+          // テストプレイ中の中断時は編集画面に戻るようにする
+          onInterrupt={() => {
+            router.push(`/dungeons/${dungeonId}/edit`);
+          }}
+          enabled={!isFinished} // 終了時はゲーム操作を無効化
+          isTestPlay={true}
         />
       </Suspense>
 
@@ -110,7 +117,7 @@ export default function TestPlayPage() {
         </div>
       )}
 
-      {/* --- クリア用 UI (新規追加) --- */}
+      {/* --- クリア用 UI --- */}
       {isClear && (
         <div className="absolute inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center animate-in zoom-in duration-500">
           <div className="bg-gray-800 p-8 rounded-2xl border-2 border-yellow-500 text-center shadow-[0_0_50px_rgba(234,179,8,0.3)]">

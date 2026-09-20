@@ -24,6 +24,7 @@ interface PlayGameContentProps {
   onGameOver: (score: number, timeLeft: number) => void;
   onInterrupt: (score: number, timeLeft: number) => void;
   enabled?: boolean;
+  isTestPlay?: boolean;
 }
 
 export function PlayGameContent({
@@ -33,6 +34,7 @@ export function PlayGameContent({
   onGameOver,
   onInterrupt,
   enabled = true,
+  isTestPlay = false,
 }: PlayGameContentProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const requestInterruptRef = useRef<(() => void) | null>(null);
@@ -107,7 +109,9 @@ export function PlayGameContent({
             <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-400">
               <AlertTriangle size={24} />
             </div>
-            <h3 className="text-lg font-bold font-serif text-stone-100 mb-2">探索を中断しますか？</h3>
+            <h3 className="text-lg font-bold font-serif text-stone-100 mb-2">
+              {isTestPlay ? "テストプレイを中断しますか？" : "探索を中断しますか？"}
+            </h3>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsConfirmOpen(false)}
