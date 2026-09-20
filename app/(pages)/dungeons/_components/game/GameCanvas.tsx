@@ -56,7 +56,11 @@ export default function GameCanvas({
       type: Phaser.AUTO,
       width: 800,
       height: 600,
-      parent: containerRef.current,
+      parent: "game-container",
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+      },
       physics: {
         default: "arcade",
         arcade: { debug: false }, // Todo: 当たり判定表示.開発時はtrueに
@@ -114,5 +118,11 @@ export default function GameCanvas({
     };
   }, [mapData, timeLimit]);
 
-  return <div ref={containerRef} className="border-4 border-gray-700 rounded-lg overflow-hidden bg-black" />;
+  return (
+    <div
+      id="game-container"
+      ref={containerRef}
+      className="border-4 border-gray-700 rounded-lg overflow-hidden bg-black"
+    />
+  );
 }

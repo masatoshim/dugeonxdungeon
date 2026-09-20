@@ -507,16 +507,39 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setupCamera() {
-    const mapWidth = this.mapData.tiles[0].length * TILE_SIZE;
-    const mapHeight = this.mapData.tiles.length * TILE_SIZE;
+    const mapWidth = this.mapData.width * TILE_SIZE;
+    const mapHeight = this.mapData.height * TILE_SIZE;
+
+    // 物理ワールドの境界は常にマップの全体サイズにする
     this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
-    if (mapWidth > this.scale.width || mapHeight > this.scale.height) {
-      // プレイヤーの追従（マップが画面より大きい場合のみ有効に機能する）
-      this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-      this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    } else {
-      // マップを画面の中央に
-      this.cameras.main.setScroll(-(this.scale.width - mapWidth) / 2, -(this.scale.height - mapHeight) / 2);
+
+    const applyCameraLayout = () => {
+      const viewWidth = this.cameras.main.width;
+      const viewHeight = this.cameras.main.height;
+      if (viewWidth === 0 || viewHeight === 0) return;
+      if (!this.player) return; // プレイヤーが未生成なら何もしない
+
+      const isLargerX = mapWidth > viewWidth;
+      const isLargerY = mapHeight > viewHeight;
+
+      if (isLargerX || isLargerY) {
+        // ダンジョンがキャンバスより大きい場合：プレイヤーを中心に追従
+        this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+      } else {
+        // ダンジョンがキャンバスより小さい場合：ダンジョン全体をキャンバスの中央に配置
+        this.cameras.main.stopFollow();
+        this.cameras.main.removeBounds();
+        this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
+      }
+    };
+
+    // 即座に一度適用
+    applyCameraLayout();
+
+    // 画面リサイズ時のイベント登録（既存のままでOK）
+    if (!this.scale.listeners("resize").includes(applyCameraLayout)) {
+      this.scale.on("resize", applyCameraLayout, this);
     }
   }
 

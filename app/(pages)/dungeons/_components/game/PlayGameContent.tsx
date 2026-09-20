@@ -64,18 +64,23 @@ export function PlayGameContent({
         </button>
       </div>
       {/* ゲームエリア */}
-      <div className="relative border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black">
+      <div
+        id="game-container"
+        className="relative w-full max-w-[800px] aspect-[4/3] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black mx-auto"
+      >
         {enabled ? (
-          <GameCanvas
-            mapData={parsedMapData}
-            timeLimit={dungeon.timeLimit}
-            onClear={onClear}
-            onGameOver={onGameOver}
-            onInterrupt={onInterrupt}
-            requestInterruptRef={requestInterruptRef}
-          />
+          <div className="absolute inset-0 w-full h-full">
+            <GameCanvas
+              mapData={parsedMapData}
+              timeLimit={dungeon.timeLimit}
+              onClear={onClear}
+              onGameOver={onGameOver}
+              onInterrupt={onInterrupt}
+              requestInterruptRef={requestInterruptRef}
+            />
+          </div>
         ) : (
-          <div className="w-[800px] h-[600px] flex items-center justify-center bg-stone-950 text-stone-500 font-mono">
+          <div className="w-full h-full flex items-center justify-center bg-stone-950 text-stone-500 font-mono text-sm">
             準備中...
           </div>
         )}
