@@ -31,13 +31,29 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         },
       });
 
+      // クリア時の新しい累積値と平均値を計算するための事前データ取得
+      const currentDungeon = await tx.dungeon.findUnique({
+        where: { id: dungeonId },
+        select: { clearPlayCount: true, totalClearTime: true },
+      });
+
+      const prevClearCount = currentDungeon?.clearPlayCount ?? 0;
+      const prevTotalClearTime = currentDungeon?.totalClearTime ?? 0;
+
+      // 今回クリアならカウントとクリア時間を加算、違えばそのままの値を維持
+      const newClearCount = isClear ? prevClearCount + 1 : prevClearCount;
+      const newTotalClearTime = isClear ? prevTotalClearTime + playTime : prevTotalClearTime;
+
+      // 平均踏破時間の算出
+      const newAverageClearTime = newClearCount > 0 ? parseFloat((newTotalClearTime / newClearCount).toFixed(3)) : 0;
+
       // ダンジョン統計の更新
       await tx.dungeon.update({
         where: { id: dungeonId },
         data: {
           updatedBy: userId,
           clearPlayCount: {
-            increment: playStatus === PlayStatus.CLEAR ? 1 : 0,
+            increment: isClear ? 1 : 0,
           },
           failurePlayCount: {
             increment: playStatus === PlayStatus.FAILURE ? 1 : 0,
@@ -46,11 +62,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             increment: playStatus === PlayStatus.INTERRUPT ? 1 : 0,
           },
           totalPlayTime: {
-            increment: playTime,
+            increment: playTime, // 全プレイの合計時間
           },
           totalPlayScore: {
             increment: playScore,
           },
+          // クリア時のみ累計クリア時間を加算
+          totalClearTime: {
+            increment: isClear ? playTime : 0,
+          },
+          // 計算した平均踏破時間を更新
+          averageClearTime: newAverageClearTime,
         },
       });
 
