@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 import { AlertCircle, LogIn, Menu, X, Gamepad2, Hammer, Trophy } from "lucide-react";
 
@@ -13,12 +13,16 @@ export default function Header() {
   const session = sessionContext?.data;
   const status = sessionContext?.status;
   const router = useRouter();
+  const pathname = usePathname();
 
   // ポップアップの開閉管理
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   // モバイルドロワーの開閉管理
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // ゲームプレイ画面か判定
+  const isPlayScreen = pathname?.endsWith("/play");
 
   useEffect(() => {
     setMounted(true);
@@ -35,6 +39,11 @@ export default function Header() {
       document.body.style.overflow = "";
     };
   }, [isMenuOpen]);
+
+  // ゲームプレイ画面の場合はヘッダー自体を一切描画しない
+  if (isPlayScreen) {
+    return null;
+  }
 
   // 「創る」をクリックしたときの制御
   const handleCreateClick = (e?: React.MouseEvent) => {
