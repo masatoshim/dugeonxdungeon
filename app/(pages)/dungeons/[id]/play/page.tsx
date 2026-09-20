@@ -159,25 +159,50 @@ function GamePlayContentWrapper() {
 
       {/* クリアリザルト UI */}
       {(isClear || isGameOver) && (
-        <div className="absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div
-            className={`bg-slate-900 border-2 ${isClear ? "border-cyan-500" : "border-red-500"} p-10 rounded-3xl text-center max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.2)]`}
+            className={`relative bg-slate-900/90 border ${
+              isClear
+                ? "border-cyan-500/50 shadow-[0_0_40px_rgba(6,182,212,0.15)]"
+                : "border-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.15)]"
+            } p-8 sm:p-10 rounded-2xl text-center max-w-md w-full backdrop-blur-xl animate-in zoom-in-95 duration-300`}
           >
-            <h2
-              className={`text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mb-2 italic tracking-tighter`}
-            >
-              {isClear ? "FINISH!" : "GAME OVER"}
-            </h2>
+            {/* ヘッダータイトル */}
+            <div className="mb-6">
+              <span
+                className={`text-xs font-mono tracking-widest uppercase px-3 py-1 rounded-full ${
+                  isClear
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                    : "bg-red-500/10 text-red-400 border border-red-500/20"
+                }`}
+              >
+                {isClear ? "STAGE CLEARED" : "MISSION FAILED"}
+              </span>
+              <h2
+                className={`text-5xl sm:text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mt-3 italic tracking-tighter drop-shadow-md`}
+              >
+                {isClear ? "FINISH!" : "GAME OVER"}
+              </h2>
+            </div>
 
-            <p className="text-slate-400 mb-6 font-mono text-lg">
-              {isClear ? `TIME: ${clearTime}s` : "また挑戦してください"}
-            </p>
-            <p className="text-slate-400 mb-6 font-mono text-lg">SCORE: {clearScore}</p>
+            {/* スコア・タイム表示カード */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl">
+                <p className="text-xs text-slate-400 font-mono mb-1">TIME</p>
+                <p className="text-xl sm:text-2xl font-bold font-mono text-white">
+                  {isClear ? `${clearTime ?? 0} sec` : "--:--"}
+                </p>
+              </div>
+              <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl">
+                <p className="text-xs text-slate-400 font-mono mb-1">SCORE</p>
+                <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400">{clearScore} pt</p>
+              </div>
+            </div>
 
             {/* 自作ダンジョンのため保存されなかった場合の通知メッセージ */}
             {isMyDungeonNotice && isClear && (
-              <div className="bg-slate-800/80 p-4 rounded-lg border border-slate-700 mb-6">
-                <p className="text-amber-400 font-bold text-sm">
+              <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl mb-6 text-left">
+                <p className="text-amber-400 text-xs leading-relaxed font-medium">
                   ※ご自身が作成したダンジョンのため、スコアやクリア履歴は保存されませんでした。
                 </p>
               </div>
@@ -185,11 +210,11 @@ function GamePlayContentWrapper() {
 
             {/* 未ログインユーザーへの表示 */}
             {!session && !isMyDungeonNotice && (
-              <div className="space-y-6">
-                <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                  <p className="text-slate-300 text-sm mb-1">ゲストモードでプレイ中</p>
-                  <p className="text-amber-400 font-bold">
-                    ※ログインしていないため、クリア履歴やランキングは保存されません。
+              <div className="space-y-4 mb-6">
+                <div className="bg-blue-500/10 border border-blue-500/20 p-3.5 rounded-xl text-left">
+                  <p className="text-slate-300 text-xs mb-0.5">ゲストモードでプレイ中</p>
+                  <p className="text-blue-400 text-xs font-semibold">
+                    ログインするとクリア履歴やランキングに反映されます。
                   </p>
                 </div>
                 <button
@@ -216,15 +241,15 @@ function GamePlayContentWrapper() {
                     }
                   }}
                   disabled={isPendingCreating}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
                 >
-                  {isPendingCreating ? "準備中..." : "ログインして記録を残す"}
+                  {isPendingCreating ? "処理中..." : "ログインして記録を残す"}
                 </button>
               </div>
             )}
 
-            {/* 共通表示 */}
-            <div className="space-y-3">
+            {/* アクションボタン */}
+            <div className="space-y-2.5">
               <button
                 onClick={() => {
                   setIsFinished(false);
@@ -233,13 +258,17 @@ function GamePlayContentWrapper() {
                   setIsMyDungeonNotice(false);
                   setGameKey((k) => k + 1);
                 }}
-                className={`w-full py-4 ${isClear ? "bg-cyan-500" : "bg-red-500"} hover:opacity-90 text-slate-950 font-black rounded-xl transition-all`}
+                className={`w-full py-3.5 px-4 ${
+                  isClear
+                    ? "bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-400/20"
+                    : "bg-red-500 hover:bg-red-400 text-white shadow-red-500/20"
+                } font-bold text-sm rounded-xl shadow-lg transition-all active:scale-[0.98]`}
               >
                 もう一回挑戦する
               </button>
               <button
                 onClick={() => router.push(returnUrl)}
-                className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all"
+                className="w-full py-3 px-4 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all active:scale-[0.98]"
               >
                 一覧画面に戻る
               </button>

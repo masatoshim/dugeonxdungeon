@@ -322,7 +322,7 @@ export function DungeonSearchFilterModal({ initialValues, onSearch }: DungeonSea
               {/* 制限時間 */}
               <div className="flex flex-col gap-1.5">
                 <label className="font-bold text-slate-300">
-                  制限時間（{DUNGEON_DEFAULT.MIN_TIME_LIMIT}～{DUNGEON_DEFAULT.MAX_TIME_LIMIT} 秒）
+                  制限時間（{DUNGEON_DEFAULT.MIN_TIME_LIMIT}～{DUNGEON_DEFAULT.MAX_TIME_LIMIT} sec）
                 </label>
                 <div className="flex items-center gap-2">
                   <FilterNumberInput
