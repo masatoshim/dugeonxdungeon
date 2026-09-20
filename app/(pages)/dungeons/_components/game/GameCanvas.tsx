@@ -8,20 +8,34 @@ interface GameCanvasProps {
   timeLimit: number;
   onClear?: (score: number, timeLeft: number) => void;
   onGameOver?: (score: number, timeLeft: number) => void;
+  onInterrupt?: (score: number, timeLeft: number) => void;
+  requestInterruptRef?: React.RefObject<(() => void) | null>;
 }
 
-export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: GameCanvasProps) {
+export default function GameCanvas({
+  mapData,
+  timeLimit,
+  onClear,
+  onGameOver,
+  onInterrupt,
+  requestInterruptRef,
+}: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const phaserRef = useRef<Phaser.Game | null>(null);
 
   // コールバック参照の保持
   const onClearRef = useRef(onClear);
   const onGameOverRef = useRef(onGameOver);
+  const onInterruptRef = useRef(onInterrupt);
 
   useEffect(() => {
     onClearRef.current = onClear;
     onGameOverRef.current = onGameOver;
   }, [onClear, onGameOver]);
+
+  useEffect(() => {
+    onInterruptRef.current = onInterrupt;
+  }, [onInterrupt]);
 
   useEffect(() => {
     // 既存のインスタンスがあれば破棄
@@ -62,6 +76,18 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
       onGameOverRef.current?.(data.score, data.timeLeft);
     });
 
+    // Phaser -> React の中継
+    game.events.on(GAME_EVENTS.GAME_INTERRUPT, (data: { score: number; timeLeft: number }) => {
+      onInterruptRef.current?.(data.score, data.timeLeft);
+    });
+
+    // React -> Phaserの合図を受け取る仕組み
+    if (requestInterruptRef) {
+      requestInterruptRef.current = () => {
+        game.events.emit(GAME_EVENTS.REQUEST_INTERRUPT);
+      };
+    }
+
     // Sceneの開始
     game.scene.add("MainScene", MainScene);
     game.scene.start("MainScene", {
@@ -73,10 +99,14 @@ export default function GameCanvas({ mapData, timeLimit, onClear, onGameOver }: 
 
     // クリーンアップ
     return () => {
+      if (requestInterruptRef) {
+        requestInterruptRef.current = null;
+      }
       if (phaserRef.current) {
         phaserRef.current.events.off(GAME_EVENTS.GAME_CLEAR);
         phaserRef.current.events.off(GAME_EVENTS.GAME_OVER);
         phaserRef.current.events.off(GAME_EVENTS.TIME_OVER);
+        phaserRef.current.events.off(GAME_EVENTS.GAME_INTERRUPT);
         phaserRef.current.destroy(true);
         phaserRef.current = null;
       }

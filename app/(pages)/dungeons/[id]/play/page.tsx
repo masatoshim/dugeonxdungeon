@@ -9,6 +9,20 @@ import { useGetDungeon, useCreatePlayHistory, useCreatePendingClear, useConfirmC
 import { MapData } from "@/game-core/types";
 import { PlayStatus } from "@prisma/client";
 
+export default function GamePlayPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white font-mono">
+          読み込み中...
+        </div>
+      }
+    >
+      <GamePlayContentWrapper />
+    </Suspense>
+  );
+}
+
 function GamePlayContentWrapper() {
   const { status, data: session } = useSession();
   const router = useRouter();
@@ -154,6 +168,10 @@ function GamePlayContentWrapper() {
           enabled={isGameEnabled}
           onClear={(score, timeLeft) => handleGameEnd(PlayStatus.CLEAR, score, timeLeft)}
           onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
+          onInterrupt={(score, timeLeft) => {
+            handleGameEnd(PlayStatus.INTERRUPT, score, timeLeft);
+            router.push(returnUrl);
+          }}
         />
       )}
 
@@ -277,19 +295,5 @@ function GamePlayContentWrapper() {
         </div>
       )}
     </div>
-  );
-}
-
-export default function GamePlayPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white font-mono">
-          読み込み中...
-        </div>
-      }
-    >
-      <GamePlayContentWrapper />
-    </Suspense>
   );
 }

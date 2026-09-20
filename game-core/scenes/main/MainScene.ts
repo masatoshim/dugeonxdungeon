@@ -138,6 +138,23 @@ export class MainScene extends Phaser.Scene {
     this.setupCamera();
 
     this.timerUI = new TimerUI(this, this.timeLimit);
+
+    // React側からの中断要求を受け取るリスナーを登録
+    this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
+      // すでにゲームオーバーやクリアになっていなければ処理
+      if (this.isGameOver) return;
+      this.isGameOver = true; // 二重発火防止
+
+      // 現在のスコアと残り時間を取得
+      const currentScore = this.player.getScore() ?? 0;
+      const currentTimeLeft = this.timeLeft;
+
+      // React側へイベントでデータを送り返す
+      this.game.events.emit(GAME_EVENTS.GAME_INTERRUPT, {
+        score: currentScore,
+        timeLeft: currentTimeLeft,
+      });
+    });
   }
 
   private setupPhysics() {
