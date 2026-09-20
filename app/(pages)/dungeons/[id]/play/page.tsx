@@ -108,7 +108,7 @@ function GamePlayContentWrapper() {
       if (!session) return;
 
       const isMyDungeon = dungeon?.userId === session.user.id;
-      if (playStatus === PlayStatus.CLEAR && isMyDungeon) {
+      if (isMyDungeon) {
         setIsMyDungeonNotice(true);
         return;
       }
@@ -200,7 +200,7 @@ function GamePlayContentWrapper() {
             </div>
 
             {/* 自作ダンジョンのため保存されなかった場合の通知メッセージ */}
-            {isMyDungeonNotice && isClear && (
+            {isMyDungeonNotice && (
               <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl mb-6 text-left">
                 <p className="text-amber-400 text-xs leading-relaxed font-medium">
                   ※ご自身が作成したダンジョンのため、スコアやクリア履歴は保存されませんでした。
