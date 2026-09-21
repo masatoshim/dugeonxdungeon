@@ -26,6 +26,9 @@ export class MainScene extends Phaser.Scene {
   private levelBuilder!: LevelBuilder;
   private mapData!: MapData;
 
+  // UI専用カメラ
+  private uiCamera!: Phaser.Cameras.Scene2D.Camera;
+
   // 物理グループ
   private walls!: Phaser.Physics.Arcade.StaticGroup;
   private doors!: Phaser.Physics.Arcade.StaticGroup;
@@ -137,13 +140,22 @@ export class MainScene extends Phaser.Scene {
     // カメラ設定
     this.setupCamera();
 
+    // タイマーUIの生成
     this.timerUI = new TimerUI(this, this.timeLimit);
+
+    // メインカメラからはタイマーUIのコンテナを除外する
+    this.cameras.main.ignore(this.timerUI.getContainer());
+
+    // UIカメラには、タイマーUI以外をすべて除外させる
+    const uiContainer = this.timerUI.getContainer();
+    const worldObjects = this.children.list.filter((obj) => obj !== uiContainer);
+    this.uiCamera.ignore(worldObjects);
 
     // React側からの中断要求を受け取るリスナーを登録
     this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
       // すでにゲームオーバーやクリアになっていなければ処理
       if (this.isGameOver) return;
-      this.isGameOver = true; // 二重発火防止
+      this.isGameOver = true;
 
       // 現在のスコアと残り時間を取得
       const currentScore = this.player.getScore() ?? 0;
@@ -230,7 +242,7 @@ export class MainScene extends Phaser.Scene {
 
       // とげとげの石は触れたら即ゲームオーバー
       if (stoneType === "SPIKE") {
-        this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+        this.triggerGameOver(GAME_EVENTS.GAME_OVER);
         return;
       }
       // 重い石は押して移動させない
@@ -248,9 +260,7 @@ export class MainScene extends Phaser.Scene {
     });
 
     // プレイヤーと弾のオーバーラップ
-    this.physics.add.overlap(this.player, this.enemyBullets, () =>
-      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
-    );
+    this.physics.add.overlap(this.player, this.enemyBullets, () => this.triggerGameOver(GAME_EVENTS.GAME_OVER));
 
     // 通常の敵の場合、触れたら即ゲームオーバー
     this.physics.add.collider(
@@ -270,7 +280,7 @@ export class MainScene extends Phaser.Scene {
       if (enemy.getEnemyData().isObstacle || false) {
         return;
       }
-      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+      this.triggerGameOver(GAME_EVENTS.GAME_OVER);
     });
 
     // 石が勝手に吹っ飛ぶのを防ぐ
@@ -442,7 +452,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     if (this.timeLeft <= 0) {
-      this.triggerGameOver("TIME UP!", GAME_EVENTS.TIME_OVER);
+      this.triggerGameOver(GAME_EVENTS.TIME_OVER);
     }
 
     if (this.player) {
@@ -474,7 +484,7 @@ export class MainScene extends Phaser.Scene {
   /**
    * ゲームオーバー時の統合処理
    */
-  private triggerGameOver(message: string, notificationType: string) {
+  private triggerGameOver(notificationType: string) {
     if (this.isGameOver) return;
     this.isGameOver = true;
 
@@ -490,34 +500,34 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.shake(500, 0.01);
 
     this.game.events.emit(notificationType, { score: 0, timeLeft: this.timeLeft });
-
-    // ゲーム画面上のテキスト表示
-    const { width, height } = this.scale;
-    this.add
-      .text(width / 2, height / 2, message, {
-        fontSize: "64px",
-        color: "#ff0000",
-        fontStyle: "bold",
-        stroke: "#000",
-        strokeThickness: 8,
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(100);
   }
 
   private setupCamera() {
     const mapWidth = this.mapData.width * TILE_SIZE;
     const mapHeight = this.mapData.height * TILE_SIZE;
 
-    // 物理ワールドの境界は常にマップの全体サイズにする
     this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
 
+    // UIカメラの初期作成（メインカメラと同じサイズ・位置で重ねる）
+    const viewWidth = this.cameras.main.width;
+    const viewHeight = this.cameras.main.height;
+
+    if (!this.uiCamera) {
+      this.uiCamera = this.cameras.add(0, 0, viewWidth, viewHeight);
+      this.uiCamera.setScroll(0, 0); // UIカメラはスクロールさせない
+    }
+
     const applyCameraLayout = () => {
-      const viewWidth = this.cameras.main.width;
-      const viewHeight = this.cameras.main.height;
-      if (viewWidth === 0 || viewHeight === 0) return;
-      if (!this.player) return; // プレイヤーが未生成なら何もしない
+      const w = this.cameras.main.width;
+      const h = this.cameras.main.height;
+      if (w === 0 || h === 0) return;
+
+      // UIカメラのサイズも画面リサイズに合わせて追従させる
+      if (this.uiCamera) {
+        this.uiCamera.setSize(w, h);
+      }
+
+      if (!this.player) return;
 
       const isLargerX = mapWidth > viewWidth;
       const isLargerY = mapHeight > viewHeight;

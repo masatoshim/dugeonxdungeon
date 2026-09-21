@@ -63,11 +63,9 @@ export function PlayGameContent({
           <span>中断して戻る</span>
         </button>
       </div>
+
       {/* ゲームエリア */}
-      <div
-        id="game-container"
-        className="relative w-full max-w-[800px] aspect-[4/3] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black mx-auto"
-      >
+      <div className="relative w-full max-w-4xl aspect-[4/3] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black mx-auto">
         {enabled ? (
           <div className="absolute inset-0 w-full h-full">
             <GameCanvas

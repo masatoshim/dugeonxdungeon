@@ -58,16 +58,72 @@ export default function GameCanvas({
       height: 600,
       parent: "game-container",
       scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       physics: {
         default: "arcade",
         arcade: { debug: false }, // Todo: 当たり判定表示.開発時はtrueに
       },
+      scene: [MainScene],
     };
 
     const game = new Phaser.Game(config);
+
+    game.events.once(Phaser.Core.Events.READY, () => {
+      const scene = game.scene.getScene("MainScene");
+      if (!scene) return;
+
+      const camera = scene.cameras.main;
+      const MIN_ZOOM = 0.5;
+      const MAX_ZOOM = 2.5;
+
+      // マウスホイールによるズーム
+      scene.input.on(
+        "wheel",
+        (_pointer: Phaser.Input.Pointer, _gameObjects: any[], _deltaX: number, deltaY: number) => {
+          const zoomFactor = deltaY < 0 ? 1.1 : 0.9;
+          const newZoom = Phaser.Math.Clamp(camera.zoom * zoomFactor, MIN_ZOOM, MAX_ZOOM);
+          camera.setZoom(newZoom);
+        },
+      );
+
+      // タッチデバイスでのピンチイン・ピンチアウト
+      let initialPinchDistance = 0;
+      let initialZoom = 1;
+
+      scene.input.on("pointerdown", () => {
+        if (scene.input.pointer1.isDown && scene.input.pointer2?.isDown) {
+          initialPinchDistance = Phaser.Math.Distance.Between(
+            scene.input.pointer1.x,
+            scene.input.pointer1.y,
+            scene.input.pointer2.x,
+            scene.input.pointer2.y,
+          );
+          initialZoom = camera.zoom;
+        }
+      });
+
+      scene.input.on("pointermove", () => {
+        if (scene.input.pointer1.isDown && scene.input.pointer2.isDown && initialPinchDistance > 0) {
+          const currentDistance = Phaser.Math.Distance.Between(
+            scene.input.pointer1.x,
+            scene.input.pointer1.y,
+            scene.input.pointer2.x,
+            scene.input.pointer2.y,
+          );
+          const factor = currentDistance / initialPinchDistance;
+          const newZoom = Phaser.Math.Clamp(initialZoom * factor, MIN_ZOOM, MAX_ZOOM);
+          camera.setZoom(newZoom);
+        }
+      });
+
+      scene.input.on("pointerup", () => {
+        if (!scene.input.pointer1.isDown || !scene.input.pointer2.isDown) {
+          initialPinchDistance = 0;
+        }
+      });
+    });
 
     // Phaserのイベントリスナー登録
     game.events.on(GAME_EVENTS.GAME_CLEAR, (data: { score: number; timeLeft: number }) => {
@@ -92,8 +148,6 @@ export default function GameCanvas({
       };
     }
 
-    // Sceneの開始
-    game.scene.add("MainScene", MainScene);
     game.scene.start("MainScene", {
       mapData: mapData,
       timeLimit: timeLimit,
@@ -101,7 +155,6 @@ export default function GameCanvas({
 
     phaserRef.current = game;
 
-    // クリーンアップ
     return () => {
       if (requestInterruptRef) {
         requestInterruptRef.current = null;
@@ -114,15 +167,8 @@ export default function GameCanvas({
         phaserRef.current.destroy(true);
         phaserRef.current = null;
       }
-      game.destroy(true);
     };
   }, [mapData, timeLimit]);
 
-  return (
-    <div
-      id="game-container"
-      ref={containerRef}
-      className="border-4 border-gray-700 rounded-lg overflow-hidden bg-black"
-    />
-  );
+  return <div id="game-container" ref={containerRef} className="w-full h-full overflow-hidden bg-black touch-none" />;
 }
