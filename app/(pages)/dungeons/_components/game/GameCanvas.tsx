@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import * as Phaser from "phaser";
 import { MainScene } from "@/game-core/scenes/main/MainScene";
@@ -10,6 +12,7 @@ interface GameCanvasProps {
   onGameOver?: (score: number, timeLeft: number) => void;
   onInterrupt?: (score: number, timeLeft: number) => void;
   requestInterruptRef?: React.RefObject<(() => void) | null>;
+  requestZoomRef?: React.RefObject<((zoomIn: boolean) => void) | null>;
 }
 
 export default function GameCanvas({
@@ -19,6 +22,7 @@ export default function GameCanvas({
   onGameOver,
   onInterrupt,
   requestInterruptRef,
+  requestZoomRef,
 }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const phaserRef = useRef<Phaser.Game | null>(null);
@@ -36,6 +40,32 @@ export default function GameCanvas({
   useEffect(() => {
     onInterruptRef.current = onInterrupt;
   }, [onInterrupt]);
+
+  // ズームイン・アウト用のヘルパー関数
+  const handleZoom = (zoomIn: boolean) => {
+    if (!phaserRef.current) return;
+    const scene = phaserRef.current.scene.getScene("MainScene");
+    if (!scene) return;
+
+    const camera = scene.cameras.main;
+    const MIN_ZOOM = 0.5;
+    const MAX_ZOOM = 2.5;
+    const zoomFactor = zoomIn ? 1.15 : 0.85;
+    const newZoom = Phaser.Math.Clamp(camera.zoom * zoomFactor, MIN_ZOOM, MAX_ZOOM);
+    camera.setZoom(newZoom);
+  };
+
+  // 親コンポーネントからズーム操作できるようにRefにバインド
+  useEffect(() => {
+    if (requestZoomRef) {
+      requestZoomRef.current = handleZoom;
+    }
+    return () => {
+      if (requestZoomRef) {
+        requestZoomRef.current = null;
+      }
+    };
+  }, [requestZoomRef]);
 
   useEffect(() => {
     // 既存のインスタンスがあれば破棄
@@ -105,7 +135,7 @@ export default function GameCanvas({
       });
 
       scene.input.on("pointermove", () => {
-        if (scene.input.pointer1.isDown && scene.input.pointer2.isDown && initialPinchDistance > 0) {
+        if (scene.input.pointer1.isDown && scene.input.pointer2?.isDown && initialPinchDistance > 0) {
           const currentDistance = Phaser.Math.Distance.Between(
             scene.input.pointer1.x,
             scene.input.pointer1.y,
@@ -119,7 +149,7 @@ export default function GameCanvas({
       });
 
       scene.input.on("pointerup", () => {
-        if (!scene.input.pointer1.isDown || !scene.input.pointer2.isDown) {
+        if (!scene.input.pointer1.isDown || !scene.input.pointer2?.isDown) {
           initialPinchDistance = 0;
         }
       });
@@ -168,7 +198,7 @@ export default function GameCanvas({
         phaserRef.current = null;
       }
     };
-  }, [mapData, timeLimit]);
+  }, [mapData, timeLimit, requestZoomRef, requestInterruptRef]);
 
   return <div id="game-container" ref={containerRef} className="w-full h-full overflow-hidden bg-black touch-none" />;
 }

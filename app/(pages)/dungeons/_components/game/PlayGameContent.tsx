@@ -37,6 +37,7 @@ export function PlayGameContent({
 }: PlayGameContentProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const requestInterruptRef = useRef<(() => void) | null>(null);
+  const requestZoomRef = useRef<((zoomIn: boolean) => void) | null>(null);
 
   const handleAbortClick = () => {
     // Phaserへリクエスト要求
@@ -65,23 +66,44 @@ export function PlayGameContent({
       </div>
 
       {/* ゲームエリア */}
-      <div className="relative w-full max-w-4xl aspect-[4/3] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black mx-auto">
-        {enabled ? (
-          <div className="absolute inset-0 w-full h-full">
-            <GameCanvas
-              mapData={parsedMapData}
-              timeLimit={dungeon.timeLimit}
-              onClear={onClear}
-              onGameOver={onGameOver}
-              onInterrupt={onInterrupt}
-              requestInterruptRef={requestInterruptRef}
-            />
-          </div>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-stone-950 text-stone-500 font-mono text-sm">
-            準備中...
-          </div>
-        )}
+      <div className="w-full max-w-4xl flex flex-col">
+        <div className="relative w-full aspect-[4/3] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black">
+          {enabled ? (
+            <div className="absolute inset-0 w-full h-full">
+              <GameCanvas
+                mapData={parsedMapData}
+                timeLimit={dungeon.timeLimit}
+                onClear={onClear}
+                onGameOver={onGameOver}
+                onInterrupt={onInterrupt}
+                requestInterruptRef={requestInterruptRef}
+                requestZoomRef={requestZoomRef}
+              />
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-stone-950 text-stone-500 font-mono text-sm">
+              準備中...
+            </div>
+          )}
+        </div>
+
+        {/* 拡大縮小ボタン */}
+        <div className="flex justify-end gap-1.5 mt-2 px-1">
+          <button
+            onClick={() => requestZoomRef.current?.(false)}
+            className="w-8 h-8 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-sm border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
+            title="縮小"
+          >
+            ー
+          </button>
+          <button
+            onClick={() => requestZoomRef.current?.(true)}
+            className="w-8 h-8 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-sm border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
+            title="拡大"
+          >
+            ＋
+          </button>
+        </div>
       </div>
 
       {/* ダンジョン情報セクション */}
