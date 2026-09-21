@@ -308,6 +308,8 @@ export default function GameCanvas({
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
+    if (e.buttons === 0) return;
+
     if (!phaserRef.current) return;
     const scene = phaserRef.current.scene.getScene("MainScene") as MainScene;
     if (!scene) return;
