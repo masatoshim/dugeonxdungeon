@@ -40,6 +40,16 @@ export function PlayGameContent({
   const requestZoomRef = useRef<((zoomIn: boolean) => void) | null>(null);
   const requestPauseRef = useRef<((pause: boolean) => void) | null>(null);
 
+  // 画面外（親コンポーネント）でのフリック操作用
+  const requestTouchMoveRef = useRef<((dir: { x: number; y: number }) => void) | null>(null);
+  const requestTouchActionRef = useRef<(() => void) | null>(null);
+  const requestTouchReleaseRef = useRef<(() => void) | null>(null);
+
+  const pointerDownPosRef = useRef({ x: 0, y: 0 });
+  const pointerDownTimeRef = useRef(0);
+  const isSwipingRef = useRef(false);
+  const SWIPE_THRESHOLD = 25;
+
   // 「中断して戻る」ボタン押下時
   const handleOpenConfirm = () => {
     setIsConfirmOpen(true);
@@ -63,8 +73,60 @@ export function PlayGameContent({
     }
   };
 
+  // 画面全体（余白含む）でのポインター操作ハンドラー
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
+    pointerDownTimeRef.current = performance.now();
+    isSwipingRef.current = false;
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const dx = e.clientX - pointerDownPosRef.current.x;
+    const dy = e.clientY - pointerDownPosRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > SWIPE_THRESHOLD) {
+      isSwipingRef.current = true;
+      let dirX = 0;
+      let dirY = 0;
+
+      if (Math.abs(dx) > SWIPE_THRESHOLD) dirX = dx > 0 ? 1 : -1;
+      if (Math.abs(dy) > SWIPE_THRESHOLD) dirY = dy > 0 ? 1 : -1;
+
+      requestTouchMoveRef.current?.({ x: dirX, y: dirY });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const duration = performance.now() - pointerDownTimeRef.current;
+    const dx = e.clientX - pointerDownPosRef.current.x;
+    const dy = e.clientY - pointerDownPosRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // 一定距離未満かつ短時間のタップなら攻撃トリガー
+    if (distance < SWIPE_THRESHOLD && duration < 300 && !isSwipingRef.current) {
+      requestTouchActionRef.current?.();
+    }
+
+    // 指を離したら移動停止
+    requestTouchReleaseRef.current?.();
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+  };
+
   return (
-    <main className="flex flex-col items-center p-6 sm:p-8 bg-stone-950 min-h-screen text-stone-100">
+    <main
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      className="flex flex-col items-center p-6 sm:p-8 bg-stone-950 min-h-screen text-stone-100 select-none touch-none"
+    >
       {/* ヘッダーエリア */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-4 gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-amber-400 tracking-wide truncate min-w-0 flex-1">
@@ -93,6 +155,9 @@ export function PlayGameContent({
                 requestInterruptRef={requestInterruptRef}
                 requestZoomRef={requestZoomRef}
                 requestPauseRef={requestPauseRef}
+                requestTouchMoveRef={requestTouchMoveRef}
+                requestTouchActionRef={requestTouchActionRef}
+                requestTouchReleaseRef={requestTouchReleaseRef}
               />
             </div>
           ) : (
