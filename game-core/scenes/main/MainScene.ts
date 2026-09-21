@@ -13,7 +13,6 @@ import {
   LeverSwitch,
 } from "@/game-core/entities";
 import { EnemyManager, WarpManager, StoneManager, CombatManager, DoorManager } from "@/game-core/scenes/main/managers";
-import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -25,9 +24,6 @@ export class MainScene extends Phaser.Scene {
   private player!: Player;
   private levelBuilder!: LevelBuilder;
   private mapData!: MapData;
-
-  // UI専用カメラ
-  private uiCamera!: Phaser.Cameras.Scene2D.Camera;
 
   // 物理グループ
   private walls!: Phaser.Physics.Arcade.StaticGroup;
@@ -44,7 +40,6 @@ export class MainScene extends Phaser.Scene {
   private leversGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   // ヘルパー・マネージャー
-  private timerUI!: TimerUI;
   private enemyManager!: EnemyManager;
   private warpManager!: WarpManager;
   private stoneManager!: StoneManager;
@@ -139,17 +134,6 @@ export class MainScene extends Phaser.Scene {
     this.setupPhysics();
     // カメラ設定
     this.setupCamera();
-
-    // タイマーUIの生成
-    this.timerUI = new TimerUI(this, this.timeLimit);
-
-    // メインカメラからはタイマーUIのコンテナを除外する
-    this.cameras.main.ignore(this.timerUI.getContainer());
-
-    // UIカメラには、タイマーUI以外をすべて除外させる
-    const uiContainer = this.timerUI.getContainer();
-    const worldObjects = this.children.list.filter((obj) => obj !== uiContainer);
-    this.uiCamera.ignore(worldObjects);
 
     // React側からの中断要求を受け取るリスナーを登録
     this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
@@ -448,7 +432,7 @@ export class MainScene extends Phaser.Scene {
 
     if (this.timeLeft !== currentLeft) {
       this.timeLeft = currentLeft;
-      this.timerUI.update(this.timeLeft);
+      this.game.events.emit(GAME_EVENTS.TIMER_UPDATE, this.timeLeft);
     }
 
     if (this.timeLeft <= 0) {
@@ -508,32 +492,21 @@ export class MainScene extends Phaser.Scene {
 
     this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
 
-    // UIカメラの初期作成（メインカメラと同じサイズ・位置で重ねる）
-    const viewWidth = this.cameras.main.width;
-    const viewHeight = this.cameras.main.height;
-
-    if (!this.uiCamera) {
-      this.uiCamera = this.cameras.add(0, 0, viewWidth, viewHeight);
-      this.uiCamera.setScroll(0, 0); // UIカメラはスクロールさせない
-    }
-
     const applyCameraLayout = () => {
-      const w = this.cameras.main.width;
-      const h = this.cameras.main.height;
-      if (w === 0 || h === 0) return;
+      const baseWidth = this.cameras.main.width;
+      const baseHeight = this.cameras.main.height;
+      if (baseWidth === 0 || baseHeight === 0) return;
 
-      // UIカメラのサイズも画面リサイズに合わせて追従させる
-      if (this.uiCamera) {
-        this.uiCamera.setSize(w, h);
-      }
-
-      // 画面サイズに応じた初期ズームを決定する
-      const currentWidth = typeof window !== "undefined" ? window.innerWidth : w;
       let initialZoom = 1.0;
-      if (currentWidth <= 800) {
-        initialZoom = 1.3;
+
+      if (baseWidth < 900) {
+        initialZoom = 0.7;
       }
+
       this.cameras.main.setZoom(initialZoom);
+
+      const viewWidth = baseWidth / initialZoom;
+      const viewHeight = baseHeight / initialZoom;
 
       const isLargerX = mapWidth > viewWidth;
       const isLargerY = mapHeight > viewHeight;

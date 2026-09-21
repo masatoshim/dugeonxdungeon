@@ -26,6 +26,7 @@ export default function GameCanvas({
 }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const phaserRef = useRef<Phaser.Game | null>(null);
+  const timerTextRef = useRef<HTMLSpanElement>(null);
 
   // コールバック参照の保持
   const onClearRef = useRef(onClear);
@@ -86,9 +87,9 @@ export default function GameCanvas({
       type: Phaser.AUTO,
       width: 800,
       height: 600,
-      parent: "game-container",
+      parent: containerRef.current,
       scale: {
-        mode: Phaser.Scale.ENVELOP,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       physics: {
@@ -166,17 +167,24 @@ export default function GameCanvas({
       onGameOverRef.current?.(data.score, data.timeLeft);
     });
 
-    // Phaser -> React の中継
+    // 中断処理：Phaser -> React の中継
     game.events.on(GAME_EVENTS.GAME_INTERRUPT, (data: { score: number; timeLeft: number }) => {
       onInterruptRef.current?.(data.score, data.timeLeft);
     });
 
-    // React -> Phaserの合図を受け取る仕組み
+    // 中断処理：React -> Phaserの合図を受け取る仕組み
     if (requestInterruptRef) {
       requestInterruptRef.current = () => {
         game.events.emit(GAME_EVENTS.REQUEST_INTERRUPT);
       };
     }
+
+    // タイマー更新：Phaser側からのタイマー更新イベントを受信してDOMを直接書き換え
+    game.events.on(GAME_EVENTS.TIMER_UPDATE, (timeLeft: number) => {
+      if (timerTextRef.current) {
+        timerTextRef.current.textContent = timeLeft.toFixed(2);
+      }
+    });
 
     game.scene.start("MainScene", {
       mapData: mapData,
@@ -194,11 +202,25 @@ export default function GameCanvas({
         phaserRef.current.events.off(GAME_EVENTS.GAME_OVER);
         phaserRef.current.events.off(GAME_EVENTS.TIME_OVER);
         phaserRef.current.events.off(GAME_EVENTS.GAME_INTERRUPT);
+        phaserRef.current.events.off("timer-update");
         phaserRef.current.destroy(true);
         phaserRef.current = null;
       }
     };
   }, [mapData, timeLimit, requestZoomRef, requestInterruptRef]);
 
-  return <div id="game-container" ref={containerRef} className="w-full h-full overflow-hidden bg-black touch-none" />;
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-black touch-none flex items-center justify-center">
+      {/* Phaserのキャンバスが生成されるコンテナ */}
+      <div ref={containerRef} className="w-full h-full flex items-center justify-center overflow-hidden" />
+
+      {/* タイマーUI */}
+      <div className="absolute right-4 top-4 z-20 bg-black/80 border border-teal-500/30 rounded-lg px-4 py-2 flex items-center gap-3 shadow-lg pointer-events-none">
+        <span className="text-xs font-mono text-slate-400">TIME</span>
+        <span ref={timerTextRef} className="text-xl font-mono font-bold text-teal-400 tabular-nums">
+          {timeLimit.toFixed(2)}
+        </span>
+      </div>
+    </div>
+  );
 }
