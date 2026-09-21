@@ -527,27 +527,39 @@ export class MainScene extends Phaser.Scene {
         this.uiCamera.setSize(w, h);
       }
 
-      if (!this.player) return;
-
       const isLargerX = mapWidth > viewWidth;
       const isLargerY = mapHeight > viewHeight;
 
       if (isLargerX || isLargerY) {
         // ダンジョンがキャンバスより大きい場合：プレイヤーを中心に追従
         this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        if (this.player) {
+          this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        }
       } else {
         // ダンジョンがキャンバスより小さい場合：ダンジョン全体をキャンバスの中央に配置
         this.cameras.main.stopFollow();
         this.cameras.main.removeBounds();
         this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
       }
+
+      // キャンバスが狭い状態でのゲームプレイ直後、予めカメラをズームする
+      const currentWidth = typeof window !== "undefined" ? window.innerWidth : w;
+
+      let initialZoom = 1.0;
+      if (currentWidth <= 500) {
+        initialZoom = 1.6; // かなり狭い場合
+      } else if (currentWidth <= 800) {
+        initialZoom = 1.3; // 小さめの画面の場合
+      }
+
+      this.cameras.main.setZoom(initialZoom);
     };
 
     // 即座に一度適用
     applyCameraLayout();
 
-    // 画面リサイズ時のイベント登録（既存のままでOK）
+    // 画面リサイズ時のイベント登録
     if (!this.scale.listeners("resize").includes(applyCameraLayout)) {
       this.scale.on("resize", applyCameraLayout, this);
     }
