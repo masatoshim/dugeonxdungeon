@@ -58,7 +58,7 @@ export function PlayGameContent({
         </h1>
         <button
           onClick={() => setIsConfirmOpen(true)}
-          className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm shrink-0"
+          className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm shrink-0"
         >
           <LogOut size={14} />
           <span>中断して戻る</span>
@@ -66,10 +66,10 @@ export function PlayGameContent({
       </div>
 
       {/* ゲームエリア */}
-      <div className="w-full max-w-4xl flex flex-col">
-        <div className="relative w-full aspect-[4/3] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black">
+      <div className="w-full max-w-3xl flex flex-col mb-2">
+        <div className="relative w-full h-[360px] sm:h-[480px] md:h-[520px] border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black flex items-center justify-center">
           {enabled ? (
-            <div className="absolute inset-0 w-full h-full">
+            <div className="absolute inset-0 w-full h-full flex items-center justify-center [&>canvas]:w-full [&>canvas]:h-full [&>canvas]:object-fill">
               <GameCanvas
                 mapData={parsedMapData}
                 timeLimit={dungeon.timeLimit}
@@ -88,7 +88,7 @@ export function PlayGameContent({
         </div>
 
         {/* 拡大縮小ボタン */}
-        <div className="flex justify-end gap-1.5 mt-2 px-1">
+        <div className="flex justify-end gap-1.5 mt-1.5 px-1">
           <button
             onClick={() => requestZoomRef.current?.(false)}
             className="w-8 h-8 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-sm border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
@@ -106,24 +106,14 @@ export function PlayGameContent({
         </div>
       </div>
 
-      {/* ダンジョン情報セクション */}
-      <div className="mt-6 p-4 sm:p-5 bg-stone-900/80 rounded-2xl w-full max-w-4xl border border-stone-800 backdrop-blur-sm">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm sm:text-base font-semibold text-amber-400 font-serif">
-            難易度: {"★".repeat(Number(dungeon.difficulty) || 1)}
-          </span>
-          <span className="text-sm sm:text-base font-semibold text-stone-300 font-mono">
-            制限時間: {dungeon.timeLimit}s
-          </span>
+      {/* 説明 */}
+      <div className="p-3 bg-stone-900/80 rounded-2xl w-full max-w-3xl border border-stone-800 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="text-xs sm:text-sm text-amber-300/90 font-serif font-medium text-center sm:text-left">
+          プレイヤーをゴールに導いてクリアしよう！
         </div>
 
-        <p className="text-stone-400 text-xs sm:text-sm italic mb-4">
-          {dungeon.description || "このダンジョンに説明はありません。"}
-        </p>
-
-        <div className="text-xs text-stone-400 bg-stone-950 p-3 rounded-xl border border-stone-800/80 flex items-center gap-2 font-mono">
-          <span className="text-base">🎮</span>
-          <span>操作方法: 矢印キーで移動 / スペースキーでアクション</span>
+        <div className="text-xs text-stone-400 bg-stone-950 px-3 py-1.5 rounded-xl border border-stone-800/80 flex items-center gap-2 font-mono shrink-0">
+          <span>操作: 矢印キー移動 / スペースアクション</span>
         </div>
       </div>
 

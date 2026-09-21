@@ -527,6 +527,14 @@ export class MainScene extends Phaser.Scene {
         this.uiCamera.setSize(w, h);
       }
 
+      // 画面サイズに応じた初期ズームを決定する
+      const currentWidth = typeof window !== "undefined" ? window.innerWidth : w;
+      let initialZoom = 1.0;
+      if (currentWidth <= 800) {
+        initialZoom = 1.3;
+      }
+      this.cameras.main.setZoom(initialZoom);
+
       const isLargerX = mapWidth > viewWidth;
       const isLargerY = mapHeight > viewHeight;
 
@@ -542,18 +550,6 @@ export class MainScene extends Phaser.Scene {
         this.cameras.main.removeBounds();
         this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
       }
-
-      // キャンバスが狭い状態でのゲームプレイ直後、予めカメラをズームする
-      const currentWidth = typeof window !== "undefined" ? window.innerWidth : w;
-
-      let initialZoom = 1.0;
-      if (currentWidth <= 500) {
-        initialZoom = 1.6; // かなり狭い場合
-      } else if (currentWidth <= 800) {
-        initialZoom = 1.3; // 小さめの画面の場合
-      }
-
-      this.cameras.main.setZoom(initialZoom);
     };
 
     // 即座に一度適用

@@ -88,7 +88,7 @@ export default function GameCanvas({
       height: 600,
       parent: "game-container",
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.ENVELOP,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       physics: {
