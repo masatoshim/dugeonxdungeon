@@ -46,6 +46,10 @@ export class MainScene extends Phaser.Scene {
   private combatManager!: CombatManager;
   private doorManager!: DoorManager;
 
+  // 一時停止・再開用のフラグ
+  private isPaused: boolean = false;
+  private pauseStartTime: number = 0;
+
   constructor() {
     super("MainScene");
   }
@@ -418,7 +422,7 @@ export class MainScene extends Phaser.Scene {
 
   update() {
     // ゲーム終了時は何もしない
-    if (this.isGameOver) return;
+    if (this.isGameOver || this.isPaused) return;
 
     if (!this.isTimerStarted) {
       this.startTime = performance.now();
@@ -557,6 +561,36 @@ export class MainScene extends Phaser.Scene {
       if (isContained) {
         this.handleGoal();
         return;
+      }
+    }
+  }
+
+  public pauseGame() {
+    if (this.isGameOver || this.isPaused) return;
+    this.isPaused = true;
+    this.pauseStartTime = performance.now(); // ポーズ開始時刻を記録
+    this.physics.pause(); // 物理演算を一時停止
+    if (this.player) {
+      this.player.active = false;
+      if (this.player.body) {
+        (this.player.body as Phaser.Physics.Arcade.Body).enable = false;
+      }
+    }
+  }
+
+  public resumeGame() {
+    if (this.isGameOver || !this.isPaused) return;
+    this.isPaused = false;
+
+    // ポーズしていた時間を計算し、ゲーム開始時刻をその分だけ未来にずらす
+    const pauseDuration = performance.now() - this.pauseStartTime;
+    this.startTime += pauseDuration;
+
+    this.physics.resume(); // 物理演算を再開
+    if (this.player) {
+      this.player.active = true;
+      if (this.player.body) {
+        (this.player.body as Phaser.Physics.Arcade.Body).enable = true;
       }
     }
   }

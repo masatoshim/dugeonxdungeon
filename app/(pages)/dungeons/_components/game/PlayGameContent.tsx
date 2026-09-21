@@ -38,7 +38,21 @@ export function PlayGameContent({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const requestInterruptRef = useRef<(() => void) | null>(null);
   const requestZoomRef = useRef<((zoomIn: boolean) => void) | null>(null);
+  const requestPauseRef = useRef<((pause: boolean) => void) | null>(null);
 
+  // 「中断して戻る」ボタン押下時
+  const handleOpenConfirm = () => {
+    setIsConfirmOpen(true);
+    requestPauseRef.current?.(true);
+  };
+
+  // 「続ける」ボタン押下時
+  const handleResume = () => {
+    setIsConfirmOpen(false);
+    requestPauseRef.current?.(false);
+  };
+
+  // 「中断する」ボタン押下時
   const handleAbortClick = () => {
     // Phaserへリクエスト要求
     if (requestInterruptRef.current) {
@@ -57,7 +71,7 @@ export function PlayGameContent({
           {dungeon.name}
         </h1>
         <button
-          onClick={() => setIsConfirmOpen(true)}
+          onClick={handleOpenConfirm}
           className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm shrink-0"
         >
           <LogOut size={14} />
@@ -78,6 +92,7 @@ export function PlayGameContent({
                 onInterrupt={onInterrupt}
                 requestInterruptRef={requestInterruptRef}
                 requestZoomRef={requestZoomRef}
+                requestPauseRef={requestPauseRef}
               />
             </div>
           ) : (
@@ -129,7 +144,7 @@ export function PlayGameContent({
             </h3>
             <div className="flex gap-3">
               <button
-                onClick={() => setIsConfirmOpen(false)}
+                onClick={handleResume}
                 className="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer"
               >
                 続ける
