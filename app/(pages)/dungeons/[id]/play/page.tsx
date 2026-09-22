@@ -187,20 +187,12 @@ function GamePlayContentWrapper() {
           >
             {/* ヘッダータイトル */}
             <div className="mb-6">
-              <span
-                className={`text-xs font-mono tracking-widest uppercase px-3 py-1 rounded-full ${
-                  isClear
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                    : "bg-red-500/10 text-red-400 border border-red-500/20"
-                }`}
-              >
-                {isClear ? "攻略成功" : "攻略失敗"}
-              </span>
-
               {dungeon?.name && (
                 <div className="mt-2.5 px-2">
                   <p className="text-xs text-slate-400 font-mono tracking-wide truncate" title={dungeon.name}>
-                    <span className="text-slate-200 font-semibold">{dungeon.name}</span>
+                    <span className={`font-semibold ${isClear ? "text-cyan-400" : "text-red-500"}`}>
+                      {dungeon.name}
+                    </span>
                   </p>
                 </div>
               )}
@@ -208,7 +200,7 @@ function GamePlayContentWrapper() {
               <h2
                 className={`text-5xl sm:text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mt-2 italic tracking-tighter drop-shadow-md`}
               >
-                {isClear ? "FINISH!" : "GAME OVER"}
+                {isClear ? "攻略成功！" : "攻略失敗！"}
               </h2>
             </div>
 

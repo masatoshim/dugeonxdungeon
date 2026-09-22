@@ -88,9 +88,9 @@ export default function GameCanvas({
         if (!scene) return;
 
         if (pause) {
-          scene.scene.pause();
+          scene.pauseGame();
         } else {
-          scene.scene.resume();
+          scene.resumeGame();
         }
       };
     }

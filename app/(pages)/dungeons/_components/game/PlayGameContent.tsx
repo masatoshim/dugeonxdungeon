@@ -26,6 +26,8 @@ interface PlayGameContentProps {
   isTestPlay?: boolean;
 }
 
+const SWIPE_THRESHOLD = 25;
+
 export function PlayGameContent({
   dungeon,
   parsedMapData,
@@ -40,33 +42,19 @@ export function PlayGameContent({
   // 操作モードの手動上書き用ステート (null = 自動判定, true = タッチ/スマホ風, false = キーボード/PC風)
   const [forcedTouchMode, setForcedTouchMode] = useState<boolean | null>(null);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
-
-  // ゲーム画面の高さを動的に算出
-  const calculateOptimalHeight = useCallback((isMobile: boolean) => {
-    const windowH = window.innerHeight;
-    if (isMobile) {
-      // スマホ表示時
-      const reserved = 240;
-      const calculated = windowH - reserved;
-      return Math.min(Math.max(calculated, 220), 380);
-    } else {
-      // PC表示時
-      const estimatedReservedHeight = 210;
-      const calculated = windowH - estimatedReservedHeight;
-      return Math.min(Math.max(calculated, 300), 620);
-    }
-  }, []);
-
   const [gameCanvasHeight, setGameCanvasHeight] = useState<number>(400);
+
   const isResizingRef = useRef(false);
   const resizeStartYRef = useRef(0);
   const startHeightRef = useRef(400);
+  const isGameFinishedRef = useRef(false);
 
+  // ゲーム制御用
   const requestInterruptRef = useRef<(() => void) | null>(null);
   const requestZoomRef = useRef<((zoomIn: boolean) => void) | null>(null);
   const requestPauseRef = useRef<((pause: boolean) => void) | null>(null);
 
-  // 画面外（親コンポーネント）でのフリック操作用
+  // タッチ操作用
   const requestTouchMoveRef = useRef<((dir: { x: number; y: number }) => void) | null>(null);
   const requestTouchActionRef = useRef<(() => void) | null>(null);
   const requestTouchReleaseRef = useRef<(() => void) | null>(null);
@@ -74,15 +62,23 @@ export function PlayGameContent({
   const pointerDownPosRef = useRef({ x: 0, y: 0 });
   const pointerDownTimeRef = useRef(0);
   const isSwipingRef = useRef(false);
-  const SWIPE_THRESHOLD = 25;
 
-  // 画面サイズ・リサイズの監視と動的高さの設定
+  // レイアウト・高さ計算ロジック
+  const calculateOptimalHeight = useCallback((isMobile: boolean) => {
+    const windowH = window.innerHeight;
+    if (isMobile) {
+      return Math.min(Math.max(windowH - 240, 220), 380);
+    } else {
+      return Math.min(Math.max(windowH - 210, 300), 620);
+    }
+  }, []);
+
+  // 画面サイズ・リサイズの監視
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 640;
       setIsMobileScreen(mobile);
 
-      // ユーザーが手動でリサイズしていない場合のみ、スクロールが出ない高さを自動設定
       if (!isResizingRef.current) {
         setGameCanvasHeight(calculateOptimalHeight(mobile));
       }
@@ -93,8 +89,48 @@ export function PlayGameContent({
     return () => window.removeEventListener("resize", handleResize);
   }, [calculateOptimalHeight]);
 
-  // 実際にタッチモードにするかどうかの判定
-  const activeTouchMode = forcedTouchMode !== null ? forcedTouchMode : isMobileScreen;
+  // 離脱防止とブラウザバック制御
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isGameFinishedRef.current) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    const handlePopState = () => {
+      if (isGameFinishedRef.current) return;
+      window.history.pushState(null, "", window.location.href);
+      setIsConfirmOpen(true);
+      requestPauseRef.current?.(true);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // ゲーム終了ラッパー
+  const handleClearWrapper = useCallback(
+    (score: number, timeLeft: number) => {
+      isGameFinishedRef.current = true;
+      onClear(score, timeLeft);
+    },
+    [onClear],
+  );
+
+  const handleGameOverWrapper = useCallback(
+    (score: number, timeLeft: number) => {
+      isGameFinishedRef.current = true;
+      onGameOver(score, timeLeft);
+    },
+    [onGameOver],
+  );
 
   // 「中断して戻る」ボタン押下時
   const handleOpenConfirm = () => {
@@ -110,6 +146,7 @@ export function PlayGameContent({
 
   // 「中断する」ボタン押下時
   const handleAbortClick = () => {
+    requestPauseRef.current?.(false);
     if (requestInterruptRef.current) {
       requestInterruptRef.current();
     } else {
@@ -130,8 +167,7 @@ export function PlayGameContent({
   const handleResizePointerMove = (e: React.PointerEvent) => {
     if (!isResizingRef.current) return;
     const dy = e.clientY - resizeStartYRef.current;
-    const newHeight = Math.min(Math.max(startHeightRef.current + dy, 200), 700);
-    setGameCanvasHeight(newHeight);
+    setGameCanvasHeight(Math.min(Math.max(startHeightRef.current + dy, 200), 700));
   };
 
   const handleResizePointerUp = (e: React.PointerEvent) => {
@@ -142,7 +178,7 @@ export function PlayGameContent({
     } catch {}
   };
 
-  // スワイプ/ドラッグ操作エリア
+  // タッチ・スワイプ操作ハンドラ
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "mouse" && e.buttons !== 1 && e.button !== 0) return;
 
@@ -164,11 +200,8 @@ export function PlayGameContent({
 
     if (distance > SWIPE_THRESHOLD) {
       isSwipingRef.current = true;
-      let dirX = 0;
-      let dirY = 0;
-
-      if (Math.abs(dx) > SWIPE_THRESHOLD) dirX = dx > 0 ? 1 : -1;
-      if (Math.abs(dy) > SWIPE_THRESHOLD) dirY = dy > 0 ? 1 : -1;
+      const dirX = Math.abs(dx) > SWIPE_THRESHOLD ? (dx > 0 ? 1 : -1) : 0;
+      const dirY = Math.abs(dy) > SWIPE_THRESHOLD ? (dy > 0 ? 1 : -1) : 0;
 
       requestTouchMoveRef.current?.({ x: dirX, y: dirY });
     }
@@ -193,24 +226,24 @@ export function PlayGameContent({
     } catch {}
   };
 
+  const activeTouchMode = forcedTouchMode !== null ? forcedTouchMode : isMobileScreen;
+
   return (
     <main className="flex flex-col items-center p-2.5 sm:p-4 bg-stone-950 min-h-screen text-stone-100 select-none overflow-hidden">
       <div className="w-full max-w-3xl flex flex-col items-center shrink-0">
         {/* ヘッダーエリア */}
         <div className="w-full flex items-center justify-between mb-1.5 gap-4">
-          <h1 className="text-lg sm:text-xl font-bold font-serif text-amber-400 tracking-wide truncate min-w-0 flex-1">
+          <h1 className="text-lg sm:text-xl font-bold font-mono text-amber-400 tracking-wide truncate min-w-0 flex-1">
             {dungeon.name}
           </h1>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleOpenConfirm}
-              className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
-            >
-              <LogOut size={14} />
-              <span>中断して戻る</span>
-            </button>
-          </div>
+          <button
+            onClick={handleOpenConfirm}
+            className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
+          >
+            <LogOut size={14} />
+            <span>探索を中断する</span>
+          </button>
         </div>
 
         {/* ゲームエリア */}
@@ -224,8 +257,8 @@ export function PlayGameContent({
                 <GameCanvas
                   mapData={parsedMapData}
                   timeLimit={dungeon.timeLimit}
-                  onClear={onClear}
-                  onGameOver={onGameOver}
+                  onClear={handleClearWrapper}
+                  onGameOver={handleGameOverWrapper}
                   onInterrupt={onInterrupt}
                   requestInterruptRef={requestInterruptRef}
                   requestZoomRef={requestZoomRef}
@@ -242,7 +275,7 @@ export function PlayGameContent({
             )}
           </div>
 
-          {/* ゲームエリア下部のリサイズハンドル */}
+          {/* リサイズハンドル */}
           <div
             onPointerDown={handleResizePointerDown}
             onPointerMove={handleResizePointerMove}
@@ -253,15 +286,13 @@ export function PlayGameContent({
             <div className="w-10 h-1 bg-stone-600 group-hover:bg-amber-400 rounded-full" />
           </div>
 
-          {/* 操作モード切り替えボタン ＆ 拡大縮小ボタンのコンテナ */}
+          {/* 操作モード切り替え・ズームボタン */}
           <div className="flex justify-end items-center gap-1.5 mt-1 px-1">
-            {/* 操作モード手動切り替えボタン */}
             <button
-              onClick={() => setForcedTouchMode(activeTouchMode ? false : true)}
+              onClick={() => setForcedTouchMode(!activeTouchMode)}
               className="flex items-center gap-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-sm h-7"
               title="操作モードを切り替え (PC / タッチ)"
             >
-              {/* PC操作アイコン */}
               <Keyboard
                 size={15}
                 className={
@@ -269,7 +300,6 @@ export function PlayGameContent({
                 }
               />
               <span className="w-[1px] h-3.5 bg-stone-800" />
-              {/* スマホ操作アイコン */}
               <Smartphone
                 size={15}
                 className={
@@ -277,7 +307,6 @@ export function PlayGameContent({
                 }
               />
             </button>
-            {/* 拡大縮小ボタン */}
             <button
               onClick={() => requestZoomRef.current?.(false)}
               className="w-7 h-7 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-xs border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
@@ -296,10 +325,10 @@ export function PlayGameContent({
         </div>
       </div>
 
-      {/* PC表示モード時 */}
+      {/* PC操作ガイド */}
       {!activeTouchMode && (
         <div className="flex p-2 bg-stone-900/80 rounded-2xl w-full max-w-3xl border border-stone-800 backdrop-blur-sm items-center justify-between gap-2 mt-1 animate-in fade-in duration-150">
-          <div className="text-xs text-amber-300/90 font-serif font-medium">
+          <div className="text-xs text-amber-300/90 font-mono font-medium">
             プレイヤーをゴールに導いてクリアしよう！
           </div>
           <div className="text-xs text-stone-400 bg-stone-950 px-2.5 py-1 rounded-xl border border-stone-800/80 font-mono shrink-0">
@@ -308,7 +337,7 @@ export function PlayGameContent({
         </div>
       )}
 
-      {/* タッチ操作モード時 */}
+      {/* タッチ操作パッド */}
       {activeTouchMode && (
         <div
           onPointerDown={handlePointerDown}
@@ -316,7 +345,7 @@ export function PlayGameContent({
           onPointerUp={handlePointerUp}
           className="flex flex-1 w-full max-w-3xl bg-stone-900/95 rounded-2xl border-2 border-amber-500/50 backdrop-blur-md flex-col items-center justify-center gap-1.5 touch-none shadow-xl mt-1 p-3 text-center animate-in fade-in duration-150 cursor-grab active:cursor-grabbing"
         >
-          <div className="flex items-center gap-2 text-amber-300 font-serif font-bold text-xs sm:text-sm">
+          <div className="flex items-center gap-2 text-amber-300 font-mono font-bold text-xs sm:text-sm">
             <Hand size={18} className="animate-pulse text-amber-400" />
             <span>ここをスワイプ（ドラッグ）して操作</span>
           </div>
@@ -333,7 +362,7 @@ export function PlayGameContent({
             <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-400">
               <AlertTriangle size={24} />
             </div>
-            <h3 className="text-lg font-bold font-serif text-stone-100 mb-2">
+            <h3 className="text-lg font-bold font-mono text-stone-100 mb-2">
               {isTestPlay ? "テストプレイを中断しますか？" : "探索を中断しますか？"}
             </h3>
             <div className="flex gap-3">

@@ -98,8 +98,8 @@ export default function TestPlayPage() {
       {isGameOver && (
         <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="w-full max-w-sm bg-stone-900/90 border border-red-500/30 p-8 rounded-3xl text-center shadow-[0_0_60px_rgba(239,68,68,0.15)] backdrop-blur-xl">
-            <h2 className="text-4xl font-extrabold tracking-wider text-red-500 mb-2 font-serif italic drop-shadow-md">
-              GAME OVER
+            <h2 className="text-4xl font-extrabold tracking-wider text-red-500 mb-2 font-mono italic drop-shadow-md">
+              攻略失敗！
             </h2>
             <p className="text-sm text-stone-400 mb-8">クリア条件を満たせませんでした</p>
 
@@ -125,8 +125,8 @@ export default function TestPlayPage() {
       {isClear && (
         <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300">
           <div className="w-full max-w-md bg-stone-900/90 border border-amber-500/30 p-8 rounded-3xl text-center shadow-[0_0_60px_rgba(245,158,11,0.15)] backdrop-blur-xl">
-            <h2 className="text-4xl font-extrabold tracking-wider text-amber-400 mb-2 font-serif italic drop-shadow-md">
-              CLEAR!!
+            <h2 className="text-4xl font-extrabold tracking-wider text-amber-400 mb-2 font-mono italic drop-shadow-md">
+              攻略成功！
             </h2>
 
             <p className="text-sm text-stone-300 mb-6 leading-relaxed">
