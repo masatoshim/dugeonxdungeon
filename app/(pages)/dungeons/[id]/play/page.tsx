@@ -194,7 +194,7 @@ function GamePlayContentWrapper() {
                     : "bg-red-500/10 text-red-400 border border-red-500/20"
                 }`}
               >
-                {isClear ? "STAGE CLEARED" : "MISSION FAILED"}
+                {isClear ? "攻略成功" : "攻略失敗"}
               </span>
 
               {dungeon?.name && (
