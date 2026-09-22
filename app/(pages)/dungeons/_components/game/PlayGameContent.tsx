@@ -195,25 +195,14 @@ export function PlayGameContent({
 
   return (
     <main className="flex flex-col items-center p-2.5 sm:p-4 bg-stone-950 min-h-screen text-stone-100 select-none overflow-hidden">
-      {/* 上部グループ（ヘッダーとゲームエリア） */}
-      <div className="w-full flex flex-col items-center shrink-0">
+      <div className="w-full max-w-3xl flex flex-col items-center shrink-0">
         {/* ヘッダーエリア */}
-        <div className="w-full max-w-4xl flex items-center justify-between mb-1.5 gap-4">
+        <div className="w-full flex items-center justify-between mb-1.5 gap-4">
           <h1 className="text-lg sm:text-xl font-bold font-serif text-amber-400 tracking-wide truncate min-w-0 flex-1">
             {dungeon.name}
           </h1>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* 操作モード手動切り替えアイコンボタン */}
-            <button
-              onClick={() => setForcedTouchMode(activeTouchMode ? false : true)}
-              className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-stone-700 px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
-              title="操作モードを切り替え"
-            >
-              {activeTouchMode ? <Smartphone size={14} /> : <Keyboard size={14} />}
-              <span className="hidden sm:inline">{activeTouchMode ? "タッチ操作モード" : "PC操作モード"}</span>
-            </button>
-
             <button
               onClick={handleOpenConfirm}
               className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
@@ -225,7 +214,7 @@ export function PlayGameContent({
         </div>
 
         {/* ゲームエリア */}
-        <div className="w-full max-w-3xl flex flex-col mb-1 relative">
+        <div className="w-full flex flex-col mb-1 relative">
           <div
             style={{ height: `${gameCanvasHeight}px` }}
             className="relative w-full border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black flex items-center justify-center transition-all duration-75"
@@ -264,8 +253,31 @@ export function PlayGameContent({
             <div className="w-10 h-1 bg-stone-600 group-hover:bg-amber-400 rounded-full" />
           </div>
 
-          {/* 拡大縮小ボタン */}
-          <div className="flex justify-end gap-1.5 mt-1 px-1">
+          {/* 操作モード切り替えボタン ＆ 拡大縮小ボタンのコンテナ */}
+          <div className="flex justify-end items-center gap-1.5 mt-1 px-1">
+            {/* 操作モード手動切り替えボタン */}
+            <button
+              onClick={() => setForcedTouchMode(activeTouchMode ? false : true)}
+              className="flex items-center gap-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-sm h-7"
+              title="操作モードを切り替え (PC / タッチ)"
+            >
+              {/* PC操作アイコン */}
+              <Keyboard
+                size={15}
+                className={
+                  !activeTouchMode ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" : "text-stone-600"
+                }
+              />
+              <span className="w-[1px] h-3.5 bg-stone-800" />
+              {/* スマホ操作アイコン */}
+              <Smartphone
+                size={15}
+                className={
+                  activeTouchMode ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" : "text-stone-600"
+                }
+              />
+            </button>
+            {/* 拡大縮小ボタン */}
             <button
               onClick={() => requestZoomRef.current?.(false)}
               className="w-7 h-7 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-xs border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
