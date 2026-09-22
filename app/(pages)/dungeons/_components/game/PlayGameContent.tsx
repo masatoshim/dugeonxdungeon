@@ -242,7 +242,7 @@ export function PlayGameContent({
             className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
           >
             <LogOut size={14} />
-            <span>探索を中断する</span>
+            <span>{isTestPlay ? "テストプレイを中断する" : "探索を中断する"}</span>
           </button>
         </div>
 
