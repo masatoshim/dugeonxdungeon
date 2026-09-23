@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { MapData } from "@/game-core/types";
 import { AlertTriangle, LogOut, Hand, Keyboard, Smartphone } from "lucide-react";
+import { TileIconForm } from "../edit/palette/TileIconForm";
+import { TILE_SIZE } from "@/game-core/types";
 
 // Canvas操作を含むコンポーネントをロード
 const GameCanvas = dynamic(() => import("@/app/(pages)/dungeons/_components/game/GameCanvas"), {
@@ -328,10 +330,16 @@ export function PlayGameContent({
 
       {/* PC操作ガイド */}
       {!activeTouchMode && (
-        <div className="flex p-2 bg-stone-900/80 rounded-2xl w-full max-w-3xl border border-stone-800 backdrop-blur-sm items-center justify-between gap-2 mt-1 animate-in fade-in duration-150">
-          <div className="text-xs text-amber-300/90 font-mono font-medium">
-            プレイヤーをゴールに導いてクリアしよう！
+        <div className="flex flex-col sm:flex-row p-2.5 sm:p-2 bg-stone-900/80 rounded-2xl w-full max-w-3xl border border-stone-800 backdrop-blur-sm items-center justify-between gap-2 mt-1 animate-in fade-in duration-150">
+          {/* メッセージ部分 */}
+          <div className="flex items-center flex-wrap justify-center sm:justify-start gap-1 text-xs text-amber-300/90 font-mono font-medium">
+            <TileIconForm tileId="P" size={TILE_SIZE * 0.8} />
+            <span>プレイヤーを</span>
+            <TileIconForm tileId="G" size={TILE_SIZE * 0.8} />
+            <span>ゴールに導いてクリアしよう！</span>
           </div>
+
+          {/* 操作説明部分 */}
           <div className="text-xs text-stone-400 bg-stone-950 px-2.5 py-1 rounded-xl border border-stone-800/80 font-mono shrink-0">
             操作: 矢印キーで移動 / スペースで攻撃
           </div>
@@ -346,12 +354,17 @@ export function PlayGameContent({
           onPointerUp={handlePointerUp}
           className="flex flex-1 w-full max-w-3xl bg-stone-900/95 rounded-2xl border-2 border-amber-500/50 backdrop-blur-md flex-col items-center justify-center gap-1.5 touch-none shadow-xl mt-1 p-3 text-center animate-in fade-in duration-150 cursor-grab active:cursor-grabbing"
         >
-          <div className="flex items-center gap-2 text-amber-300 font-mono font-bold text-xs sm:text-sm">
-            <Hand size={18} className="animate-pulse text-amber-400" />
-            <span>ここをスワイプ（ドラッグ）して操作</span>
+          <div className="flex items-center flex-wrap justify-center gap-1 text-xs text-amber-300/90 font-mono font-medium">
+            <TileIconForm tileId="P" size={TILE_SIZE * 0.75} />
+            <span>プレイヤーを</span>
+            <TileIconForm tileId="G" size={TILE_SIZE * 0.75} />
+            <span>ゴールに導いてクリアしよう！</span>
           </div>
-          <div className="text-xs text-stone-400 bg-stone-950/80 py-1.5 px-3 rounded-xl border border-stone-800/80 font-mono">
-            スワイプで移動 / タップ・クリックで攻撃
+
+          {/* タッチ操作方法の説明 */}
+          <div className="flex items-center gap-1.5 text-xs text-amber-300 font-mono font-bold">
+            <Hand size={16} className="animate-pulse text-amber-400 shrink-0" />
+            <span>ここをスワイプで移動 / タップで攻撃</span>
           </div>
         </div>
       )}
