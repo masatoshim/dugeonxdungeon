@@ -503,7 +503,7 @@ export class MainScene extends Phaser.Scene {
 
       let initialZoom = 1.0;
 
-      if (baseWidth < 900) {
+      if (baseWidth < 640) {
         initialZoom = 0.7;
       }
 

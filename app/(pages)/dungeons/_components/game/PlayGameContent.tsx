@@ -255,6 +255,7 @@ export function PlayGameContent({
             {enabled ? (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center [&>canvas]:w-full [&>canvas]:h-full [&>canvas]:object-fill">
                 <GameCanvas
+                  key={dungeon.id ? `${dungeon.id}-${Date.now()}` : undefined}
                   mapData={parsedMapData}
                   timeLimit={dungeon.timeLimit}
                   onClear={handleClearWrapper}
