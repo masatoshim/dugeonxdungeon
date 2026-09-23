@@ -553,12 +553,19 @@ export class MainScene extends Phaser.Scene {
     for (const goal of goals) {
       const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
       const goalBody = goal.body as Phaser.Physics.Arcade.StaticBody;
-      const isContained =
-        playerBody.left >= goalBody.left &&
-        playerBody.right <= goalBody.right &&
-        playerBody.top >= goalBody.top &&
-        playerBody.bottom <= goalBody.bottom;
-      if (isContained) {
+
+      // プレイヤーの中心座標を算出
+      const playerCenterX = playerBody.x + playerBody.width / 2;
+      const playerCenterY = playerBody.y + playerBody.height / 2;
+
+      // プレイヤーの中心がゴールの範囲内に含まれているか判定
+      const isInside =
+        playerCenterX >= goalBody.left &&
+        playerCenterX <= goalBody.right &&
+        playerCenterY >= goalBody.top &&
+        playerCenterY <= goalBody.bottom;
+
+      if (isInside) {
         this.handleGoal();
         return;
       }
