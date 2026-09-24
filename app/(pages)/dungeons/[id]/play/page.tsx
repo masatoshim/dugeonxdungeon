@@ -49,18 +49,13 @@ function GamePlayContentWrapper() {
   const { create: createPending, isCreating: isPendingCreating } = useCreatePendingClear();
   const { confirm: confirmClear } = useConfirmClear();
 
-  // 一覧画面に戻るためのURLを保持
-  const [returnUrl, setReturnUrl] = useState("/dungeons");
+  const handleReturnToList = () => {
+    // 検索条件を維持するフラグを立てる
+    sessionStorage.setItem("keep_dungeon_search", "true");
 
-  useEffect(() => {
-    // sessionStorageから保持していた一覧ページのURLを取得する
-    if (typeof window !== "undefined") {
-      const savedUrl = sessionStorage.getItem("dungeon_list_return_url");
-      if (savedUrl) {
-        setReturnUrl(savedUrl);
-      }
-    }
-  }, []);
+    // 一覧画面へ戻る
+    router.push("/dungeons");
+  };
 
   // ログイン画面からのリダイレクト時に発火
   useEffect(() => {
@@ -170,7 +165,7 @@ function GamePlayContentWrapper() {
           onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
           onInterrupt={(score, timeLeft) => {
             handleGameEnd(PlayStatus.INTERRUPT, score, timeLeft);
-            router.push(returnUrl);
+            handleReturnToList();
           }}
         />
       )}
@@ -286,7 +281,7 @@ function GamePlayContentWrapper() {
                 もう一回挑戦する
               </button>
               <button
-                onClick={() => router.push(returnUrl)}
+                onClick={handleReturnToList}
                 className="w-full py-3 px-4 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all active:scale-[0.98]"
               >
                 一覧画面に戻る

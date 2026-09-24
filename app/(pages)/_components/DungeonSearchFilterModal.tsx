@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Search, X, RotateCcw } from "lucide-react";
 import Link from "next/link";
@@ -109,6 +109,10 @@ export function DungeonSearchFilterModal({ initialValues, onSearch }: DungeonSea
 
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<DungeonFilterValues>(initialValues);
+
+  useEffect(() => {
+    setFilter(initialValues);
+  }, [initialValues]);
 
   const isFiltered =
     Boolean(filter.text && filter.text !== "undefined") ||
