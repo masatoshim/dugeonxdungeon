@@ -151,6 +151,19 @@ export default function GameCanvas({
     const game = new Phaser.Game(config);
 
     game.events.once(Phaser.Core.Events.READY, () => {
+      // READY直後に一瞬遅らせて、親DOMのサイズ変化が確実に反映された状態でスケールを更新する
+      requestAnimationFrame(() => {
+        if (game && game.scale && containerRef.current) {
+          const width = containerRef.current.clientWidth;
+          const height = containerRef.current.clientHeight;
+          // DOMのサイズが正常な場合のみリフレッシュを実行する
+          if (width > 0 && height > 0) {
+            game.scale.resize(width, height);
+            game.scale.refresh();
+          }
+        }
+      });
+
       const scene = game.scene.getScene("MainScene") as MainScene;
       if (!scene) return;
 
