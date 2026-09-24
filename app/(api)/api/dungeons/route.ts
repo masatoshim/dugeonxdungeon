@@ -162,28 +162,40 @@ export async function GET(request: Request) {
 
     if (sessionUserId && playStatusList.length > 0) {
       const wantCleared = playStatusList.includes("CLEAR");
-      // "NOT_CLEARED" という指定、または CLEAR を含まずに他のステータスを指定した場合の判定
-      const isSeekingNotCleared = !wantCleared || playStatusList.includes("NOT_CLEARED" as any);
+      const wantNotCleared = playStatusList.includes("NOT_CLEARED" as any);
 
-      if (isSeekingNotCleared && playStatusList.length === 1 && playStatusList[0] === ("NOT_CLEARED" as any)) {
-        // 未攻略のみ検索
-        andConditions.push({
+      // CLEARおよびNOT_CLEARED以外のステータス
+      const otherStatuses = playStatusList.filter((s) => s !== "CLEAR" && s !== ("NOT_CLEARED" as any));
+
+      // OR条件を格納する配列
+      const statusOrConditions: any[] = [];
+
+      //  NOT_CLEAREDが選択されている場合：CLEARの履歴がないもの
+      if (wantNotCleared) {
+        statusOrConditions.push({
           playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } },
         });
-      } else {
-        // 指定されたステータスの履歴があるものを検索
-        andConditions.push({
-          playHistories: {
-            some: {
-              userId: sessionUserId,
-              playStatus: { in: playStatusList.filter((s) => s !== ("NOT_CLEARED" as any)) },
-            },
-          },
+      }
+
+      // CLEARが選択されている場合：CLEARの履歴があるもの
+      if (wantCleared) {
+        statusOrConditions.push({
+          playHistories: { some: { userId: sessionUserId, playStatus: "CLEAR" } },
         });
-        // かつ、一度でもクリアしているものは除外する
-        if (isSeekingNotCleared) {
-          andConditions.push({ playHistories: { none: { userId: sessionUserId, playStatus: "CLEAR" } } });
-        }
+      }
+
+      // その他のステータス（FAILURE, INTERRUPTなど）が選択されている場合
+      otherStatuses.forEach((status) => {
+        statusOrConditions.push({
+          playHistories: { some: { userId: sessionUserId, playStatus: status } },
+        });
+      });
+
+      // 作成した条件をORで結合してandConditionsに追加
+      if (statusOrConditions.length > 0) {
+        andConditions.push({
+          OR: statusOrConditions,
+        });
       }
     }
 
