@@ -1,19 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DungeonSection } from "@/app/(pages)/_components/list/DungeonSection";
 import { useGetDungeons } from "@/app/_hooks";
 import { DungeonFilter } from "@/app/_types";
+import { useRouter } from "next/navigation";
+import { LoginAlertModal } from "./_components/LoginAlertModal";
+import { useDungeonAuth } from "@/app/_hooks/useDungeonAuth";
 
 export default function Home() {
+  const router = useRouter();
+
+  // ポップアップの開閉管理
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const { handleCreateClick } = useDungeonAuth(() => {
+    setShowLoginAlert(true);
+  });
+
   const params: DungeonFilter = {
     limit: 4,
     status: "PUBLISHED",
     sort: "favoritesCount",
     order: "desc",
   };
-
   const { dungeons, isLoading } = useGetDungeons(params);
 
   return (
@@ -103,6 +114,15 @@ export default function Home() {
                 <li className="flex items-center gap-2">✓ 直感的な操作でサクサク遊べるブラウザゲーム体験</li>
                 <li className="flex items-center gap-2">✓ お気に入り登録機能でお気に入りのステージをすぐプレイ</li>
               </ul>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => router.push("/dungeons")}
+                  className="inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs md:text-sm py-3 px-6 rounded-xl transition-all shadow-lg shadow-teal-500/20 active:scale-95 cursor-pointer"
+                >
+                  <span>ダンジョンを遊ぶ</span>
+                </button>
+              </div>
             </div>
             {/* 特徴イメージ・プレースホルダー */}
             <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-teal-500/30 shadow-lg group">
@@ -123,7 +143,7 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-teal-500/30 shadow-lg group">
+            <div className="order-2 md:order-1 relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-amber-500/30 shadow-lg group">
               <Image
                 src="/images/game-edit.png"
                 alt="DUNGEON×DUNGEON 編集画面"
@@ -145,6 +165,15 @@ export default function Home() {
                 <li className="flex items-center gap-2">✓ 壁や床、ギミックを配置するだけの簡単設計</li>
                 <li className="flex items-center gap-2">✓ 公開・非公開のステータス管理に対応</li>
               </ul>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleCreateClick}
+                  className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs md:text-sm py-3 px-6 rounded-xl transition-all shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer"
+                >
+                  <span>ダンジョンを創る</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -170,9 +199,18 @@ export default function Home() {
                 <li className="flex items-center gap-2">✓ ライバルと競い合うランキングシステム</li>
                 <li className="flex items-center gap-2">✓ 自作ステージのプレイ状況をチェック</li>
               </ul>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => router.push("/ranking")}
+                  className="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs md:text-sm py-3 px-6 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
+                >
+                  <span>ランキングを見る</span>
+                </button>
+              </div>
             </div>
             {/* 特徴イメージ・プレースホルダー */}
-            <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-teal-500/30 shadow-lg group">
+            <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-orange-500/30 shadow-lg group">
               <Image
                 src="/images/game-ranking.png"
                 alt="DUNGEON×DUNGEON スコア画面"
@@ -194,6 +232,9 @@ export default function Home() {
       <footer className="w-full py-8 text-center text-xs text-stone-500 border-t border-stone-800/80 mt-16 font-mono">
         © 2026 DUNGEON×DUNGEON
       </footer>
+
+      {/* 未ログインユーザー用のポップアップ */}
+      <LoginAlertModal isOpen={showLoginAlert} onClose={() => setShowLoginAlert(false)} />
     </div>
   );
 }
