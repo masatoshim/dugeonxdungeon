@@ -11,6 +11,8 @@ import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDeta
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 import { useSWRConfig } from "swr";
 
+const STORAGE_KEY = "dungeon_search_params_cache";
+
 // 一覧画面用のソート項目定義
 const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
   { value: "createdAt", label: "最新（作成日）" },
@@ -33,6 +35,46 @@ function DungeonsPageContent() {
   const searchParams = useSearchParams();
   const { mutate: dmutate } = useSWRConfig();
 
+  // 検索条件をsessionStorageに保持・復元するロジック
+  useEffect(() => {
+    const dungeonIdParam = searchParams.get("dungeonId");
+
+    // 詳細画面（モーダル）を開いている最中はキャッシュを更新
+    if (dungeonIdParam) {
+      const currentParams = new URLSearchParams(searchParams.toString());
+      currentParams.delete("dungeonId");
+      const searchString = currentParams.toString();
+      if (searchString) {
+        sessionStorage.setItem(STORAGE_KEY, searchString);
+      }
+      return;
+    }
+
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const searchString = currentParams.toString();
+
+    if (searchString) {
+      // 検索条件やページ指定がある場合はキャッシュに保存
+      sessionStorage.setItem(STORAGE_KEY, searchString);
+    } else {
+      // URLにパラメータが何もない状態で一覧にアクセスされた場合
+      // 「ゲームプレイ等の画面から戻ってきたフラグ」があるか確認する
+      const keepSearch = sessionStorage.getItem("keep_dungeon_search");
+
+      if (keepSearch === "true") {
+        // 保持して戻ってきた場合のみ、フラグを消してキャッシュを復元する
+        sessionStorage.removeItem("keep_dungeon_search");
+        const savedParams = sessionStorage.getItem(STORAGE_KEY);
+        if (savedParams) {
+          router.replace(`${pathname}?${savedParams}`);
+        }
+      } else {
+        // 別メニューからの遷移、または直アクセスの場合はキャッシュを完全に破棄してリセット状態にする
+        sessionStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, [searchParams, pathname, router]);
+
   const dungeonId = searchParams.get("dungeonId");
   const page = Number(searchParams.get("page")) || 1;
   const [targetPage, setTargetPage] = useState(page);
@@ -47,6 +89,7 @@ function DungeonsPageContent() {
     if (!val || val === "undefined" || val === "") return undefined;
     return val;
   };
+
   // 検索コンポーネントに渡す初期値の復元
   const initialFilterValues: DungeonFilterValues = {
     text: getParam("text") || "",
@@ -129,7 +172,9 @@ function DungeonsPageContent() {
         {/* タイトル領域 */}
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">EXPLORE DUNGEONS</h1>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-1">世界中のプレイヤーが公開した多彩な迷宮を探索する</p>
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
+            世界中のクリエイターが作成したダンジョンに挑もう！
+          </p>
         </div>
 
         {/* 右側の検索・ソートボタン群など */}

@@ -22,13 +22,13 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
         </Link>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 justify-items-start">
         {isLoading ? (
           // ローディング中のスケルトン表示（4件分）
           [...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 h-[220px] animate-pulse flex flex-col justify-between"
+              className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 h-[220px] w-full animate-pulse flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="h-3 bg-slate-800 rounded w-1/3" />

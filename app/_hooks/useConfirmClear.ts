@@ -9,6 +9,9 @@ export const useConfirmClear = () => {
     (_, { arg }) => confirmClear(arg.pendingId),
     {
       onSuccess: (data) => {
+        if (data?.isMyDungeon) {
+          return;
+        }
         toast.success("履歴を登録しました");
       },
       onError: (err) => {
@@ -18,7 +21,7 @@ export const useConfirmClear = () => {
   );
 
   return {
-    confirm: trigger, // page.tsxからこれを呼んで登録を実行
+    confirm: trigger,
     isCreating: isMutating,
     createError: error?.message ?? "",
   };

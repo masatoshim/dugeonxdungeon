@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Heart, Maximize, Clock, Footprints, LogOut, Timer, Star, Play } from "lucide-react";
+import { Heart, Maximize, Clock, Footprints, Timer, Star, Play } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
 import {
@@ -60,15 +60,12 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
     { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
     { icon: Clock, label: "制限時間", value: `${dungeon.timeLimit}sec` },
     { icon: Footprints, label: "挑戦者の足跡", value: `${dungeon.totalPlayCount}回` },
-    { icon: LogOut, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人` },
-    { icon: Timer, label: "平均踏破時間", value: `${dungeon.averageClearTime ?? "--"}sec` },
+    { icon: Footprints, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人`, isFlippedVertical: true },
+    { icon: Timer, label: "平均踏破時間", value: `${dungeon.averageClearTime ?? "--"} sec` },
   ];
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    // プレイ後の遷移ページを設定
-    sessionStorage.setItem("dungeon_list_return_url", targetPage ? `/dungeons/?page=${targetPage}` : `/dungeons`);
 
     // プレイ画面へ遷移
     router.push(`/dungeons/${dungeon.id}/play`);
@@ -143,8 +140,8 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
               onClick={handlePlay}
               className="bg-cyan-400 hover:bg-cyan-300 text-slate-900 font-bold text-sm px-5 py-2 rounded-xl flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(34,211,238,0.3)] shrink-0"
             >
-              ダンジョンで遊ぶ
               <Play size={12} fill="currentColor" />
+              ダンジョンで遊ぶ
             </button>
           </div>
         </div>
@@ -157,7 +154,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
             key={i}
             className="bg-slate-800/60 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2"
           >
-            <stat.icon size={14} className="text-slate-400" />
+            <stat.icon size={14} className={`text-stone-400 ${stat.isFlippedVertical ? "scale-y-[-1]" : ""}`} />
             <span className="text-[10px] text-slate-500 font-bold uppercase">{stat.label}</span>
             <span className="text-sm font-mono font-bold text-slate-200">{stat.value}</span>
           </div>

@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { DungeonStatus } from "@prisma/client";
-import { Clock, FileText, Settings, ChevronDown } from "lucide-react";
+import { Clock, FileText, Settings } from "lucide-react";
 import { EditorSizeInput } from "@/app/(pages)/dungeons/_components";
 import { BackButton } from "./BackButton";
 import { DeleteActionGroup } from "./DeleteActionGroup";
@@ -165,18 +165,6 @@ export const EditorInfoHeader = ({
               linkingState={linkingState}
             />
           </div>
-
-          {/* 折り畳みボタン */}
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className="hidden md:flex items-center justify-center w-6 h-6 rounded hover:bg-slate-800/60 transition-colors shrink-0 cursor-pointer"
-            title={isOpen ? "折りたたむ" : "展開する"}
-          >
-            <ChevronDown
-              size={15}
-              className={`text-slate-500 group-hover/header:text-slate-300 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
-            />
-          </div>
         </div>
       </div>
 
@@ -295,21 +283,21 @@ export const EditorInfoHeader = ({
         </div>
       )}
 
-      {/* トグルバー（画面幅が狭いときのみ表示） */}
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onPointerDown={handleTouchStart}
-        onPointerUp={handleTouchEnd}
-        className="flex md:hidden w-full h-5 bg-slate-900/40 hover:bg-slate-800/80 active:bg-slate-800 items-center justify-center cursor-pointer transition-colors group/bar select-none relative"
-        title={isOpen ? "折りたたむ" : "展開する"}
-      >
-        <div className="w-10 h-3 bg-slate-600 group-hover/bar:bg-cyan-400 rounded-full transition-colors flex items-center justify-center"></div>
-        <ChevronDown
-          size={15}
-          className={`absolute text-slate-500 group-hover/bar:text-slate-300 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
-        />
+      {/* トグルバー */}
+      <div className="w-full flex justify-center select-none">
+        <div
+          onClick={() => setIsOpen(!isOpen)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onPointerDown={handleTouchStart}
+          onPointerUp={handleTouchEnd}
+          className="w-20 h-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-300 rounded-b-lg border border-t-0 border-slate-700 shadow-md flex items-center justify-center gap-1 transition-colors cursor-pointer group"
+          title={isOpen ? "折りたたむ" : "展開する"}
+        >
+          <span className="text-[10px] text-slate-400 group-hover:text-slate-200 transition-transform duration-200">
+            {isOpen ? "▲" : "▼"}
+          </span>
+        </div>
       </div>
     </div>
   );

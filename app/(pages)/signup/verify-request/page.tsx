@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 export default function VerifyRequestPage() {
+  return (
+    <Suspense fallback={<div className="text-white p-8">読み込み中...</div>}>
+      <VerifyRequestContent />
+    </Suspense>
+  );
+}
+
+function VerifyRequestContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 

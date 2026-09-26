@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 import { AlertCircle, LogIn, Menu, X, Gamepad2, Hammer, Trophy } from "lucide-react";
 
@@ -13,12 +13,16 @@ export default function Header() {
   const session = sessionContext?.data;
   const status = sessionContext?.status;
   const router = useRouter();
+  const pathname = usePathname();
 
   // ポップアップの開閉管理
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   // モバイルドロワーの開閉管理
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // ゲームプレイ画面か判定
+  const isPlayScreen = pathname?.endsWith("/play");
 
   useEffect(() => {
     setMounted(true);
@@ -35,6 +39,11 @@ export default function Header() {
       document.body.style.overflow = "";
     };
   }, [isMenuOpen]);
+
+  // ゲームプレイ画面の場合はヘッダー自体を一切描画しない
+  if (isPlayScreen) {
+    return null;
+  }
 
   // 「創る」をクリックしたときの制御
   const handleCreateClick = (e?: React.MouseEvent) => {
@@ -197,8 +206,8 @@ export default function Header() {
                     onClick={() => handleNavClick()}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-[#4fd1d1] hover:bg-[#3db8b8] text-slate-950 font-black text-sm rounded-xl transition-all shadow-lg shadow-[#4fd1d1]/20"
                   >
-                    ログイン / 新規登録
                     <LogIn size={16} />
+                    ログイン / 新規登録
                   </Link>
                 )}
               </div>
@@ -250,8 +259,8 @@ export default function Header() {
                 }}
                 className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] sm:text-xs font-black py-2.5 px-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer whitespace-nowrap"
               >
-                <span>ログイン / 新規登録</span>
                 <LogIn size={14} className="shrink-0" />
+                <span>ログイン / 新規登録</span>
               </button>
               <button
                 type="button"

@@ -6,6 +6,9 @@ export const GAME_EVENTS = {
   GAME_CLEAR: "game-clear",
   GAME_OVER: "game-over",
   TIME_OVER: "time-over",
+  REQUEST_INTERRUPT: "request-interrupt", // ReactからPhaserへの中断要求
+  GAME_INTERRUPT: "game-interrupt", // PhaserからReactへの中断応答
+  TIMER_UPDATE: "timer-update",
 } as const;
 
 export const TILE_SIZE = 32;

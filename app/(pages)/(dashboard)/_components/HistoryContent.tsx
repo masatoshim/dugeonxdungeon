@@ -78,6 +78,7 @@ export function HistoryContent({ user }: HistoryContentProps) {
           <h1 className="text-2xl font-bold tracking-tight text-slate-200">
             {user && `${user.nickName}さん の`}最近遊んだダンジョン
           </h1>
+          {!user && <p className="text-xs text-slate-400 mt-1">※自作ダンジョンのプレイ履歴は保存されません</p>}
         </div>
 
         {/* ソート */}

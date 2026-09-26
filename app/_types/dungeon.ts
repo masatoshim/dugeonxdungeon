@@ -256,6 +256,7 @@ export interface PlayHistoryResponse {
   playScore: number;
   playStatus: PlayStatus;
   createdAt: string; // ISOString
+  isMyDungeon: boolean;
 }
 
 /**

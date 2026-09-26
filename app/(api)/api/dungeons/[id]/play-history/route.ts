@@ -31,13 +31,61 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         },
       });
 
+      // 既存のダンジョン統計データの取得
+      const currentDungeon = await tx.dungeon.findUnique({
+        where: { id: dungeonId },
+        select: {
+          difficulty: true,
+          clearPlayCount: true,
+          failurePlayCount: true,
+          interruptPlayCount: true,
+          totalClearTime: true,
+        },
+      });
+
+      const prevClearCount = currentDungeon?.clearPlayCount ?? 0;
+      const prevFailureCount = currentDungeon?.failurePlayCount ?? 0;
+      const prevInterruptCount = currentDungeon?.interruptPlayCount ?? 0;
+      const prevTotalClearTime = currentDungeon?.totalClearTime ?? 0;
+
+      // 今回クリアならカウントとクリア時間を加算、違えばそのままの値を維持
+      const newClearCount = isClear ? prevClearCount + 1 : prevClearCount;
+      const newFailureCount = playStatus === PlayStatus.FAILURE ? prevFailureCount + 1 : prevFailureCount;
+      const newInterruptCount = playStatus === PlayStatus.INTERRUPT ? prevInterruptCount + 1 : prevInterruptCount;
+      const newTotalClearTime = isClear ? prevTotalClearTime + playTime : prevTotalClearTime;
+
+      // 平均踏破時間の算出
+      const newAverageClearTime = newClearCount > 0 ? parseFloat((newTotalClearTime / newClearCount).toFixed(3)) : 0;
+
+      const totalPlays = newClearCount + newFailureCount + newInterruptCount;
+      let newDifficulty = currentDungeon?.difficulty ?? 3.0;
+      // 難易度算出
+      if (totalPlays >= 10) {
+        // 指標A：クリア率によるベース難易度 (1.0 〜 5.0)
+        const clearRate = newClearCount / totalPlays;
+        const rateScore = 5.0 - clearRate * 4.0;
+
+        // 指標B：平均クリア時間の絶対値による補正
+        const avgTime = newClearCount > 0 ? newTotalClearTime / newClearCount : 0;
+
+        // 平均時間に応じた補正値
+        // タイムが長いほど難易度を少し底上げする
+        const timeBonus = Math.min(avgTime / 300, 1.0) * 1.0;
+
+        // 指標Aと指標Bを8:2で調整
+        let calculated = rateScore * 0.8 + timeBonus * 2.0;
+
+        // 1.0 〜 5.0 の範囲に収め、小数点第1位までに丸める
+        newDifficulty = Math.round(Math.min(Math.max(calculated, 1.0), 5.0) * 10) / 10;
+      }
+
       // ダンジョン統計の更新
       await tx.dungeon.update({
         where: { id: dungeonId },
         data: {
           updatedBy: userId,
           clearPlayCount: {
-            increment: playStatus === PlayStatus.CLEAR ? 1 : 0,
+            increment: isClear ? 1 : 0,
           },
           failurePlayCount: {
             increment: playStatus === PlayStatus.FAILURE ? 1 : 0,
@@ -46,11 +94,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             increment: playStatus === PlayStatus.INTERRUPT ? 1 : 0,
           },
           totalPlayTime: {
-            increment: playTime,
+            increment: playTime, // 全プレイの合計時間
           },
           totalPlayScore: {
             increment: playScore,
           },
+          // クリア時のみ累計クリア時間を加算
+          totalClearTime: {
+            increment: isClear ? playTime : 0,
+          },
+          // 計算した平均踏破時間を更新
+          averageClearTime: newAverageClearTime,
+          difficulty: newDifficulty,
         },
       });
 

@@ -8,10 +8,11 @@ import { toast } from "sonner";
 import { MapData } from "@/game-core/types";
 import { PlayGameContent } from "@/app/(pages)/dungeons/_components";
 import { useGetDungeon, useUpdateDungeon } from "@/app/_hooks";
+import { Lock, RotateCcw } from "lucide-react";
 
 export default function TestPlayPage() {
   const [isGameOver, setIsGameOver] = useState(false);
-  const [isClear, setIsClear] = useState(false); // クリア状態を追加
+  const [isClear, setIsClear] = useState(false);
   const [gameKey, setGameKey] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -36,6 +37,7 @@ export default function TestPlayPage() {
   const handleRetry = () => {
     setIsGameOver(false);
     setIsClear(false);
+    setIsFinished(false);
     setGameKey((prev) => prev + 1);
   };
 
@@ -83,25 +85,34 @@ export default function TestPlayPage() {
             setIsGameOver(true);
             setIsFinished(true);
           }}
+          // テストプレイ中の中断時は編集画面に戻るようにする
+          onInterrupt={() => {
+            router.push(`/dungeons/${dungeonId}/edit`);
+          }}
+          enabled={!isFinished} // 終了時はゲーム操作を無効化
+          isTestPlay={true}
         />
       </Suspense>
 
       {/* --- ゲームオーバー用 UI --- */}
       {isGameOver && (
-        <div className="absolute inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-500">
-          <div className="bg-gray-800 p-8 rounded-2xl border-2 border-red-500 text-center shadow-[0_0_50px_rgba(239,68,68,0.3)]">
-            <h2 className="text-5xl font-black text-red-500 mb-2 italic">GAME OVER</h2>
-            <p className="text-gray-400 mb-8">クリア条件を満たせませんでした</p>
-            <div className="flex gap-4">
+        <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-stone-900/90 border border-red-500/30 p-8 rounded-3xl text-center shadow-[0_0_60px_rgba(239,68,68,0.15)] backdrop-blur-xl">
+            <h2 className="text-4xl font-extrabold tracking-wider text-red-500 mb-2 font-mono italic drop-shadow-md">
+              攻略失敗！
+            </h2>
+            <p className="text-sm text-stone-400 mb-8">クリア条件を満たせませんでした</p>
+
+            <div className="flex flex-col gap-3">
               <button
                 onClick={handleRetry}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95"
+                className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-red-600/25 active:scale-[0.98] cursor-pointer"
               >
                 リトライ
               </button>
               <button
                 onClick={() => router.push(`/dungeons/${dungeonId}/edit`)}
-                className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold transition-all"
+                className="w-full py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl font-medium text-sm transition-all active:scale-[0.98] cursor-pointer"
               >
                 編集画面に戻る
               </button>
@@ -110,50 +121,59 @@ export default function TestPlayPage() {
         </div>
       )}
 
-      {/* --- クリア用 UI (新規追加) --- */}
+      {/* --- クリア用 UI --- */}
       {isClear && (
-        <div className="absolute inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center animate-in zoom-in duration-500">
-          <div className="bg-gray-800 p-8 rounded-2xl border-2 border-yellow-500 text-center shadow-[0_0_50px_rgba(234,179,8,0.3)]">
-            <h2 className="text-5xl font-black text-yellow-500 mb-2 italic">CLEAR!!</h2>
+        <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4 animate-in zoom-in-95 duration-300">
+          <div className="w-full max-w-md bg-stone-900/90 border border-amber-500/30 p-8 rounded-3xl text-center shadow-[0_0_60px_rgba(245,158,11,0.15)] backdrop-blur-xl">
+            <h2 className="text-4xl font-extrabold tracking-wider text-amber-400 mb-2 font-mono italic drop-shadow-md">
+              攻略成功！
+            </h2>
 
-            <p className="text-gray-300 mb-8">
+            <p className="text-sm text-stone-300 mb-6 leading-relaxed">
               テストプレイに成功しました！
-              <br />
-              {dungeon.status !== "PUBLISHED" && "このダンジョンを公開しますか？"}
+              {dungeon.status !== "PUBLISHED" && (
+                <>
+                  <br />
+                  <span className="text-amber-400/90 font-medium">このダンジョンを公開しますか？</span>
+                </>
+              )}
             </p>
 
             <div className="flex flex-col gap-3">
               {dungeon.status !== "PUBLISHED" && (
                 <button
                   onClick={() => handlePublishSetting(true)}
-                  className="w-full px-8 py-4 bg-yellow-600 hover:bg-yellow-500 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 active:scale-95"
+                  className="w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-extrabold text-base rounded-xl shadow-lg shadow-amber-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
                   世界中に公開する！
                 </button>
               )}
 
-              <div className="flex gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {dungeon.status !== "PRIVATE" && (
                   <button
                     onClick={() => handlePublishSetting(false)}
-                    className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold transition-all"
+                    className="flex items-center justify-center gap-1.5 py-3 px-3 bg-stone-800/80 hover:bg-stone-700 text-stone-300 hover:text-stone-100 rounded-xl font-medium text-xs border border-stone-700/50 transition-all active:scale-[0.98] cursor-pointer"
                   >
+                    <Lock size={14} className="text-stone-400" />
                     非公開で保存
                   </button>
                 )}
                 <button
                   onClick={handleRetry}
-                  className="flex-1 px-6 py-3 bg-blue-900/50 hover:bg-blue-800 text-blue-200 rounded-xl font-bold border border-blue-700 transition-all"
+                  className="flex items-center justify-center gap-1.5 py-3 px-3 bg-stone-800/80 hover:bg-stone-700 text-stone-300 hover:text-stone-100 rounded-xl font-medium text-xs border border-stone-700/50 transition-all active:scale-[0.98] cursor-pointer"
                 >
+                  <RotateCcw size={14} className="text-stone-400" />
                   もう一度遊ぶ
                 </button>
-                <button
-                  onClick={() => router.push(`/dungeons/${dungeonId}/edit`)}
-                  className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold transition-all"
-                >
-                  編集画面に戻る
-                </button>
               </div>
+
+              <button
+                onClick={() => router.push(`/dungeons/${dungeonId}/edit`)}
+                className="w-full py-3 bg-transparent hover:bg-stone-800/50 text-stone-400 hover:text-stone-200 rounded-xl font-medium text-xs transition-all cursor-pointer mt-1"
+              >
+                編集画面に戻る
+              </button>
             </div>
           </div>
         </div>

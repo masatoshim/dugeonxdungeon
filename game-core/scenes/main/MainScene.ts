@@ -13,7 +13,6 @@ import {
   LeverSwitch,
 } from "@/game-core/entities";
 import { EnemyManager, WarpManager, StoneManager, CombatManager, DoorManager } from "@/game-core/scenes/main/managers";
-import { TimerUI } from "@/game-core/scenes/main/ui/TimerUI";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -41,12 +40,15 @@ export class MainScene extends Phaser.Scene {
   private leversGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   // ヘルパー・マネージャー
-  private timerUI!: TimerUI;
   private enemyManager!: EnemyManager;
   private warpManager!: WarpManager;
   private stoneManager!: StoneManager;
   private combatManager!: CombatManager;
   private doorManager!: DoorManager;
+
+  // 一時停止・再開用のフラグ
+  private isPaused: boolean = false;
+  private pauseStartTime: number = 0;
 
   constructor() {
     super("MainScene");
@@ -137,7 +139,22 @@ export class MainScene extends Phaser.Scene {
     // カメラ設定
     this.setupCamera();
 
-    this.timerUI = new TimerUI(this, this.timeLimit);
+    // React側からの中断要求を受け取るリスナーを登録
+    this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
+      // すでにゲームオーバーやクリアになっていなければ処理
+      if (this.isGameOver) return;
+      this.isGameOver = true;
+
+      // 現在のスコアと残り時間を取得
+      const currentScore = this.player.getScore() ?? 0;
+      const currentTimeLeft = this.timeLeft;
+
+      // React側へイベントでデータを送り返す
+      this.game.events.emit(GAME_EVENTS.GAME_INTERRUPT, {
+        score: currentScore,
+        timeLeft: currentTimeLeft,
+      });
+    });
   }
 
   private setupPhysics() {
@@ -213,7 +230,7 @@ export class MainScene extends Phaser.Scene {
 
       // とげとげの石は触れたら即ゲームオーバー
       if (stoneType === "SPIKE") {
-        this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+        this.triggerGameOver(GAME_EVENTS.GAME_OVER);
         return;
       }
       // 重い石は押して移動させない
@@ -231,9 +248,7 @@ export class MainScene extends Phaser.Scene {
     });
 
     // プレイヤーと弾のオーバーラップ
-    this.physics.add.overlap(this.player, this.enemyBullets, () =>
-      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER),
-    );
+    this.physics.add.overlap(this.player, this.enemyBullets, () => this.triggerGameOver(GAME_EVENTS.GAME_OVER));
 
     // 通常の敵の場合、触れたら即ゲームオーバー
     this.physics.add.collider(
@@ -253,7 +268,7 @@ export class MainScene extends Phaser.Scene {
       if (enemy.getEnemyData().isObstacle || false) {
         return;
       }
-      this.triggerGameOver("GAME OVER", GAME_EVENTS.GAME_OVER);
+      this.triggerGameOver(GAME_EVENTS.GAME_OVER);
     });
 
     // 石が勝手に吹っ飛ぶのを防ぐ
@@ -407,7 +422,7 @@ export class MainScene extends Phaser.Scene {
 
   update() {
     // ゲーム終了時は何もしない
-    if (this.isGameOver) return;
+    if (this.isGameOver || this.isPaused) return;
 
     if (!this.isTimerStarted) {
       this.startTime = performance.now();
@@ -421,11 +436,11 @@ export class MainScene extends Phaser.Scene {
 
     if (this.timeLeft !== currentLeft) {
       this.timeLeft = currentLeft;
-      this.timerUI.update(this.timeLeft);
+      this.game.events.emit(GAME_EVENTS.TIMER_UPDATE, this.timeLeft);
     }
 
     if (this.timeLeft <= 0) {
-      this.triggerGameOver("TIME UP!", GAME_EVENTS.TIME_OVER);
+      this.triggerGameOver(GAME_EVENTS.TIME_OVER);
     }
 
     if (this.player) {
@@ -457,7 +472,7 @@ export class MainScene extends Phaser.Scene {
   /**
    * ゲームオーバー時の統合処理
    */
-  private triggerGameOver(message: string, notificationType: string) {
+  private triggerGameOver(notificationType: string) {
     if (this.isGameOver) return;
     this.isGameOver = true;
 
@@ -473,33 +488,63 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.shake(500, 0.01);
 
     this.game.events.emit(notificationType, { score: 0, timeLeft: this.timeLeft });
-
-    // ゲーム画面上のテキスト表示
-    const { width, height } = this.scale;
-    this.add
-      .text(width / 2, height / 2, message, {
-        fontSize: "64px",
-        color: "#ff0000",
-        fontStyle: "bold",
-        stroke: "#000",
-        strokeThickness: 8,
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(100);
   }
 
   private setupCamera() {
-    const mapWidth = this.mapData.tiles[0].length * TILE_SIZE;
-    const mapHeight = this.mapData.tiles.length * TILE_SIZE;
+    const mapWidth = this.mapData.width * TILE_SIZE;
+    const mapHeight = this.mapData.height * TILE_SIZE;
+
     this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
-    if (mapWidth > this.scale.width || mapHeight > this.scale.height) {
-      // プレイヤーの追従（マップが画面より大きい場合のみ有効に機能する）
-      this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-      this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    } else {
-      // マップを画面の中央に
-      this.cameras.main.setScroll(-(this.scale.width - mapWidth) / 2, -(this.scale.height - mapHeight) / 2);
+
+    const applyCameraLayout = () => {
+      const baseWidth = this.cameras.main.width;
+      const baseHeight = this.cameras.main.height;
+      if (baseWidth === 0 || baseHeight === 0) return;
+
+      let initialZoom = 1.0;
+
+      if (baseWidth < 640) {
+        initialZoom = 0.7;
+      }
+
+      this.cameras.main.setZoom(initialZoom);
+
+      const viewWidth = baseWidth / initialZoom;
+      const viewHeight = baseHeight / initialZoom;
+
+      const isLargerX = mapWidth > viewWidth;
+      const isLargerY = mapHeight > viewHeight;
+
+      if (isLargerX && isLargerY) {
+        // ダンジョンがキャンバスより大きい場合：プレイヤーを中心に追従
+        this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
+        if (this.player) {
+          this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        }
+      } else if (isLargerX) {
+        this.cameras.main.centerOn(this.player.x, mapHeight / 2);
+        if (this.player) {
+          this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        }
+      } else if (isLargerY) {
+        this.cameras.main.centerOn(mapWidth / 2, this.player.y);
+        if (this.player) {
+          this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        }
+      } else {
+        // ダンジョンがキャンバスより小さい場合：ダンジョン全体をキャンバスの中央に配置
+        this.cameras.main.stopFollow();
+        this.cameras.main.removeBounds();
+        this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
+      }
+    };
+
+    // 即座に一度適用
+    applyCameraLayout();
+
+    // 画面リサイズ時のイベント登録
+    if (!this.scale.listeners("resize").includes(applyCameraLayout)) {
+      this.scale.on("resize", applyCameraLayout, this);
     }
   }
 
@@ -518,14 +563,51 @@ export class MainScene extends Phaser.Scene {
     for (const goal of goals) {
       const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
       const goalBody = goal.body as Phaser.Physics.Arcade.StaticBody;
-      const isContained =
-        playerBody.left >= goalBody.left &&
-        playerBody.right <= goalBody.right &&
-        playerBody.top >= goalBody.top &&
-        playerBody.bottom <= goalBody.bottom;
-      if (isContained) {
+
+      // プレイヤーの中心座標を算出
+      const playerCenterX = playerBody.x + playerBody.width / 2;
+      const playerCenterY = playerBody.y + playerBody.height / 2;
+
+      // プレイヤーの中心がゴールの範囲内に含まれているか判定
+      const isInside =
+        playerCenterX >= goalBody.left &&
+        playerCenterX <= goalBody.right &&
+        playerCenterY >= goalBody.top &&
+        playerCenterY <= goalBody.bottom;
+
+      if (isInside) {
         this.handleGoal();
         return;
+      }
+    }
+  }
+
+  public pauseGame() {
+    if (this.isGameOver || this.isPaused) return;
+    this.isPaused = true;
+    this.pauseStartTime = performance.now(); // ポーズ開始時刻を記録
+    this.physics.pause(); // 物理演算を一時停止
+    if (this.player) {
+      this.player.active = false;
+      if (this.player.body) {
+        (this.player.body as Phaser.Physics.Arcade.Body).enable = false;
+      }
+    }
+  }
+
+  public resumeGame() {
+    if (this.isGameOver || !this.isPaused) return;
+    this.isPaused = false;
+
+    // ポーズしていた時間を計算し、ゲーム開始時刻をその分だけ未来にずらす
+    const pauseDuration = performance.now() - this.pauseStartTime;
+    this.startTime += pauseDuration;
+
+    this.physics.resume(); // 物理演算を再開
+    if (this.player) {
+      this.player.active = true;
+      if (this.player.body) {
+        (this.player.body as Phaser.Physics.Arcade.Body).enable = true;
       }
     }
   }

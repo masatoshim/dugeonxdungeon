@@ -1,8 +1,8 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { PlayGameContent } from "@/app/(pages)/dungeons/_components";
 import { useGetDungeon, useCreatePlayHistory, useCreatePendingClear, useConfirmClear } from "@/app/_hooks";
@@ -10,105 +10,130 @@ import { MapData } from "@/game-core/types";
 import { PlayStatus } from "@prisma/client";
 
 export default function GamePlayPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white font-mono">
+          読み込み中...
+        </div>
+      }
+    >
+      <GamePlayContentWrapper />
+    </Suspense>
+  );
+}
+
+function GamePlayContentWrapper() {
   const { status, data: session } = useSession();
+  const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const dungeonId = params.id as string;
+
+  const hasPendingQuery =
+    searchParams.get("pending") === "true" ||
+    (typeof window !== "undefined" && !!localStorage.getItem("pending_clear_id"));
+
   const [isGameOver, setIsGameOver] = useState(false);
-  const [isClear, setIsClear] = useState(false);
+  const [isClear, setIsClear] = useState(hasPendingQuery);
   const [clearScore, setClearScore] = useState<number>(0);
   const [clearTime, setClearTime] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
-  const [isFinished, setIsFinished] = useState(false);
-  const isProcessing = useRef(false); // ２重起動防止用
+  const [isFinished, setIsFinished] = useState(hasPendingQuery);
+  const [isMyDungeonNotice, setIsMyDungeonNotice] = useState(false);
 
-  const router = useRouter();
-  const params = useParams();
-  const dungeonId = params.id as string;
+  const isProcessing = useRef(false);
 
   const { dungeon, isLoading } = useGetDungeon(dungeonId);
-  const { create, isCreating } = useCreatePlayHistory(dungeonId);
+  const { create } = useCreatePlayHistory(dungeonId);
   const { create: createPending, isCreating: isPendingCreating } = useCreatePendingClear();
-  const { confirm: confirmClear, isCreating: isConfirming } = useConfirmClear();
+  const { confirm: confirmClear } = useConfirmClear();
 
-  // 一覧画面に戻るためのURLを保持
-  const [returnUrl, setReturnUrl] = useState("/dungeons");
+  const handleReturnToList = () => {
+    // 検索条件を維持するフラグを立てる
+    sessionStorage.setItem("keep_dungeon_search", "true");
 
-  useEffect(() => {
-    // sessionStorageから保持していた一覧ページのURLを取得する
-    if (typeof window !== "undefined") {
-      const savedUrl = sessionStorage.getItem("dungeon_list_return_url");
-      if (savedUrl) {
-        setReturnUrl(savedUrl);
-      }
-    }
-  }, []);
+    // 一覧画面へ戻る
+    router.push("/dungeons");
+  };
 
   // ログイン画面からのリダイレクト時に発火
   useEffect(() => {
     // ２重起動防止
-    const pendingId = localStorage.getItem("pending_clear_id");
-    if (!pendingId || isProcessing.current) return;
+    const pendingId = typeof window !== "undefined" ? localStorage.getItem("pending_clear_id") : null;
+    if (!pendingId || isProcessing.current || status === "loading") return;
+
     isProcessing.current = true;
 
     const initPendingClear = async () => {
       // ログイン済み かつ ローカルストレージにIDがあるかチェック
       if (status === "authenticated") {
-        isProcessing.current = true;
-        // クリア時の状態をセット
         setIsFinished(true);
         setIsClear(true);
 
         try {
-          // プレイ履歴の登録＆一時保存したプレイ履歴の削除
-          const history = await confirmClear({ pendingId });
+          const result = await confirmClear({ pendingId });
 
-          if (history) {
-            setClearScore(history.playScore);
-            setClearTime(history.playTime);
-            // 登録成功したらストレージを掃除
-            localStorage.removeItem("pending_clear_id");
+          if (result?.isMyDungeon) {
+            setIsMyDungeonNotice(true);
+          } else if (result) {
+            setClearScore(result.playScore);
+            setClearTime(result.playTime);
           }
         } catch (err) {
           console.error("履歴登録に失敗しました:", err);
+          setIsMyDungeonNotice(true);
+        } finally {
+          localStorage.removeItem("pending_clear_id");
+          router.replace(`/dungeons/${dungeonId}/play`, { scroll: false });
         }
+      } else {
+        isProcessing.current = false;
+        localStorage.removeItem("pending_clear_id");
+        router.replace(`/dungeons/${dungeonId}/play`, { scroll: false });
       }
     };
     initPendingClear();
-  }, [status, confirmClear]);
+  }, [status, confirmClear, dungeonId, router]);
 
   const handleGameEnd = useCallback(
-    async (status: PlayStatus, score: number, timeLeft: number) => {
+    async (playStatus: PlayStatus, score: number, timeLeft: number) => {
       if (isFinished) return;
       setIsFinished(true);
 
-      const fixedTimeLeft = timeLeft;
-      const playTime = Math.max(0, (dungeon?.timeLimit ?? 0) - fixedTimeLeft);
-      const clearTime = parseFloat(playTime.toFixed(3));
-      const playScore = status === PlayStatus.CLEAR ? score + Math.round(fixedTimeLeft * 100) : score;
+      const playTime = parseFloat(Math.max(0, (dungeon?.timeLimit ?? 0) - timeLeft).toFixed(3));
+      const playScore = playStatus === PlayStatus.CLEAR ? score + Math.round(timeLeft * 100) : score;
 
-      if (status === PlayStatus.CLEAR) {
+      if (playStatus === PlayStatus.CLEAR) {
         setIsClear(true);
       } else {
         setIsGameOver(true);
       }
 
-      setClearTime(clearTime);
+      setClearTime(playTime);
       setClearScore(playScore);
 
       // 未ログインユーザーの場合、プレイ履歴の登録はされない
       if (!session) return;
 
+      const isMyDungeon = dungeon?.userId === session.user.id;
+      if (isMyDungeon) {
+        setIsMyDungeonNotice(true);
+        return;
+      }
       // プレイ記録の登録
       await create({
         playScore,
-        playTime: clearTime,
-        playStatus: status,
+        playTime,
+        playStatus,
         versionMajor: dungeon?.versionMajor,
         versionMinor: dungeon?.versionMinor,
       });
     },
-    [isFinished, dungeon, create],
+    [isFinished, dungeon, create, session],
   );
 
-  if (isLoading || !dungeonId) {
+  if (isLoading || !dungeonId || (hasPendingQuery && status === "loading")) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white font-mono">
         読み込み中...
@@ -126,118 +151,138 @@ export default function GamePlayPage() {
     settings: { isDark: false, ambientLight: 1.0 },
   };
 
-  if (isLoading || !dungeon) return <div className="text-white">読み込み中...</div>;
+  const isGameEnabled = !hasPendingQuery && !isClear && !isGameOver;
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {/* ゲームメイン UI */}
-      <PlayGameContent
-        key={gameKey}
-        dungeon={dungeon}
-        parsedMapData={parsedMapData}
-        onClear={(score, timeLeft) => handleGameEnd(PlayStatus.CLEAR, score, timeLeft)}
-        onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
-      />
+      {dungeon && (
+        <PlayGameContent
+          key={gameKey}
+          dungeon={dungeon}
+          parsedMapData={parsedMapData}
+          enabled={isGameEnabled}
+          onClear={(score, timeLeft) => handleGameEnd(PlayStatus.CLEAR, score, timeLeft)}
+          onGameOver={(score, timeLeft) => handleGameEnd(PlayStatus.FAILURE, score, timeLeft)}
+          onInterrupt={(score, timeLeft) => {
+            handleGameEnd(PlayStatus.INTERRUPT, score, timeLeft);
+            handleReturnToList();
+          }}
+        />
+      )}
 
       {/* クリアリザルト UI */}
       {(isClear || isGameOver) && (
-        <div className="absolute inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div
-            className={`bg-slate-900 border-2 ${isClear ? "border-cyan-500" : "border-red-500"} p-10 rounded-3xl text-center max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.2)]`}
+            className={`relative bg-slate-900/90 border ${
+              isClear
+                ? "border-cyan-500/50 shadow-[0_0_40px_rgba(6,182,212,0.15)]"
+                : "border-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.15)]"
+            } p-8 sm:p-10 rounded-2xl text-center max-w-md w-full backdrop-blur-xl animate-in zoom-in-95 duration-300`}
           >
-            <h2
-              className={`text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mb-2 italic tracking-tighter`}
-            >
-              {isClear ? "FINISH!" : "GAME OVER"}
-            </h2>
-
-            <p className="text-slate-400 mb-6 font-mono text-lg">
-              {isClear ? `TIME: ${clearTime}s` : "また挑戦してください"}
-            </p>
-            <p className="text-slate-400 mb-6 font-mono text-lg">SCORE: {clearScore}</p>
-
-            {/* 未ログインユーザーへの表示 */}
-            {!session && (
-              <div className="space-y-6 animate-in fade-in zoom-in duration-500">
-                <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                  <p className="text-slate-300 text-sm mb-1">ゲストモードでプレイ中</p>
-                  <p className="text-amber-400 font-bold">
-                    ※ログインしていないため、クリア履歴やランキングは保存されません。
+            {/* ヘッダータイトル */}
+            <div className="mb-6">
+              {dungeon?.name && (
+                <div className="mt-2.5 px-2">
+                  <p className="text-xs text-slate-400 font-mono tracking-wide truncate" title={dungeon.name}>
+                    <span className={`font-semibold ${isClear ? "text-cyan-400" : "text-red-500"}`}>
+                      {dungeon.name}
+                    </span>
                   </p>
                 </div>
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={async () => {
-                      if (isPendingCreating) return;
-                      try {
-                        const result = await createPending({
-                          dungeonId,
-                          playScore: clearScore,
-                          playTime: clearTime ?? 0,
-                          versionMajor: dungeon?.versionMajor,
-                          versionMinor: dungeon?.versionMinor,
-                        });
+              )}
 
-                        if (result?.pendingId) {
-                          // localStorageにpendingId保存
-                          localStorage.setItem("pending_clear_id", result.pendingId);
+              <h2
+                className={`text-5xl sm:text-6xl font-black ${isClear ? "text-cyan-400" : "text-red-500"} mt-2 italic tracking-tighter drop-shadow-md`}
+              >
+                {isClear ? "攻略成功！" : "攻略失敗！"}
+              </h2>
+            </div>
 
-                          // ログイン遷移
-                          const origin = window.location.origin;
-                          const callbackUrl = `${origin}/dungeons/${dungeonId}/play`;
-                          signIn(undefined, { callbackUrl });
-                        }
-                      } catch (err) {
-                        console.error("Pending clear creation failed:", err);
-                      }
-                    }}
-                    disabled={isPendingCreating}
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
-                  >
-                    {isPendingCreating ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        準備中...
-                      </span>
-                    ) : (
-                      "ログインして記録を残す"
-                    )}
-                  </button>
-                </div>
+            {/* スコア・タイム表示カード */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl">
+                <p className="text-xs text-slate-400 font-mono mb-1">TIME</p>
+                <p className="text-xl sm:text-2xl font-bold font-mono text-white">
+                  {isClear ? `${clearTime ?? 0} sec` : "--:--"}
+                </p>
+              </div>
+              <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl">
+                <p className="text-xs text-slate-400 font-mono mb-1">SCORE</p>
+                <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400">{clearScore} pt</p>
+              </div>
+            </div>
+
+            {/* 自作ダンジョンのため保存されなかった場合の通知メッセージ */}
+            {isMyDungeonNotice && (
+              <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl mb-6 text-left">
+                <p className="text-amber-400 text-xs leading-relaxed font-medium">
+                  ※ご自身が作成したダンジョンのため、スコアやクリア履歴は保存されませんでした。
+                </p>
               </div>
             )}
 
-            {/* 共通表示 */}
-            <div className="space-y-3">
+            {/* 未ログインユーザーへの表示 */}
+            {!session && !isMyDungeonNotice && (
+              <div className="space-y-4 mb-6">
+                <div className="bg-blue-500/10 border border-blue-500/20 p-3.5 rounded-xl text-left">
+                  <p className="text-slate-300 text-xs mb-0.5">ゲストモードでプレイ中</p>
+                  <p className="text-blue-400 text-xs font-semibold">
+                    ログインするとクリア履歴やランキングに反映されます。
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (isPendingCreating || !dungeon) return;
+                    try {
+                      const result = await createPending({
+                        dungeonId,
+                        playScore: clearScore,
+                        playTime: clearTime ?? 0,
+                        versionMajor: dungeon?.versionMajor,
+                        versionMinor: dungeon?.versionMinor,
+                      });
+
+                      if (result?.pendingId) {
+                        // localStorageにpendingId保存
+                        localStorage.setItem("pending_clear_id", result.pendingId);
+                        // ログイン遷移
+                        const callbackUrl = `${window.location.origin}/dungeons/${dungeonId}/play?pending=true`;
+                        signIn(undefined, { callbackUrl });
+                      }
+                    } catch (err) {
+                      console.error("Pending clear creation failed:", err);
+                    }
+                  }}
+                  disabled={isPendingCreating}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+                >
+                  {isPendingCreating ? "処理中..." : "ログインして記録を残す"}
+                </button>
+              </div>
+            )}
+
+            {/* アクションボタン */}
+            <div className="space-y-2.5">
               <button
                 onClick={() => {
                   setIsFinished(false);
                   setIsClear(false);
                   setIsGameOver(false);
+                  setIsMyDungeonNotice(false);
                   setGameKey((k) => k + 1);
                 }}
-                className={`w-full py-4 ${isClear ? "bg-cyan-500" : "bg-red-500"} hover:opacity-90 text-slate-950 font-black rounded-xl transition-all`}
+                className={`w-full py-3.5 px-4 ${
+                  isClear
+                    ? "bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-400/20"
+                    : "bg-red-500 hover:bg-red-400 text-white shadow-red-500/20"
+                } font-bold text-sm rounded-xl shadow-lg transition-all active:scale-[0.98]`}
               >
                 もう一回挑戦する
               </button>
               <button
-                onClick={() => router.push(returnUrl)}
-                className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all"
+                onClick={handleReturnToList}
+                className="w-full py-3 px-4 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all active:scale-[0.98]"
               >
                 一覧画面に戻る
               </button>
