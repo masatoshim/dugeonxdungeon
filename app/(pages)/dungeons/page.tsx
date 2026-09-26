@@ -16,6 +16,7 @@ const STORAGE_KEY = "dungeon_search_params_cache";
 // 一覧画面用のソート項目定義
 const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
   { value: "createdAt", label: "最新（作成日）" },
+  { value: "updatedAt", label: "最新（更新日）" },
   { value: "mapSize", label: "ダンジョンサイズ" },
   { value: "difficulty", label: "ダンジョン難しさ" },
   { value: "timeLimit", label: "制限時間" },

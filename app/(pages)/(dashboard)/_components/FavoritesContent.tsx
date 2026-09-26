@@ -15,6 +15,7 @@ import { useSWRConfig } from "swr";
 const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
   { value: "favoritedAt", label: "追加した順" },
   { value: "createdAt", label: "最新（作成日）" },
+  { value: "updatedAt", label: "最新（更新日）" },
   { value: "mapSize", label: "ダンジョンサイズ" },
   { value: "difficulty", label: "ダンジョン難しさ" },
   { value: "timeLimit", label: "制限時間" },
