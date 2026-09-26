@@ -144,7 +144,7 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
         <p className="flex justify-start gap-2">
           <span className="text-slate-500 w-16">サイズ</span>
           <span className="font-mono">
-            {dungeon.mapSizeWidth} x {dungeon.mapSizeHeight}
+            {dungeon.mapSizeWidth} × {dungeon.mapSizeHeight}
           </span>
         </p>
         <p className="flex justify-start gap-2">

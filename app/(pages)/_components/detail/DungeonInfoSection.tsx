@@ -57,7 +57,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
 
   // スタッツ項目を配列化してループで表示
   const stats = [
-    { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
+    { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} × ${dungeon.mapSizeWidth}` },
     { icon: Clock, label: "制限時間", value: `${dungeon.timeLimit}sec` },
     { icon: Footprints, label: "挑戦者の足跡", value: `${dungeon.totalPlayCount}回` },
     { icon: Footprints, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人`, isFlippedVertical: true },
