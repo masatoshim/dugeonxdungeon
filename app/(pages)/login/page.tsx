@@ -111,12 +111,7 @@ function LoginForm() {
 
           {/* パスワード */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between ml-1">
-              <label className="text-sm font-medium text-slate-300">パスワード</label>
-              <Link href="/login/forgot-password" className="text-xs text-[#4fd1d1] hover:underline">
-                パスワードをお忘れですか？
-              </Link>
-            </div>
+            <label className="text-sm font-medium text-slate-300 ml-1">パスワード</label>
             <input
               type="password"
               className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all text-sm"
@@ -126,6 +121,11 @@ function LoginForm() {
               required
               disabled={isSubmitting}
             />
+            <div className="flex justify-end mt-1 mr-1">
+              <Link href="/login/forgot-password" className="text-xs text-[#4fd1d1] hover:underline">
+                パスワードをお忘れですか？
+              </Link>
+            </div>
           </div>
 
           <button
