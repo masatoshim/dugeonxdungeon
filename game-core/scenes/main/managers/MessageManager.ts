@@ -121,7 +121,7 @@ export class MessageManager {
       this.hideTimer.remove();
     }
 
-    this.hideTimer = this.scene.time.delayedCall(3000, () => {
+    this.hideTimer = this.scene.time.delayedCall(1000, () => {
       this.container?.setVisible(false);
     });
   }

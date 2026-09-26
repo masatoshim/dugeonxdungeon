@@ -56,8 +56,24 @@ export class EnemyManager {
   public update(): void {
     const enemies = this.group.getChildren() as Enemy[];
 
+    // カメラの矩形範囲を取得
+    const cam = this.scene.cameras.main;
+    const viewBounds = new Phaser.Geom.Rectangle(
+      cam.scrollX - 100,
+      cam.scrollY - 100,
+      cam.width + 200,
+      cam.height + 200,
+    );
+
     enemies.forEach((enemy) => {
       if (!enemy.active || !enemy.body) return;
+
+      // カメラの視界外にいる敵は処理をスキップ
+      const isVisibleOnScreen = Phaser.Geom.Rectangle.Contains(viewBounds, enemy.x, enemy.y);
+
+      if (!isVisibleOnScreen) {
+        return;
+      }
 
       const enemyData = enemy.getEnemyData();
 
