@@ -28,6 +28,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   // ダメージ復帰タイマー
   private stunTimer?: Phaser.Time.TimerEvent;
 
+  public lastSightCheckTime: number = 0;
+  public cachedSightResult: boolean = false;
+
   constructor(scene: Phaser.Scene, x: number, y: number, texture: AssetKey, frame: number, enemyData: EnemyData) {
     super(scene, x, y, texture, frame);
 

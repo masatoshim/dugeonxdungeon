@@ -407,6 +407,10 @@ export class MainScene extends Phaser.Scene {
     return this.walls;
   }
 
+  public getEnemyBullets(): Phaser.Physics.Arcade.Group {
+    return this.enemyBullets;
+  }
+
   public getBreakableWalls(): Phaser.Physics.Arcade.StaticGroup {
     return this.breakableWalls;
   }
@@ -461,6 +465,25 @@ export class MainScene extends Phaser.Scene {
 
     if (this.warpManager && this.player) {
       this.warpManager.update(this.player, this.enemies);
+    }
+
+    // 画面外に出た弾を即座に破棄
+    if (this.enemyBullets) {
+      const worldBounds = this.physics.world.bounds;
+      this.enemyBullets.getChildren().forEach((bulletObj) => {
+        const bullet = bulletObj as Phaser.Physics.Arcade.Sprite;
+        if (bullet && bullet.active) {
+          // ワールドの端から外に出ているか判定
+          if (
+            bullet.x < worldBounds.x ||
+            bullet.x > worldBounds.x + worldBounds.width ||
+            bullet.y < worldBounds.y ||
+            bullet.y > worldBounds.y + worldBounds.height
+          ) {
+            bullet.destroy();
+          }
+        }
+      });
     }
 
     // 一方通行扉の毎フレーム通過・距離チェック
