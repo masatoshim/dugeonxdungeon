@@ -12,7 +12,14 @@ import {
   Button,
   LeverSwitch,
 } from "@/game-core/entities";
-import { EnemyManager, WarpManager, StoneManager, CombatManager, DoorManager } from "@/game-core/scenes/main/managers";
+import {
+  MessageManager,
+  EnemyManager,
+  WarpManager,
+  StoneManager,
+  CombatManager,
+  DoorManager,
+} from "@/game-core/scenes/main/managers";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -129,6 +136,7 @@ export class MainScene extends Phaser.Scene {
             this.leversGroup,
           ),
         );
+        MessageManager.getInstance().init(this, this.player);
       },
     };
 
@@ -445,6 +453,7 @@ export class MainScene extends Phaser.Scene {
 
     if (this.player) {
       this.player.update();
+      MessageManager.getInstance().update();
       this.checkGoalCondition();
     }
 
