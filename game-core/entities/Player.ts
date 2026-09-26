@@ -25,6 +25,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // 操作用
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private spaceKey: Phaser.Input.Keyboard.Key;
+
+  private wasdKeys!: {
+    up: Phaser.Input.Keyboard.Key;
+    down: Phaser.Input.Keyboard.Key;
+    left: Phaser.Input.Keyboard.Key;
+    right: Phaser.Input.Keyboard.Key;
+  };
+  private zKey!: Phaser.Input.Keyboard.Key;
+
   private lastDirection: { x: number; y: number } = { x: 0, y: 1 };
   private attackCallback?: (
     x: number,
@@ -51,6 +60,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // 入力設定
     this.cursors = scene.input.keyboard!.createCursorKeys();
     this.spaceKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // WASDキーの初期化
+    this.wasdKeys = scene.input.keyboard!.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+    }) as {
+      up: Phaser.Input.Keyboard.Key;
+      down: Phaser.Input.Keyboard.Key;
+      left: Phaser.Input.Keyboard.Key;
+      right: Phaser.Input.Keyboard.Key;
+    };
+
+    // Zキーの初期化
+    this.zKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+
+    // スペースキーによるブラウザスクロールを防止
+    scene.input.keyboard!.addCapture("SPACE");
 
     // アニメーションの生成
     this.createAnimations();
@@ -148,22 +176,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const speed = 80; // Todo: 適切な移動スピードに
     this.arcadeBody.setVelocity(0);
 
-    // キーボード入力をチェック
+    // --- キーボード入力をチェック（矢印キー ＋ WASD の両対応） ---
     let moveX = 0;
     let moveY = 0;
 
-    if (this.cursors.left.isDown) {
+    const isLeft = this.cursors.left.isDown || this.wasdKeys.left.isDown;
+    const isRight = this.cursors.right.isDown || this.wasdKeys.right.isDown;
+    const isUp = this.cursors.up.isDown || this.wasdKeys.up.isDown;
+    const isDown = this.cursors.down.isDown || this.wasdKeys.down.isDown;
+
+    if (isLeft) {
       moveX = -1;
       this.lastDirection = { x: -1, y: 0 };
-    } else if (this.cursors.right.isDown) {
+    } else if (isRight) {
       moveX = 1;
       this.lastDirection = { x: 1, y: 0 };
     }
 
-    if (this.cursors.up.isDown) {
+    if (isUp) {
       moveY = -1;
       this.lastDirection = { x: 0, y: -1 };
-    } else if (this.cursors.down.isDown) {
+    } else if (isDown) {
       moveY = 1;
       this.lastDirection = { x: 0, y: 1 };
     }
@@ -185,8 +218,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.arcadeBody.velocity.normalize().scale(speed);
     }
 
-    // スペースキーまたはスマホのタップ攻撃判定
-    if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+    // --- 攻撃判定（スペースキー または Zキー または スマホのタップ攻撃） ---
+    const isSpaceJustDown = Phaser.Input.Keyboard.JustDown(this.spaceKey);
+    const isZJustDown = this.zKey ? Phaser.Input.Keyboard.JustDown(this.zKey) : false;
+
+    if (isSpaceJustDown || isZJustDown) {
       this.executeAttack();
       return;
     }
