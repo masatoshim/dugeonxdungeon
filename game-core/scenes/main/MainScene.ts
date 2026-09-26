@@ -515,9 +515,19 @@ export class MainScene extends Phaser.Scene {
       const isLargerX = mapWidth > viewWidth;
       const isLargerY = mapHeight > viewHeight;
 
-      if (isLargerX || isLargerY) {
+      if (isLargerX && isLargerY) {
         // ダンジョンがキャンバスより大きい場合：プレイヤーを中心に追従
         this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
+        if (this.player) {
+          this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        }
+      } else if (isLargerX) {
+        this.cameras.main.centerOn(this.player.x, mapHeight / 2);
+        if (this.player) {
+          this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        }
+      } else if (isLargerY) {
+        this.cameras.main.centerOn(mapWidth / 2, this.player.y);
         if (this.player) {
           this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         }
