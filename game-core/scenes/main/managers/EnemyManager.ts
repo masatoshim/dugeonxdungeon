@@ -58,21 +58,31 @@ export class EnemyManager {
 
     // カメラの矩形範囲を取得
     const cam = this.scene.cameras.main;
-    const viewBounds = new Phaser.Geom.Rectangle(
-      cam.scrollX - 100,
-      cam.scrollY - 100,
-      cam.width + 200,
-      cam.height + 200,
-    );
+    const viewBounds = new Phaser.Geom.Rectangle(cam.scrollX - 50, cam.scrollY - 50, cam.width + 100, cam.height + 100);
 
-    enemies.forEach((enemy) => {
+    // 現在のフレーム数を取得（フレームごとの処理分散用）
+    const currentFrame = this.scene.sys.game.getFrame();
+
+    enemies.forEach((enemy, index) => {
       if (!enemy.active || !enemy.body) return;
 
-      // カメラの視界外にいる敵は処理をスキップ
+      // カメラの視界外にいるか判定
       const isVisibleOnScreen = Phaser.Geom.Rectangle.Contains(viewBounds, enemy.x, enemy.y);
+      const body = enemy.body as Phaser.Physics.Arcade.Body;
 
       if (!isVisibleOnScreen) {
+        // 画面外の敵は物理演算や描画を完全にスリープさせる
+        if (body.enable) {
+          body.enable = false;
+          enemy.setVisible(false);
+        }
         return;
+      } else {
+        // 画面内に入ったら復帰
+        if (!body.enable) {
+          body.enable = true;
+          enemy.setVisible(true);
+        }
       }
 
       const enemyData = enemy.getEnemyData();
@@ -94,7 +104,7 @@ export class EnemyManager {
         }
       }
 
-      // 完全に静止していて追跡中でもない敵は、AIや足跡処理の計算頻度を落とす・またはスキップ
+      // 完全に静止していて追跡中でもない敵はスキップ
       const isMoving = enemy.body.velocity.x !== 0 || enemy.body.velocity.y !== 0;
       const isChasing = enemy.isChasing2 || enemy.isChasing3;
       if (!isMoving && !isChasing && enemyData.moveType !== "MIRROR") {
@@ -105,12 +115,14 @@ export class EnemyManager {
 
       // スタン中でなければAIと足跡処理を進行
       if (!enemy.isStunned()) {
-        this.updateEnemyAI(enemy);
+        // すべての敵が同じフレームでAI計算をしないよう、インデックスやフレームで処理を分散
+        if ((currentFrame + index) % 3 === 0) {
+          this.updateEnemyAI(enemy);
+        }
         this.updateFootstomp(enemy);
       }
     });
   }
-
   /**
    * 足跡生成
    * @param enemy

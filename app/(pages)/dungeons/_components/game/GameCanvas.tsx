@@ -118,17 +118,6 @@ export default function GameCanvas({
 
   // Phaserゲーム本体の初期化
   useEffect(() => {
-    // 既存のインスタンスがあれば破棄
-    if (phaserRef.current) {
-      phaserRef.current.destroy(true);
-      phaserRef.current = null;
-    }
-
-    // DOMコンテナの中身を完全にクリア
-    if (containerRef.current) {
-      containerRef.current.innerHTML = "";
-    }
-
     if (!containerRef.current) return;
 
     // Phaser の設定
@@ -143,13 +132,34 @@ export default function GameCanvas({
       },
       physics: {
         default: "arcade",
-        arcade: { debug: false }, // Todo: 当たり判定表示.開発時はtrueに
+        arcade: { debug: false },
       },
       scene: [MainScene],
     };
 
     const game = new Phaser.Game(config);
+    phaserRef.current = game;
 
+    // ゲーム全体のイベント登録
+    game.events.on(GAME_EVENTS.GAME_CLEAR, (data: { score: number; timeLeft: number }) => {
+      onClearRef.current?.(data.score, data.timeLeft);
+    });
+    game.events.on(GAME_EVENTS.GAME_OVER, (data: { score: number; timeLeft: number }) => {
+      onGameOverRef.current?.(data.score, data.timeLeft);
+    });
+    game.events.on(GAME_EVENTS.TIME_OVER, (data: { score: number; timeLeft: number }) => {
+      onGameOverRef.current?.(data.score, data.timeLeft);
+    });
+    game.events.on(GAME_EVENTS.GAME_INTERRUPT, (data: { score: number; timeLeft: number }) => {
+      onInterruptRef.current?.(data.score, data.timeLeft);
+    });
+    game.events.on(GAME_EVENTS.TIMER_UPDATE, (timeLeft: number) => {
+      if (timerTextRef.current) {
+        timerTextRef.current.textContent = timeLeft.toFixed(2);
+      }
+    });
+
+    // READYイベント時に各種入力イベント（ホイール・ピンチ・タッチ）を紐付け
     game.events.once(Phaser.Core.Events.READY, () => {
       // READY直後に一瞬遅らせて、親DOMのサイズ変化が確実に反映された状態でスケールを更新する
       requestAnimationFrame(() => {
@@ -271,45 +281,31 @@ export default function GameCanvas({
       });
     });
 
-    // イベントリスナーの登録
-    game.events.on(GAME_EVENTS.GAME_CLEAR, (data: { score: number; timeLeft: number }) => {
-      onClearRef.current?.(data.score, data.timeLeft);
-    });
-    game.events.on(GAME_EVENTS.GAME_OVER, (data: { score: number; timeLeft: number }) => {
-      onGameOverRef.current?.(data.score, data.timeLeft);
-    });
-    game.events.on(GAME_EVENTS.TIME_OVER, (data: { score: number; timeLeft: number }) => {
-      onGameOverRef.current?.(data.score, data.timeLeft);
-    });
-
-    // 中断処理：Phaser -> React の中継
-    game.events.on(GAME_EVENTS.GAME_INTERRUPT, (data: { score: number; timeLeft: number }) => {
-      onInterruptRef.current?.(data.score, data.timeLeft);
-    });
-    game.events.on(GAME_EVENTS.TIMER_UPDATE, (timeLeft: number) => {
-      if (timerTextRef.current) {
-        timerTextRef.current.textContent = timeLeft.toFixed(2);
-      }
-    });
-
-    game.scene.start("MainScene", {
-      mapData: mapData,
-      timeLimit: timeLimit,
-    });
-
-    phaserRef.current = game;
-
     return () => {
-      if (phaserRef.current) {
-        phaserRef.current.events.off(GAME_EVENTS.GAME_CLEAR);
-        phaserRef.current.events.off(GAME_EVENTS.GAME_OVER);
-        phaserRef.current.events.off(GAME_EVENTS.TIME_OVER);
-        phaserRef.current.events.off(GAME_EVENTS.GAME_INTERRUPT);
-        phaserRef.current.events.off(GAME_EVENTS.TIMER_UPDATE);
-        phaserRef.current.destroy(true);
-        phaserRef.current = null;
+      game.destroy(true);
+      phaserRef.current = null;
+    };
+  }, []);
+
+  // mapDataやtimeLimit変更時のシーン再起動
+  useEffect(() => {
+    if (!phaserRef.current) return;
+    const game = phaserRef.current;
+
+    const startOrRestart = () => {
+      const scene = game.scene.getScene("MainScene");
+      if (scene && scene.scene.isActive()) {
+        scene.scene.restart({ mapData, timeLimit });
+      } else {
+        game.scene.start("MainScene", { mapData, timeLimit });
       }
     };
+
+    if (!game.isBooted) {
+      game.events.once(Phaser.Core.Events.READY, startOrRestart);
+    } else {
+      startOrRestart();
+    }
   }, [mapData, timeLimit]);
 
   // React側でのフォールバックイベント
@@ -370,7 +366,7 @@ export default function GameCanvas({
     } catch {}
   };
 
-  // 親コンポーネント（外側）からのタッチ移動指示をプレイヤーに伝えるバインド
+  // 外側からのタッチ移動指示バインド
   useEffect(() => {
     if (requestTouchMoveRef) {
       requestTouchMoveRef.current = (dir: { x: number; y: number }) => {
@@ -378,7 +374,7 @@ export default function GameCanvas({
         const scene = phaserRef.current.scene.getScene("MainScene") as MainScene;
         const player = scene?.getPlayer?.();
         if (player && typeof (player as any).setTouchDirection === "function") {
-          (player as any).setTouchDirection(dir);
+          player.setTouchDirection(dir);
         }
       };
     }
@@ -388,7 +384,7 @@ export default function GameCanvas({
         const scene = phaserRef.current.scene.getScene("MainScene") as MainScene;
         const player = scene?.getPlayer?.();
         if (player && typeof (player as any).triggerAttack === "function") {
-          (player as any).triggerAttack();
+          player.triggerAttack();
         }
       };
     }
@@ -398,7 +394,7 @@ export default function GameCanvas({
         const scene = phaserRef.current.scene.getScene("MainScene") as MainScene;
         const player = scene?.getPlayer?.();
         if (player && typeof (player as any).setTouchDirection === "function") {
-          (player as any).setTouchDirection({ x: 0, y: 0 });
+          player.setTouchDirection({ x: 0, y: 0 });
         }
       };
     }

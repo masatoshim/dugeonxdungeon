@@ -643,4 +643,20 @@ export class MainScene extends Phaser.Scene {
       }
     }
   }
+
+  shutdown() {
+    // グローバルイベントバスに登録したリスナーを確実に解除
+    this.game.events.off(GAME_EVENTS.REQUEST_INTERRUPT);
+
+    // 画面リサイズリスナーの解除
+    if (this.scale) {
+      this.scale.off("resize", undefined, this);
+    }
+
+    // タイマーやツイートの全削除
+    this.time.removeAllEvents();
+
+    // キーボード入力等のリスナー解除
+    this.input.keyboard?.removeAllListeners();
+  }
 }
