@@ -511,18 +511,25 @@ export class MainScene extends Phaser.Scene {
     if (this.isGameOver) return;
     this.isGameOver = true;
 
-    // 物理演算を停止
+    // プレイヤーの移動や物理演算を停止
+    if (this.player && this.player.body) {
+      this.player.active = false;
+      (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    }
     this.physics.pause();
 
-    // プレイヤーの操作と入力を完全に遮断
-    this.player.active = false;
-    this.player.setTint(0x555555);
-    this.input.keyboard?.shutdown();
-    this.input.keyboard?.removeAllListeners();
+    // プレイヤーを赤く点滅
+    if (this.player) {
+      this.player.setTint(0xff0000);
+    }
 
-    this.cameras.main.shake(500, 0.01);
+    // 画面を揺らす
+    this.cameras.main.shake(400, 0.015);
 
-    this.game.events.emit(notificationType, { score: 0, timeLeft: this.timeLeft });
+    // ゲームオーバーパネルを表示するイベントを発火
+    this.time.delayedCall(800, () => {
+      this.game.events.emit(notificationType, { score: 0, timeLeft: this.timeLeft });
+    });
   }
 
   private setupCamera() {
