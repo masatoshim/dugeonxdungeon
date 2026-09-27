@@ -148,7 +148,7 @@ export class MainScene extends Phaser.Scene {
     this.setupCamera();
 
     // React側からの中断要求を受け取るリスナーを登録
-    this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
+    this.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
       // すでにゲームオーバーやクリアになっていなければ処理
       if (this.isGameOver) return;
       this.isGameOver = true;
@@ -467,18 +467,21 @@ export class MainScene extends Phaser.Scene {
       this.warpManager.update(this.player, this.enemies);
     }
 
-    // 画面外に出た弾を即座に破棄
+    // 画面（カメラ）の外に出た弾を即座に破棄
     if (this.enemyBullets) {
-      const worldBounds = this.physics.world.bounds;
+      const cameraView = this.cameras.main.worldView;
+      // 画面端から少しはみ出た位置で消すためのマージン（ピクセル単位）
+      const margin = 32;
+
       this.enemyBullets.getChildren().forEach((bulletObj) => {
         const bullet = bulletObj as Phaser.Physics.Arcade.Sprite;
         if (bullet && bullet.active) {
-          // ワールドの端から外に出ているか判定
+          // 現在のカメラの表示領域（＋マージン）の外にいるか判定
           if (
-            bullet.x < worldBounds.x ||
-            bullet.x > worldBounds.x + worldBounds.width ||
-            bullet.y < worldBounds.y ||
-            bullet.y > worldBounds.y + worldBounds.height
+            bullet.x < cameraView.x - margin ||
+            bullet.x > cameraView.x + cameraView.width + margin ||
+            bullet.y < cameraView.y - margin ||
+            bullet.y > cameraView.y + cameraView.height + margin
           ) {
             bullet.destroy();
           }
@@ -644,19 +647,26 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
+  // シーンが終了・再起動するときに自動で呼ばれる
   shutdown() {
-    // グローバルイベントバスに登録したリスナーを確実に解除
-    this.game.events.off(GAME_EVENTS.REQUEST_INTERRUPT);
-
-    // 画面リサイズリスナーの解除
-    if (this.scale) {
-      this.scale.off("resize", undefined, this);
-    }
-
-    // タイマーやツイートの全削除
+    // シーン固有のタイマーをすべて停止
     this.time.removeAllEvents();
 
-    // キーボード入力等のリスナー解除
-    this.input.keyboard?.removeAllListeners();
+    // すべてのトゥイーンを停止
+    this.tweens.killAll();
+
+    // グローバル/グローバルスケールのイベントリスナーを確実に解除
+    this.scale.off("resize", this.setupCamera, this);
+
+    // 弾や敵などのグループをクリア
+    if (this.enemyBullets) {
+      this.enemyBullets.clear(true, true);
+    }
+    if (this.enemies) {
+      this.enemies.clear(true, true);
+    }
+    if (this.movableStones) {
+      this.movableStones.clear(true, true);
+    }
   }
 }
