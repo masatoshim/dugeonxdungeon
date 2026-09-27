@@ -57,6 +57,9 @@ export class MainScene extends Phaser.Scene {
   private isPaused: boolean = false;
   private pauseStartTime: number = 0;
 
+  // 中断要求ハンドラを保持しておく変数
+  private handleRequestInterruptListener!: () => void;
+
   constructor() {
     super("MainScene");
   }
@@ -147,14 +150,14 @@ export class MainScene extends Phaser.Scene {
     // カメラ設定
     this.setupCamera();
 
-    // React側からの中断要求を受け取るリスナーを登録
-    this.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
+    // React側からの中断要求を受け取るリスナーの定義と登録
+    this.handleRequestInterruptListener = () => {
       // すでにゲームオーバーやクリアになっていなければ処理
       if (this.isGameOver) return;
       this.isGameOver = true;
 
       // 現在のスコアと残り時間を取得
-      const currentScore = this.player.getScore() ?? 0;
+      const currentScore = this.player?.getScore() ?? 0;
       const currentTimeLeft = this.timeLeft;
 
       // React側へイベントでデータを送り返す
@@ -162,7 +165,11 @@ export class MainScene extends Phaser.Scene {
         score: currentScore,
         timeLeft: currentTimeLeft,
       });
-    });
+    };
+
+    // 多重登録を防ぐため、登録前に一度 off を呼んでから on する
+    this.game.events.off(GAME_EVENTS.REQUEST_INTERRUPT, this.handleRequestInterruptListener);
+    this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, this.handleRequestInterruptListener);
   }
 
   private setupPhysics() {
@@ -656,6 +663,11 @@ export class MainScene extends Phaser.Scene {
 
   // シーンが終了・再起動するときに自動で呼ばれる
   shutdown() {
+    // グローバルイベントのリスナーを確実に解除して多重登録・メモリリークを防ぐ
+    if (this.handleRequestInterruptListener) {
+      this.game.events.off(GAME_EVENTS.REQUEST_INTERRUPT, this.handleRequestInterruptListener);
+    }
+
     // シーン固有のタイマーをすべて停止
     this.time.removeAllEvents();
 
