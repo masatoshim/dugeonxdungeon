@@ -53,3 +53,29 @@ export const sendAdminAlertEmail = async (failedUserEmail: string) => {
     `,
   });
 };
+
+/**
+ * ユーザー向け：パスワード再設定メール送信
+ */
+export const sendPasswordResetEmail = async (email: string, token: string) => {
+  const resetLink = `${DOMAIN}/login/reset-password?token=${token}`;
+
+  const { data, error } = await resend.emails.send({
+    from: "DUNGEON×DUNGEON <onboarding@resend.dev>",
+    to: email,
+    subject: "【DUNGEON×DUNGEON】パスワード再設定のご案内",
+    html: `
+      <p>DUNGEON×DUNGEON のパスワード再設定リクエストを受け付けました。</p>
+      <p>以下のリンクをクリックして、新しいパスワードを設定してください。</p>
+      <p><a href="${resetLink}">${resetLink}</a></p>
+      <p>※このリンクは1時間有効です。</p>
+      <p>身に覚えがない場合は、このメールを無視していただいて問題ありません。</p>
+    `,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};

@@ -43,5 +43,6 @@ next-env.d.ts
 /app/generated/prisma
 
 WORKLOG.md
+ISSUE_LOG.md
 
 prisma/seed*

@@ -1,0 +1,123 @@
+"use client";
+
+import { PlayStatus } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
+import { useGetUser, useUpdateUser, useGetDungeons } from "@/app/_hooks";
+import { ProfileCard } from "@/app/(pages)/(dashboard)/_components/ProfileCard";
+import { UserStatsCard } from "@/app/(pages)/(dashboard)/_components/UserStatsCard";
+import { useSearchParams } from "next/navigation";
+import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
+import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
+import { DungeonSection } from "@/app/(pages)/_components/list/DungeonSection";
+import { Suspense } from "react";
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="text-slate-400">読み込み中...</div>}>
+      <ProfilePageContent />
+    </Suspense>
+  );
+}
+
+function ProfilePageContent() {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  const searchParams = useSearchParams();
+  const dungeonId = searchParams.get("dungeonId");
+
+  // 基本ユーザーデータ
+  const { user, mutate: mutateUser, isLoading: isUserLoading } = useGetUser(userId);
+  const { update } = useUpdateUser(userId!);
+
+  // 構築中ダンジョン (DRAFT)
+  const draftParams = useMemo(
+    () => ({
+      userId,
+      status: "DRAFT" as const,
+      sort: "updatedAt" as const,
+      order: "desc" as const,
+      limit: 4,
+    }),
+    [userId],
+  );
+  const { dungeons: draftDungeons, isLoading: isDraftLoading } = useGetDungeons(draftParams);
+
+  // お気に入りダンジョン
+  const favoriteParams = useMemo(
+    () => ({
+      isFavoritesList: "true",
+      sort: "updatedAt" as const,
+      order: "desc" as const,
+      limit: 4,
+    }),
+    [userId],
+  );
+  const { dungeons: favDungeons, isLoading: isFavLoading } = useGetDungeons(favoriteParams);
+
+  // 最近遊んだダンジョン
+  const historyParams = useMemo(
+    () => ({
+      playStatusList: [PlayStatus.CLEAR, PlayStatus.FAILURE, PlayStatus.INTERRUPT],
+      sort: "updatedAt" as const,
+      order: "desc" as const,
+      limit: 4,
+    }),
+    [userId],
+  );
+  const { dungeons: histDungeons, isLoading: isHistLoading } = useGetDungeons(historyParams);
+
+  // ユーザー情報の初期読み込み中のみ、画面全体で待つ
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+        <div className="text-[#4fd1d1] font-mono animate-pulse uppercase tracking-widest">読み込み中...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 pt-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
+        {/* プロフィール詳細 */}
+        <div className="lg:col-span-4 xl:col-span-4">
+          <ProfileCard user={user} mutate={mutateUser} update={update} />
+        </div>
+        {/* 統計情報 */}
+        <div className="lg:col-span-8 xl:col-span-8">
+          <UserStatsCard user={user} />
+        </div>
+      </div>
+
+      {/* 各ダンジョンリスト */}
+      <div className="space-y-8">
+        <DungeonSection
+          title="構築中のダンジョン"
+          viewMoreLink="/dashboard/dungeons"
+          dungeons={draftDungeons}
+          isLoading={isDraftLoading}
+        />
+        <DungeonSection
+          title="お気に入りダンジョン"
+          viewMoreLink="/dashboard/favorites"
+          dungeons={favDungeons}
+          isLoading={isFavLoading}
+        />
+        <DungeonSection
+          title="最近遊んだダンジョン"
+          viewMoreLink="/dashboard/history"
+          dungeons={histDungeons}
+          isLoading={isHistLoading}
+        />
+      </div>
+
+      {/* モーダル */}
+      {dungeonId && (
+        <DungeonDetailModal>
+          <DungeonDetailContent id={dungeonId} />
+        </DungeonDetailModal>
+      )}
+    </div>
+  );
+}

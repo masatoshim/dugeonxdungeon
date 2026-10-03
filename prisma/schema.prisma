@@ -13,17 +13,21 @@ model User {
   email              String?             @unique
   iconImageKey       String?
   role               Role                @default(USER)
+  createDungeonLimit Int                 @default(10)
+  metaData           Json?                
+  
   // --- ゲーム統計情報 ---
-  ranking            Int?                @default(0)
   clearPlayCount     Int                 @default(0)
   failurePlayCount   Int                 @default(0)
   interruptPlayCount Int                 @default(0)
-  playDungeonCount   Int                 @default(0)
-  totalPlayTime      Int                 @default(0)
+  playDungeonCount   Int                 @default(0) // 1ダンジョンにつき初回クリア時のみ加算
+  totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
+  
   // --- ステータスフラグ ---
   isActive           Boolean             @default(true)
   deletedFlg         Boolean             @default(false)
+  
   // --- 監査・追跡情報 ---
   lastLoginAt        DateTime?
   createdBy          String?
@@ -31,14 +35,24 @@ model User {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   emailVerified      DateTime?
+  
+  // --- パスワード再設定用 ---
+  resetToken         String?   @unique
+  resetTokenExpires  DateTime?
+  
   // --- 認証用 ---
   hashedPassword     String?
   accounts           Account[]
   sessions           Session[]
+
   // --- リレーション設定 ---
   dungeons           Dungeon[]
-  favouriteDungeons  FavouritesDungeon[]
+  favoriteDungeons   FavoritesDungeon[]
   playHistories      PlayHistory[]
+  userDungeonBests   UserDungeonBest[]
+
+  @@index([totalPlayScore(sort: Desc)])
+  @@index([isActive, deletedFlg])
 }
 
 model Account {
@@ -78,41 +92,53 @@ model VerificationToken {
 }
 
 model Dungeon {
-  id                 String              @id @default(uuid())
-  code               String              @unique
+  id                 String            @id @default(uuid())
+  code               String            @unique
   userId             String
-  user               User                @relation(fields: [userId], references: [id])
+  user               User              @relation(fields: [userId], references: [id])
   name               String
   description        String?
+  
   // --- マップ設定 ---
   mapData            Json
   mapSizeHeight      Int
   mapSizeWidth       Int
   mapSize            Int
+  
+  // --- 音声設定など ---
+  metaData           Json?
+
   // --- ゲーム設定 ---
-  timeLimit          Int                 @default(60)
-  difficulty         Int                 @default(1)
-  status             DungeonStatus       @default(DRAFT)
+  timeLimit          Int               @default(60)
+  difficulty         Float             @default(1.0) // 星3.5などの表現に対応
+  status             DungeonStatus     @default(DRAFT)
   publishedAt        DateTime?
-  isTemplate         Boolean             @default(false)
+  isTemplate         Boolean           @default(false)
+  
   // --- 統計・メトリクス ---
-  clearPlayCount     Int                 @default(0)
-  failurePlayCount   Int                 @default(0)
-  interruptPlayCount Int                 @default(0)
-  totalPlayTime      Int                 @default(0)
-  totalPlayScore     Int                 @default(0)
-  favouritesCount    Int                 @default(0)
-  // --- 監査・追跡情報 ---
-  version            Int                 @default(1)
-  deletedFlg         Boolean             @default(false)
+  clearPlayCount     Int               @default(0)
+  failurePlayCount   Int               @default(0)
+  interruptPlayCount Int               @default(0)
+  totalPlayTime      Float             @default(0)
+  totalPlayScore     Int               @default(0)
+  favoritesCount     Int               @default(0)
+  totalClearTime     Int               @default(0)
+  averageClearTime   Int               @default(0) // クリア時の処理で都度計算して保存
+  
+  // --- 監査・追跡情報（バージョン分離） ---
+  versionMajor       Int               @default(1) // 公開用メジャーバージョン
+  versionMinor       Int               @default(0) // 下書き保存用マイナーバージョン
+  deletedFlg         Boolean           @default(false)
   createdBy          String
   updatedBy          String
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  
   // --- リレーション設定 ---
   dungeonTags        DungeonTag[]
-  favouritedBy       FavouritesDungeon[]
+  favoritedBy        FavoritesDungeon[]
   playHistories      PlayHistory[]
+  userDungeonBests   UserDungeonBest[]
 }
 
 model Tag {
@@ -135,15 +161,17 @@ model DungeonTag {
 }
 
 model PlayHistory {
-  id         String     @id @default(uuid())
-  userId     String
-  dungeonId  String
-  playTime   Int        @default(0)
-  playScore  Int        @default(0)
-  playStatus PlayStatus
-  createdAt  DateTime   @default(now())
-  dungeon    Dungeon    @relation(fields: [dungeonId], references: [id])
-  user       User       @relation(fields: [userId], references: [id])
+  id             String     @id @default(uuid())
+  userId         String
+  dungeonId      String
+  versionMajor   Int               @default(1) // 公開用メジャーバージョン
+  versionMinor   Int               @default(0) // 下書き保存用マイナーバージョン
+  playTime       Float      @default(0)
+  playScore      Int        @default(0)
+  playStatus     PlayStatus
+  createdAt      DateTime   @default(now())
+  dungeon        Dungeon    @relation(fields: [dungeonId], references: [id])
+  user           User       @relation(fields: [userId], references: [id])
 
   @@unique([userId, dungeonId, createdAt])
   @@index([userId])
@@ -151,7 +179,7 @@ model PlayHistory {
   @@index([createdAt])
 }
 
-model FavouritesDungeon {
+model FavoritesDungeon {
   id        String   @id @default(uuid())
   userId    String
   dungeonId String
@@ -164,6 +192,36 @@ model FavouritesDungeon {
   @@index([dungeonId])
 }
 
+// ユーザー×ダンジョンの組み合わせで最高スコアのみを保持する中間テーブル
+model UserDungeonBest {
+  id         String   @id @default(uuid())
+  userId     String
+  dungeonId  String
+  bestScore  Int      @default(0)
+  bestTime   Float    @default(0)
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id])
+  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
+
+  @@unique([userId, dungeonId]) // ユーザー×ダンジョンで1レコードに限定
+  @@index([userId])
+}
+
+// 未ログイン時のクリアデータ一時保存用
+model PendingClear {
+  id                 String     @id @default(uuid())
+  dungeonId          String
+  versionMajor       Int               @default(1) // 公開用メジャーバージョン
+  versionMinor       Int               @default(0) // 下書き保存用マイナーバージョン
+  playTime           Float      @default(0)
+  playScore          Int        @default(0)
+  expiresAt          DateTime // 有効期限
+  createdAt          DateTime @default(now())
+
+  @@index([id])
+}
+
 enum Role {
   USER
   ADMIN
@@ -173,6 +231,7 @@ enum DungeonStatus {
   DRAFT
   PUBLISHED
   PRIVATE
+  DELETED // 論理削除
 }
 
 enum PlayStatus {

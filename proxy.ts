@@ -6,12 +6,25 @@ export async function proxy(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
+  // 保護対象の判定ロジック
+  const isDashboardPage = pathname.startsWith("/dashboard");
+  const isAdminPage = pathname.startsWith("/admin");
+  const isEditOrTestPage = pathname.includes("/edit") || pathname.includes("/test-play");
+
+  // 未ログインユーザーが「管理・編集・テスト」系にアクセスした場合
+  if (!token && (isDashboardPage || isAdminPage || isEditOrTestPage)) {
+    const url = new URL("/login", req.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // 一般ユーザーが管理者用 /admin にアクセスした場合
+  if (isAdminPage && token?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
   // ログイン済みユーザーが /login にアクセスした場合
   if (token && pathname === "/login") {
-    // role に応じてリダイレクト先を振り分ける
-    if (token.role === "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -19,5 +32,10 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/login",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    //  "/dungeons/:path*",
+  ],
 };

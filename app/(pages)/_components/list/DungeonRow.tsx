@@ -1,0 +1,242 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
+import { Maximize, Clock, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
+import { DungeonResponse, DungeonsIndexResponse } from "@/app/_types";
+import { DungeonStatus } from "@prisma/client";
+import { KeyedMutator } from "swr";
+
+const STATUS_CONFIG: Record<DungeonStatus, { label: string; className: string }> = {
+  DRAFT: { label: "構築中", className: "bg-indigo-900/50 text-indigo-300" },
+  PRIVATE: { label: "非公開", className: "bg-red-900/50 text-red-300" },
+  DELETED: { label: "削除済", className: "bg-gray-800 text-gray-400" },
+  PUBLISHED: { label: "公開中", className: "bg-[#2ab3a3]/20 text-[#2ab3a3]" },
+};
+
+const BUTTON_CONFIG: Record<DungeonStatus, { text: string; disabled: boolean; className: string }> = {
+  DRAFT: { text: "公開不可", disabled: true, className: "bg-gray-800 text-gray-500 cursor-not-allowed" },
+  DELETED: { text: "公開不可", disabled: true, className: "bg-gray-800 text-gray-500 cursor-not-allowed" },
+  PRIVATE: { text: "公開する", disabled: false, className: "bg-[#4a6cf7] hover:bg-[#3b5bdb] text-white" },
+  PUBLISHED: { text: "非公開にする", disabled: false, className: "bg-[#4a6cf7] hover:bg-[#3b5bdb] text-white" },
+};
+
+interface DungeonRowProps {
+  dungeon: DungeonResponse;
+  mutate: KeyedMutator<DungeonsIndexResponse>;
+  isAdmin: boolean;
+  isAdminTab?: boolean;
+  isHighlighted?: boolean;
+}
+
+export function DungeonRow({ dungeon, mutate, isAdmin, isAdminTab, isHighlighted }: DungeonRowProps) {
+  const config = STATUS_CONFIG[dungeon.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PUBLISHED;
+  const btn = BUTTON_CONFIG[dungeon.status];
+  const router = useRouter();
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null); // スクロール用の参照
+
+  // サーバーサイドレンダリング（SSR）時のエラーを防ぐためのマウント判定
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 削除確認カスタムモーダルの開閉状態
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // ハイライト時に画面内へスクロールさせる処理
+  useEffect(() => {
+    if (isHighlighted) {
+      setShouldAnimate(true);
+      // スクロール処理
+      rowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      // 4秒後（点滅3回分 + 余韻）にアニメーション用フラグをオフにする
+      const timer = setTimeout(() => {
+        setShouldAnimate(false);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isHighlighted]);
+
+  const { update, isUpdating } = useUpdateDungeon(dungeon.id);
+  const { remove, isDeleting } = useDeleteDungeon(dungeon.id);
+  const isLoading = isUpdating || isDeleting;
+
+  const toggleStatus = async () => {
+    const isPublishing = dungeon.status !== "PUBLISHED";
+    const nextStatus = isPublishing ? "PUBLISHED" : "PRIVATE";
+
+    await update({ status: nextStatus, publishedAt: isPublishing ? new Date().toISOString() : null });
+    toast.success(`ステータスを${isPublishing ? "公開中" : "非公開"}に変更しました`);
+
+    cleanPath();
+    mutate();
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (isAdmin) {
+        await remove();
+      } else {
+        await update({
+          status: "DELETED",
+          code: `DEL-${dungeon.code}`,
+          deletedFlg: true,
+        });
+      }
+      toast.success("ダンジョンを削除しました");
+      setShowDeleteModal(false);
+      mutate();
+    } catch (e) {
+      toast.error("削除に失敗しました");
+    }
+  };
+
+  const cleanPath = () => {
+    // URLに highlight が含まれている場合のみ、URLを現在のパスに置き換える（パラメータ除去）
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("highlight")) {
+      router.replace(window.location.pathname, { scroll: false });
+    }
+  };
+
+  // 削除確認モーダルの JSX
+  const deleteModalContent = showDeleteModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+        <h3 className="text-lg font-bold text-white">ダンジョンの削除</h3>
+        <p className="text-sm text-slate-300">このダンジョンを削除してもよろしいですか？</p>
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(false)}
+            disabled={isLoading}
+            className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmDelete}
+            disabled={isLoading}
+            className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-xl transition-colors shadow-lg shadow-red-900/30 disabled:opacity-50"
+          >
+            {isLoading ? "処理中..." : "削除する"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      ref={rowRef}
+      className={`relative flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-6 p-4 rounded-xl border transition-all duration-1000 ${
+        shouldAnimate
+          ? "animate-highlight border-[#4fd1d1] z-10 shadow-[0_0_15px_rgba(79,209,209,0.2)]"
+          : "border-gray-800 bg-[#0f111a]"
+      } ${isLoading ? "opacity-50 pointer-events-none bg-gray-900" : "hover:bg-[#161b2e]"}`}
+    >
+      {/* ハイライト時のラベル */}
+      {shouldAnimate && (
+        <div className="absolute -top-2 -left-2 bg-[#4fd1d1] text-black text-[10px] px-2 py-0.5 rounded-full font-bold shadow-lg z-20">
+          UPDATED
+        </div>
+      )}
+
+      {/* 更新中のインジケーター */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20 rounded-xl">
+          <Loader2 className="animate-spin text-[#4fd1d1]" size={24} />
+        </div>
+      )}
+
+      {/* ─ 上段情報 ─ */}
+      <div className="flex flex-wrap items-center gap-2.5 lg:gap-6 flex-1 min-w-0">
+        {/* ステータスバッジ */}
+        <span className={`text-center px-3 py-1 rounded-md text-xs font-bold shrink-0 ${config.className}`}>
+          {config.label}
+        </span>
+
+        {/* ユーザー情報 */}
+        {isAdmin && !isAdminTab && (
+          <div className="flex items-center gap-2.5 shrink-0 border-l border-gray-700 pl-3">
+            <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+              {dungeon.nickName?.[0] || "U"}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] text-gray-500 truncate">{dungeon.userName}</span>
+              <span className="text-xs text-gray-300 truncate font-medium">{dungeon.nickName}</span>
+            </div>
+          </div>
+        )}
+
+        {/* コード */}
+        <span className="text-gray-400 font-mono text-xs shrink-0">{dungeon.code}</span>
+
+        {/* ダンジョン名 */}
+        <span className="font-bold text-white text-sm lg:text-base truncate flex-1 min-w-[120px]" title={dungeon.name}>
+          {dungeon.name}
+        </span>
+
+        {/* サイズ & 時間 */}
+        <div className="flex items-center gap-3 lg:gap-4 text-gray-400 text-xs lg:text-sm shrink-0 ml-auto lg:ml-0">
+          <span className="flex items-center gap-1.5">
+            <Maximize size={14} className="text-gray-500" /> {dungeon.mapSizeHeight}×{dungeon.mapSizeWidth}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock size={14} className="text-gray-500" /> {dungeon.timeLimit} sec
+          </span>
+        </div>
+      </div>
+
+      {/* 操作ボタン群 */}
+      <div className="flex items-stretch justify-end gap-2 shrink-0 pt-2 lg:pt-0 border-t border-gray-800/60 lg:border-none">
+        {isAdmin && !isAdminTab ? (
+          <button
+            type="button"
+            onClick={() => router.push(`/dungeons/${dungeon.id}/edit?from=user-detail`)}
+            className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-1.5 rounded text-xs font-bold transition-all shadow-sm flex items-center justify-center min-h-[36px]"
+          >
+            詳細
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              disabled={isLoading || btn.disabled}
+              onClick={toggleStatus}
+              className={`flex-1 lg:flex-none lg:w-28 py-1.5 px-2 rounded text-xs lg:text-sm font-bold transition-colors leading-tight flex items-center justify-center min-h-[36px] text-center ${btn.className}`}
+            >
+              {btn.text}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push(`/dungeons/${dungeon.id}/edit`)}
+              disabled={isLoading}
+              className="flex-1 lg:flex-none px-3 lg:px-4 py-1.5 rounded text-xs lg:text-sm font-bold transition-colors bg-gray-700 hover:bg-gray-600 text-white leading-tight flex items-center justify-center min-h-[36px] text-center"
+            >
+              編集
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              disabled={isLoading}
+              className="flex-1 lg:flex-none px-3 lg:px-4 py-1.5 rounded text-xs lg:text-sm font-bold transition-colors bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-800/50 leading-tight flex items-center justify-center min-h-[36px] text-center"
+            >
+              削除
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* 削除確認モーダル（Portalでbody直下に描画） */}
+      {mounted && showDeleteModal && createPortal(deleteModalContent, document.body)}
+    </div>
+  );
+}

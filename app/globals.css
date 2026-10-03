@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes highlight-blink {
+  0% {
+    background-color: transparent;
+    border-color: transparent;
+  }
+  50% {
+    background-color: rgba(79, 209, 209, 0.15);
+    border-color: #4fd1d1;
+  }
+  100% {
+    background-color: transparent;
+    border-color: transparent;
+  }
+}
+
+.animate-highlight {
+  animation: highlight-blink 1.2s ease-in-out 3; /* 3回点滅 */
+}
