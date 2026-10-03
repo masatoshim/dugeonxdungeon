@@ -229,7 +229,7 @@ export function DungeonSearchFilterModal({ initialValues, onSearch }: DungeonSea
                 <label className="font-bold text-slate-300">キーワード</label>
                 <input
                   type="text"
-                  placeholder="ダンジョン名 / コード / 説明 / 作成者"
+                  placeholder="ダンジョン名 / コード / 説明"
                   className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-[#4fd1d1]"
                   value={filter.text}
                   onChange={(e) => setFilter({ ...filter, text: e.target.value })}
