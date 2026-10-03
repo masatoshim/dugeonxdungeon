@@ -91,7 +91,13 @@ export async function GET(request: Request) {
     // 横断検索 (text)
     const searchText = searchParams.get("text");
     if (searchText) {
-      andConditions.push({ OR: [{ name: { contains: searchText } }, { description: { contains: searchText } }] });
+      andConditions.push({
+        OR: [
+          { name: { contains: searchText } },
+          { description: { contains: searchText } },
+          { code: { contains: searchText } },
+        ],
+      });
     }
 
     // 範囲フィルター用ヘルパー関数

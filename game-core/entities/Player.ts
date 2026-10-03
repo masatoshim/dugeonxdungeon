@@ -84,6 +84,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.createAnimations();
   }
 
+  // プレイヤーの向きを取得
+  public getDirection(): "up" | "down" | "left" | "right" {
+    if (this.lastDirection.y === 1) return "down";
+    if (this.lastDirection.y === -1) return "up";
+    if (this.lastDirection.x === -1) return "left";
+    if (this.lastDirection.x === 1) return "right";
+    return "down"; // フォールバック
+  }
   /**
    * プレイヤーのアニメーションを一括登録
    */

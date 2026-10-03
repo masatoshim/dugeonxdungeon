@@ -20,12 +20,15 @@ interface DungeonInfoProps {
 
 export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonInfoProps) {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const currentUserId = session?.user?.id;
   const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
   const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
+
+  const isOwnDungeon = status === "authenticated" && currentUserId === dungeon.userId;
 
   useEffect(() => {
     setFavoritesCount(dungeon.favoritesCount);
@@ -57,7 +60,7 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
 
   // スタッツ項目を配列化してループで表示
   const stats = [
-    { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} x ${dungeon.mapSizeWidth}` },
+    { icon: Maximize, label: "ダンジョンサイズ", value: `${dungeon.mapSizeHeight} × ${dungeon.mapSizeWidth}` },
     { icon: Clock, label: "制限時間", value: `${dungeon.timeLimit}sec` },
     { icon: Footprints, label: "挑戦者の足跡", value: `${dungeon.totalPlayCount}回` },
     { icon: Footprints, label: "帰還者の足跡", value: `${dungeon.clearPlayCount}人`, isFlippedVertical: true },
@@ -104,15 +107,21 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
             <span className="bg-white/20 px-2 rounded ml-1">{favoritesCount}</span>
           </button>
 
-          <div
-            className={`px-3 py-1 rounded-full text-xs font-bold ${
-              isCleared
-                ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                : "bg-slate-700/50 text-slate-400 border border-slate-600"
-            }`}
-          >
-            {isCleared ? "攻略済み" : "未攻略"}
-          </div>
+          {isOwnDungeon ? (
+            <div className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+              <span>マイダンジョン</span>
+            </div>
+          ) : (
+            <div
+              className={`px-3 py-1 rounded-full text-xs font-bold ${
+                isCleared
+                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                  : "bg-slate-700/50 text-slate-400 border border-slate-600"
+              }`}
+            >
+              {isCleared ? "攻略済み" : "未攻略"}
+            </div>
+          )}
         </div>
       </div>
 

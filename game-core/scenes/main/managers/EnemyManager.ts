@@ -56,8 +56,34 @@ export class EnemyManager {
   public update(): void {
     const enemies = this.group.getChildren() as Enemy[];
 
-    enemies.forEach((enemy) => {
+    // カメラの矩形範囲を取得
+    const cam = this.scene.cameras.main;
+    const viewBounds = new Phaser.Geom.Rectangle(cam.scrollX - 50, cam.scrollY - 50, cam.width + 100, cam.height + 100);
+
+    // 現在のフレーム数を取得（フレームごとの処理分散用）
+    const currentFrame = this.scene.sys.game.getFrame();
+
+    enemies.forEach((enemy, index) => {
       if (!enemy.active || !enemy.body) return;
+
+      // カメラの視界外にいるか判定
+      const isVisibleOnScreen = Phaser.Geom.Rectangle.Contains(viewBounds, enemy.x, enemy.y);
+      const body = enemy.body as Phaser.Physics.Arcade.Body;
+
+      if (!isVisibleOnScreen) {
+        // 画面外の敵は物理演算や描画を完全にスリープさせる
+        if (body.enable) {
+          body.enable = false;
+          enemy.setVisible(false);
+        }
+        return;
+      } else {
+        // 画面内に入ったら復帰
+        if (!body.enable) {
+          body.enable = true;
+          enemy.setVisible(true);
+        }
+      }
 
       const enemyData = enemy.getEnemyData();
 
@@ -78,14 +104,25 @@ export class EnemyManager {
         }
       }
 
+      // 完全に静止していて追跡中でもない敵はスキップ
+      const isMoving = enemy.body.velocity.x !== 0 || enemy.body.velocity.y !== 0;
+      const isChasing = enemy.isChasing2 || enemy.isChasing3;
+      if (!isMoving && !isChasing && enemyData.moveType !== "MIRROR") {
+        // スタン中かどうかのチェックだけは行う
+        if (enemy.isStunned()) return;
+        return; // 完全静止時は毎フレームのAI・足跡判定をスキップ
+      }
+
       // スタン中でなければAIと足跡処理を進行
       if (!enemy.isStunned()) {
-        this.updateEnemyAI(enemy);
+        // すべての敵が同じフレームでAI計算をしないよう、インデックスやフレームで処理を分散
+        if ((currentFrame + index) % 3 === 0) {
+          this.updateEnemyAI(enemy);
+        }
         this.updateFootstomp(enemy);
       }
     });
   }
-
   /**
    * 足跡生成
    * @param enemy
@@ -593,11 +630,25 @@ export class EnemyManager {
   private executeRangedShot(enemy: Enemy, player: Player, onComplete: () => void): void {
     const enemyData = enemy.getEnemyData();
     const mainScene = this.scene as MainScene;
+
+    // 画面全体の弾の総数をチェックして、多すぎる場合は発射をスキップ
+    const currentBullets = mainScene.getEnemyBullets().getChildren() || [];
+    const MAX_GLOBAL_BULLETS = 8; // 画面全体の許容最大数
+    if (currentBullets.length >= MAX_GLOBAL_BULLETS) {
+      onComplete();
+      return;
+    }
+
     const rData = enemyData.rangedData;
 
     const bulletTexture = rData?.bulletTexture || ("bullet-default" as AssetKey);
     const speed = rData?.bulletSpeed ?? 200;
-    const shotCount = rData?.shotCount ?? 1;
+
+    // 一度に発射される弾の数に上限を設ける
+    const MAX_SHOT_LIMIT = 5;
+    const rawShotCount = rData?.shotCount ?? 1;
+    const shotCount = Math.min(rawShotCount, MAX_SHOT_LIMIT);
+
     const shotInterval = rData?.shotInterval ?? 150;
 
     let shotsFired = 0;
@@ -783,6 +834,15 @@ export class EnemyManager {
    * 視界判定（DIRECTIONAL の場合は内積判定）
    */
   public isLineOfSightBlocked(enemy: Enemy, player: Player): boolean {
+    const now = this.scene.time.now;
+
+    // 前回のチェックから200ms以内であれば、前回の判定結果を使い回す
+    if (enemy.lastSightCheckTime && now - enemy.lastSightCheckTime < 200) {
+      return enemy.cachedSightResult;
+    }
+
+    enemy.lastSightCheckTime = now;
+
     const enemyData = enemy.getEnemyData();
     const isDirectional = enemyData.animType?.startsWith("DIRECTIONAL");
 
@@ -792,7 +852,10 @@ export class EnemyManager {
       const toPlayerY = player.y - enemy.y;
       const dotProduct = toPlayerX * facing.x + toPlayerY * facing.y;
 
-      if (dotProduct <= 0) return true;
+      if (dotProduct <= 0) {
+        enemy.cachedSightResult = true;
+        return true;
+      }
     }
 
     const mainScene = this.scene as MainScene;
@@ -822,11 +885,14 @@ export class EnemyManager {
 
         // 視線と障害物の矩形が交差しているか判定
         if (Phaser.Geom.Intersects.LineToRectangle(ray, rect)) {
-          return true; // 遮蔽物あり
+          enemy.cachedSightResult = true;
+          return true;
         }
       }
     }
-    return false; // 遮蔽物なし（プレイヤーが見える）
+
+    enemy.cachedSightResult = false;
+    return false; // 遮蔽物あり
   }
 
   /**

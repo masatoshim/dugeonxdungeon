@@ -108,7 +108,13 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
   };
 
   const cardContent = (
-    <div className="group relative max-w-[320px] min-w-[200px] bg-[#1a233a] border border-slate-700 rounded-lg p-2.5 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all hover:-translate-y-1 cursor-pointer flex flex-col">
+    <div
+      className={`group relative max-w-[320px] min-w-[200px] bg-[#1a233a] border rounded-lg p-2.5 shadow-lg transition-all hover:-translate-y-1 cursor-pointer flex flex-col ${
+        isCleared
+          ? "border-slate-700/60 opacity-60 hover:opacity-90 bg-[#141b2d] hover:shadow-[0_0_15px_rgba(59,130,246,0.1)]" // クリア済み：少し暗く＆落ち着いた背景に
+          : "border-slate-700 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+      }`}
+    >
       {/* ヘッダー */}
       <div className="flex justify-between items-start mb-1.5">
         <span className="text-[10px] font-mono text-slate-500 tracking-wider">{dungeon.code}</span>
@@ -125,9 +131,21 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
             <span className="font-medium">{favoritesCount}</span>
           </button>
           {/* クリア済みチェック */}
-          <div className={`${isCleared ? "text-blue-400" : "text-slate-600"}`}>
-            {isCleared ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-          </div>
+          {isOwnDungeon ? (
+            <div
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30"
+              title="あなたが作成したダンジョンです"
+            >
+              <span>マイダンジョン</span>
+            </div>
+          ) : (
+            <div
+              className={`${isCleared ? "text-blue-400" : "text-slate-600"}`}
+              title={`${isCleared ? "攻略済み" : "未攻略"}`}
+            >
+              {isCleared ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+            </div>
+          )}
         </div>
       </div>
 
@@ -144,7 +162,7 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
         <p className="flex justify-start gap-2">
           <span className="text-slate-500 w-16">サイズ</span>
           <span className="font-mono">
-            {dungeon.mapSizeWidth} x {dungeon.mapSizeHeight}
+            {dungeon.mapSizeWidth} × {dungeon.mapSizeHeight}
           </span>
         </p>
         <p className="flex justify-start gap-2">

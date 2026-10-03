@@ -15,7 +15,9 @@ const STORAGE_KEY = "dungeon_search_params_cache";
 
 // 一覧画面用のソート項目定義
 const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
-  { value: "createdAt", label: "最新（作成日）" },
+  { value: "publishedAt", label: "公開日" },
+  { value: "createdAt", label: "作成日" },
+  { value: "updatedAt", label: "更新日" },
   { value: "mapSize", label: "ダンジョンサイズ" },
   { value: "difficulty", label: "ダンジョン難しさ" },
   { value: "timeLimit", label: "制限時間" },
@@ -81,7 +83,7 @@ function DungeonsPageContent() {
   const limit = 20;
   const index = (page - 1) * limit;
 
-  const sort = searchParams.get("sort") || "createdAt";
+  const sort = searchParams.get("sort") || "publishedAt";
   const order = (searchParams.get("order") === "asc" ? "asc" : "desc") as "asc" | "desc";
 
   const getParam = (key: string) => {

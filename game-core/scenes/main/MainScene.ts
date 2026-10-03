@@ -12,7 +12,14 @@ import {
   Button,
   LeverSwitch,
 } from "@/game-core/entities";
-import { EnemyManager, WarpManager, StoneManager, CombatManager, DoorManager } from "@/game-core/scenes/main/managers";
+import {
+  MessageManager,
+  EnemyManager,
+  WarpManager,
+  StoneManager,
+  CombatManager,
+  DoorManager,
+} from "@/game-core/scenes/main/managers";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -49,6 +56,9 @@ export class MainScene extends Phaser.Scene {
   // 一時停止・再開用のフラグ
   private isPaused: boolean = false;
   private pauseStartTime: number = 0;
+
+  // 中断要求ハンドラを保持しておく変数
+  private handleRequestInterruptListener!: () => void;
 
   constructor() {
     super("MainScene");
@@ -129,6 +139,7 @@ export class MainScene extends Phaser.Scene {
             this.leversGroup,
           ),
         );
+        MessageManager.getInstance().init(this, this.player);
       },
     };
 
@@ -139,14 +150,14 @@ export class MainScene extends Phaser.Scene {
     // カメラ設定
     this.setupCamera();
 
-    // React側からの中断要求を受け取るリスナーを登録
-    this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, () => {
+    // React側からの中断要求を受け取るリスナーの定義と登録
+    this.handleRequestInterruptListener = () => {
       // すでにゲームオーバーやクリアになっていなければ処理
       if (this.isGameOver) return;
       this.isGameOver = true;
 
       // 現在のスコアと残り時間を取得
-      const currentScore = this.player.getScore() ?? 0;
+      const currentScore = this.player?.getScore() ?? 0;
       const currentTimeLeft = this.timeLeft;
 
       // React側へイベントでデータを送り返す
@@ -154,7 +165,11 @@ export class MainScene extends Phaser.Scene {
         score: currentScore,
         timeLeft: currentTimeLeft,
       });
-    });
+    };
+
+    // 多重登録を防ぐため、登録前に一度 off を呼んでから on する
+    this.game.events.off(GAME_EVENTS.REQUEST_INTERRUPT, this.handleRequestInterruptListener);
+    this.game.events.on(GAME_EVENTS.REQUEST_INTERRUPT, this.handleRequestInterruptListener);
   }
 
   private setupPhysics() {
@@ -399,6 +414,10 @@ export class MainScene extends Phaser.Scene {
     return this.walls;
   }
 
+  public getEnemyBullets(): Phaser.Physics.Arcade.Group {
+    return this.enemyBullets;
+  }
+
   public getBreakableWalls(): Phaser.Physics.Arcade.StaticGroup {
     return this.breakableWalls;
   }
@@ -445,6 +464,7 @@ export class MainScene extends Phaser.Scene {
 
     if (this.player) {
       this.player.update();
+      MessageManager.getInstance().update();
       this.checkGoalCondition();
     }
 
@@ -452,6 +472,28 @@ export class MainScene extends Phaser.Scene {
 
     if (this.warpManager && this.player) {
       this.warpManager.update(this.player, this.enemies);
+    }
+
+    // 画面（カメラ）の外に出た弾を即座に破棄
+    if (this.enemyBullets) {
+      const cameraView = this.cameras.main.worldView;
+      // 画面端から少しはみ出た位置で消すためのマージン（ピクセル単位）
+      const margin = 32;
+
+      this.enemyBullets.getChildren().forEach((bulletObj) => {
+        const bullet = bulletObj as Phaser.Physics.Arcade.Sprite;
+        if (bullet && bullet.active) {
+          // 現在のカメラの表示領域（＋マージン）の外にいるか判定
+          if (
+            bullet.x < cameraView.x - margin ||
+            bullet.x > cameraView.x + cameraView.width + margin ||
+            bullet.y < cameraView.y - margin ||
+            bullet.y > cameraView.y + cameraView.height + margin
+          ) {
+            bullet.destroy();
+          }
+        }
+      });
     }
 
     // 一方通行扉の毎フレーム通過・距離チェック
@@ -476,18 +518,25 @@ export class MainScene extends Phaser.Scene {
     if (this.isGameOver) return;
     this.isGameOver = true;
 
-    // 物理演算を停止
+    // プレイヤーの移動や物理演算を停止
+    if (this.player && this.player.body) {
+      this.player.active = false;
+      (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    }
     this.physics.pause();
 
-    // プレイヤーの操作と入力を完全に遮断
-    this.player.active = false;
-    this.player.setTint(0x555555);
-    this.input.keyboard?.shutdown();
-    this.input.keyboard?.removeAllListeners();
+    // プレイヤーを赤く点滅
+    if (this.player) {
+      this.player.setTint(0xff0000);
+    }
 
-    this.cameras.main.shake(500, 0.01);
+    // 画面を揺らす
+    this.cameras.main.shake(400, 0.015);
 
-    this.game.events.emit(notificationType, { score: 0, timeLeft: this.timeLeft });
+    // ゲームオーバーパネルを表示するイベントを発火
+    this.time.delayedCall(800, () => {
+      this.game.events.emit(notificationType, { score: 0, timeLeft: this.timeLeft });
+    });
   }
 
   private setupCamera() {
@@ -609,6 +658,34 @@ export class MainScene extends Phaser.Scene {
       if (this.player.body) {
         (this.player.body as Phaser.Physics.Arcade.Body).enable = true;
       }
+    }
+  }
+
+  // シーンが終了・再起動するときに自動で呼ばれる
+  shutdown() {
+    // グローバルイベントのリスナーを確実に解除して多重登録・メモリリークを防ぐ
+    if (this.handleRequestInterruptListener) {
+      this.game.events.off(GAME_EVENTS.REQUEST_INTERRUPT, this.handleRequestInterruptListener);
+    }
+
+    // シーン固有のタイマーをすべて停止
+    this.time.removeAllEvents();
+
+    // すべてのトゥイーンを停止
+    this.tweens.killAll();
+
+    // グローバル/グローバルスケールのイベントリスナーを確実に解除
+    this.scale.off("resize", this.setupCamera, this);
+
+    // 弾や敵などのグループをクリア
+    if (this.enemyBullets) {
+      this.enemyBullets.clear(true, true);
+    }
+    if (this.enemies) {
+      this.enemies.clear(true, true);
+    }
+    if (this.movableStones) {
+      this.movableStones.clear(true, true);
     }
   }
 }
