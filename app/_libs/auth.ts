@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email"; // ★ 追加
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/app/_libs/prisma";
 import bcrypt from "bcrypt";
@@ -11,7 +12,7 @@ const adapter = PrismaAdapter(prisma);
 const customAdapter = {
   ...adapter,
   createUser: async (data: any) => {
-    // Googleから渡ってくるが、DBに保存したくない項目（imageなど）を抽出
+    // Googleやメール認証から渡ってくるが、DBに保存したくない項目などを抽出
     const { name, image, emailVerified, ...rest } = data;
 
     const now = new Date(); // UTC時刻として扱われる
@@ -20,7 +21,7 @@ const customAdapter = {
     const newUser = await prisma.user.create({
       data: {
         ...rest,
-        userName: name,
+        userName: name || generatedUserName,
         nickName: generatedUserName, // サインアップ時は userName と同様
         lastLoginAt: now, // 初回ログイン時刻
         emailVerified: now, // サインアップ時に確認済みとする
@@ -77,17 +78,28 @@ export const authOptions: NextAuthOptions = {
         return null;
       },
     }),
+    // Gmail SMTP経由のメール認証（マジックリンク）プロバイダー
+    EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: Number(process.env.EMAIL_SERVER_PORT),
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
+    }),
   ],
   session: {
     strategy: "jwt",
   },
   pages: {
     signIn: "/login",
-    // newUser: "/", // 新規ユーザー時の遷移先
-    error: "/signup", // エラーが発生した時に新規登録画面（またはログイン画面）へ飛ばす
+    error: "/signup", // エラーが発生した時に新規登録画面へ飛ばす
   },
   callbacks: {
-    // Google認証時などの「ログイン可否」の最終判定
+    // 認証時などの「ログイン可否」の最終判定
     async signIn({ user, account, profile }) {
       // Googleログイン時の重複チェック
       if (account?.provider === "google") {

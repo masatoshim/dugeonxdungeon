@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-
-import { Suspense } from "react";
 
 // バリデーションスキーマの定義
 const passwordSchema = z
@@ -57,7 +55,6 @@ function SignupForm() {
   }, [authError]);
 
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const {
@@ -71,7 +68,6 @@ function SignupForm() {
   // ID/パスワードによる登録処理
   const onSubmit = async (data: SignupSchema) => {
     setLoading(true);
-    setError(null);
 
     try {
       const res = await fetch("/api/users", {
@@ -96,7 +92,7 @@ function SignupForm() {
     }
   };
 
-  // Google認証による登録・ログイン処理
+  // Google連携による登録・ログイン処理
   const handleGoogleSignup = () => {
     signIn("google", { callbackUrl });
   };
@@ -105,8 +101,6 @@ function SignupForm() {
     <div className="flex flex-col items-center justify-start sm:justify-center min-h-screen bg-white p-4 py-8 sm:py-4">
       <div className="w-full max-w-[400px] mx-auto my-auto p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
         <h1 className="text-2xl font-bold text-white mb-8 text-center tracking-tight">新規登録</h1>
-
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           {/* ユーザー名 */}

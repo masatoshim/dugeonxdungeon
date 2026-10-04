@@ -188,6 +188,7 @@ export class DoorManager {
     const targetDoor = this.targetDoors.get(targetId);
     if (targetDoor) {
       targetDoor.activate();
+      MessageManager.getInstance().notify("扉が開いた！");
     } else {
       // console.warn(`GimmickTarget with ID '${targetId}' not found.`);
     }
@@ -209,7 +210,11 @@ export class DoorManager {
   public toggleTarget(targetId: string): void {
     const targetDoor = this.targetDoors.get(targetId);
     if (targetDoor) {
-      targetDoor.toggle();
+      if (targetDoor.toggle()) {
+        MessageManager.getInstance().notify("どこかで扉が開いた！");
+      } else {
+        MessageManager.getInstance().notify("どこかで扉が閉じた！");
+      }
     }
   }
 
