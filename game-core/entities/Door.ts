@@ -40,11 +40,13 @@ export class Door extends Phaser.Physics.Arcade.Sprite {
     this.updateStateVisual();
   }
 
-  public toggle(): void {
+  public toggle(): boolean {
     if (this.isOpened) {
       this.deactivate();
+      return false;
     } else {
       this.activate();
+      return true;
     }
   }
 

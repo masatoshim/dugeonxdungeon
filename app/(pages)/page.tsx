@@ -38,12 +38,30 @@ export default function Home() {
                 <span className="text-teal-400">遊ぶ</span> × <span className="text-amber-400">創る</span> ×{" "}
                 <span className="text-orange-400">競う</span>
                 <br />
-                <span className="text-xl md:text-2xl font-mono tracking-wider text-stone-300 mt-2 block">
-                  = DUNGEON × DUNGEON
+                {/* 剣のSVGアイコンを挟んだブランド表記 */}
+                <span className="text-xl md:text-2xl font-mono tracking-wider text-stone-300 mt-3 inline-flex items-center gap-2">
+                  = <span>DUNGEON</span>
+                  <svg
+                    className="w-5 h-5 text-[#4fd1d1] shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+                    <line x1="13" y1="19" x2="19" y2="13" />
+                    <line x1="16" y1="16" x2="20" y2="20" />
+                    <line x1="19" y1="21" x2="21" y2="19" />
+                    <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
+                    <line x1="5" y1="19" x2="11" y2="13" />
+                  </svg>
+                  <span>DUNGEON</span>
                 </span>
               </h1>
               <p className="text-stone-400 text-sm md:text-base leading-relaxed">
-                DUNGEON×DUNGEON — 手軽に遊べて、手軽に創れる。
+                手軽に遊べて、手軽に創れる。
                 <br />
                 手のひらサイズから巨大迷宮まで！
               </p>

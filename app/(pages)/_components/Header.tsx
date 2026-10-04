@@ -59,9 +59,27 @@ export default function Header() {
           {/* ロゴエリア */}
           <Link
             href="/"
-            className="font-black text-lg sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors shrink-0"
+            className="flex items-center gap-2 font-black text-base sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors shrink-0 group"
           >
-            DUNGEON<span className="text-[#4fd1d1]">×</span>DUNGEON
+            <span>DUNGEON</span>
+            {/* クロスした剣のSVGアイコン */}
+            <svg
+              className="w-4 h-4 sm:w-5 sm:h-5 text-[#4fd1d1] shrink-0 group-hover:rotate-12 transition-transform"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+              <line x1="13" y1="19" x2="19" y2="13" />
+              <line x1="16" y1="16" x2="20" y2="20" />
+              <line x1="19" y1="21" x2="21" y2="19" />
+              <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
+              <line x1="5" y1="19" x2="11" y2="13" />
+            </svg>
+            <span>DUNGEON</span>
           </Link>
 
           {/* PC用ナビゲーションリンク */}
