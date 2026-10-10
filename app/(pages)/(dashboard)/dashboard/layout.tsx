@@ -14,7 +14,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex w-full bg-[#0f111a]">
+    <div className="min-h-[calc(100vh-64px)] flex w-full bg-[#0f111a] overflow-x-hidden">
       {/* モバイル用 */}
       {isOpen && (
         <div
@@ -26,7 +26,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       {/* サイドバー */}
       {/* PC: 常時表示 / モバイル: 通常非表示・スライド展開時 */}
       <aside
-        className={`fixed md:static top-16 bottom-0 left-0 z-50 w-24 md:w-64 h-[calc(100vh-64px)] bg-[#1a1d2b] flex flex-col pt-4 pb-8 border-r border-slate-800 shrink-0 transition-transform duration-300 ease-in-out ${
+        className={`fixed md:sticky top-16 bottom-0 left-0 z-50 w-24 md:w-64 h-[calc(100vh-64px)] bg-[#1a1d2b] flex flex-col pt-4 pb-8 border-r border-slate-800 shrink-0 transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -75,9 +75,9 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       </aside>
 
       {/* メインコンテンツエリア */}
-      <main className="flex-1 h-full p-4 sm:p-6 md:p-12 overflow-y-auto bg-gradient-to-b from-[#0f111a] to-[#0a0b10] w-full">
+      <main className="flex-1 min-w-0 bg-gradient-to-b from-[#0f111a] to-[#0a0b10] w-full flex flex-col">
         {/* モバイル用：トリガーボタン */}
-        <div className="md:hidden mb-4 flex items-center">
+        <div className="md:hidden p-4 pb-0 flex items-center shrink-0">
           <button
             type="button"
             onClick={() => setIsOpen(true)}
