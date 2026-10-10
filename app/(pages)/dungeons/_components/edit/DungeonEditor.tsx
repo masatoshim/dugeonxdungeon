@@ -387,7 +387,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         {/* onSubmitのデフォルト挙動を無効化 */}
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="relative h-[calc(100dvh-64px)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
+          className="relative h-[calc(100vh-4rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
         >
           {/* ─── ヘッダー ─── */}
           <header className="z-40 w-full shrink-0 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-2">
@@ -474,7 +474,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              className="w-full h-full overflow-auto relative cursor-grab active:cursor-grabbing custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] flex touch-none"
+              className="w-full h-full overflow-auto relative cursor-grab active:cursor-grabbing custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] flex [-webkit-overflow-scrolling:touch]"
             >
               <div className="m-auto shrink-0 flex items-center justify-center p-[600px]">
                 <div
