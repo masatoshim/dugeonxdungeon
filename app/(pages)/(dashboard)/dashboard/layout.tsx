@@ -14,7 +14,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed top-16 bottom-0 left-0 right-0 flex w-screen h-[calc(100vh-64px)] overflow-hidden bg-[#0f111a]">
+    <div className="min-h-[calc(100vh-64px)] flex w-full bg-[#0f111a]">
       {/* モバイル用 */}
       {isOpen && (
         <div
