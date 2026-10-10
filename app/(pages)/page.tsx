@@ -40,7 +40,7 @@ export default function Home() {
                 <br />
                 {/* 剣のSVGアイコンを挟んだブランド表記 */}
                 <span className="text-xl md:text-2xl font-mono tracking-wider text-stone-300 mt-3 inline-flex items-center gap-2">
-                  = <span>DUNGEON</span>
+                  = <span>DUNGEONZ</span>
                   <svg
                     className="w-5 h-5 text-[#4fd1d1] shrink-0"
                     viewBox="0 0 24 24"
@@ -57,7 +57,7 @@ export default function Home() {
                     <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
                     <line x1="5" y1="19" x2="11" y2="13" />
                   </svg>
-                  <span>DUNGEON</span>
+                  <span>DUNGEONZ</span>
                 </span>
               </h1>
               <p className="text-stone-400 text-sm md:text-base leading-relaxed">
@@ -97,7 +97,7 @@ export default function Home() {
             <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-stone-900">
               <Image
                 src="/images/top-visual.png"
-                alt="DUNGEON×DUNGEON メインビジュアル"
+                alt="DUNGEONZ×DUNGEONZ メインビジュアル"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
@@ -146,7 +146,7 @@ export default function Home() {
             <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-teal-500/30 shadow-lg group">
               <Image
                 src="/images/game-play3.png"
-                alt="DUNGEON×DUNGEON プレイ画面"
+                alt="DUNGEONZ×DUNGEONZ プレイ画面"
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -164,7 +164,7 @@ export default function Home() {
             <div className="order-2 md:order-1 relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-amber-500/30 shadow-lg group">
               <Image
                 src="/images/game-edit.png"
-                alt="DUNGEON×DUNGEON 編集画面"
+                alt="DUNGEONZ×DUNGEONZ 編集画面"
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -231,7 +231,7 @@ export default function Home() {
             <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-orange-500/30 shadow-lg group">
               <Image
                 src="/images/game-ranking.png"
-                alt="DUNGEON×DUNGEON スコア画面"
+                alt="DUNGEONZ×DUNGEONZ スコア画面"
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -248,7 +248,7 @@ export default function Home() {
       </div>
 
       <footer className="w-full py-8 text-center text-xs text-stone-500 border-t border-stone-800/80 mt-16 font-mono">
-        © 2026 DUNGEON×DUNGEON
+        © 2026 DUNGEONZ×DUNGEONZ
       </footer>
 
       {/* 未ログインユーザー用のポップアップ */}

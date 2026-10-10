@@ -22,11 +22,11 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${DOMAIN}/api/verify?token=${token}`;
 
   const info = await transporter.sendMail({
-    from: process.env.EMAIL_FROM || `"DUNGEON×DUNGEON" <${process.env.EMAIL_SERVER_USER}>`,
+    from: process.env.EMAIL_FROM || `"DUNGEONZ×DUNGEONZ" <${process.env.EMAIL_SERVER_USER}>`,
     to: email,
-    subject: "【DUNGEON×DUNGEON】メールアドレスを確認してください",
+    subject: "【DUNGEONZ×DUNGEONZ】メールアドレスを確認してください",
     html: `
-      <p>DUNGEON×DUNGEON への登録ありがとうございます！</p>
+      <p>DUNGEONZ×DUNGEONZ への登録ありがとうございます！</p>
       <p>以下のリンクをクリックして、登録を完了させてください。</p>
       <p><a href="${confirmLink}">${confirmLink}</a></p>
       <p>※このリンクは24時間有効です。</p>
@@ -41,7 +41,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
  */
 export const sendAdminAlertEmail = async (failedUserEmail: string) => {
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || `"DUNGEON×DUNGEON SYSTEM" <${process.env.EMAIL_SERVER_USER}>`,
+    from: process.env.EMAIL_FROM || `"DUNGEONZ×DUNGEONZ SYSTEM" <${process.env.EMAIL_SERVER_USER}>`,
     to: ADMIN_EMAIL,
     subject: "【緊急】メール送信エラーアラート",
     html: `
@@ -64,11 +64,11 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${DOMAIN}/login/reset-password?token=${token}`;
 
   const info = await transporter.sendMail({
-    from: process.env.EMAIL_FROM || `"DUNGEON×DUNGEON" <${process.env.EMAIL_SERVER_USER}>`,
+    from: process.env.EMAIL_FROM || `"DUNGEONZ×DUNGEONZ" <${process.env.EMAIL_SERVER_USER}>`,
     to: email,
-    subject: "【DUNGEON×DUNGEON】パスワード再設定のご案内",
+    subject: "【DUNGEONZ×DUNGEONZ】パスワード再設定のご案内",
     html: `
-      <p>DUNGEON×DUNGEON のパスワード再設定リクエストを受け付けました。</p>
+      <p>DUNGEONZ×DUNGEONZ のパスワード再設定リクエストを受け付けました。</p>
       <p>以下のリンクをクリックして、新しいパスワードを設定してください。</p>
       <p><a href="${resetLink}">${resetLink}</a></p>
       <p>※このリンクは1時間有効です。</p>
