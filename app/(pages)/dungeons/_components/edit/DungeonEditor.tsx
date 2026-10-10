@@ -85,6 +85,11 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   const startPosRef = useRef({ x: 0, y: 0 });
   const startScrollRef = useRef({ left: 0, top: 0 });
 
+  const pinchRef = useRef({
+    initialDist: null as number | null,
+    initialZoom: 1,
+  });
+
   const isEditMode = !!initialData?.id;
 
   // React Hook Form の初期化
@@ -211,11 +216,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
   useEffect(() => {
     const mainEl = mainRef.current;
     if (!mainEl) return;
-
-    const pinchRef = useRef({
-      initialDist: null as number | null,
-      initialZoom: 1,
-    });
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
