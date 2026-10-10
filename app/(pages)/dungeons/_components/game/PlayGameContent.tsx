@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { MapData } from "@/game-core/types";
-import { AlertTriangle, LogOut, Hand, Keyboard, Smartphone } from "lucide-react";
+import { AlertTriangle, LogOut, Keyboard, Smartphone } from "lucide-react";
 import { TileIconForm } from "../edit/palette/TileIconForm";
 import { TILE_SIZE } from "@/game-core/types";
 
@@ -28,7 +28,7 @@ interface PlayGameContentProps {
   isTestPlay?: boolean;
 }
 
-const SWIPE_THRESHOLD = 25;
+const DEADZONE = 8; // 反応するまでの最小移動距離（誤爆防止）
 
 export function PlayGameContent({
   dungeon,
@@ -44,11 +44,11 @@ export function PlayGameContent({
   // 操作モードの手動上書き用ステート (null = 自動判定, true = タッチ/スマホ風, false = キーボード/PC風)
   const [forcedTouchMode, setForcedTouchMode] = useState<boolean | null>(null);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
-  const [gameCanvasHeight, setGameCanvasHeight] = useState<number>(400);
+  const [gameCanvasHeight, setGameCanvasHeight] = useState<number>(300);
 
   const isResizingRef = useRef(false);
   const resizeStartYRef = useRef(0);
-  const startHeightRef = useRef(400);
+  const startHeightRef = useRef(300);
   const isGameFinishedRef = useRef(false);
 
   // ゲーム制御用
@@ -61,17 +61,21 @@ export function PlayGameContent({
   const requestTouchActionRef = useRef<(() => void) | null>(null);
   const requestTouchReleaseRef = useRef<(() => void) | null>(null);
 
-  const pointerDownPosRef = useRef({ x: 0, y: 0 });
-  const pointerDownTimeRef = useRef(0);
-  const isSwipingRef = useRef(false);
+  // フリータッチパッド用状態
+  const [activeDir, setActiveDir] = useState<{ x: number; y: number } | null>(null);
+  const padRef = useRef<HTMLDivElement>(null);
+  const isPadTouchingRef = useRef(false);
+  const hasMovedRef = useRef(false);
+  const touchStartTimeRef = useRef(0);
+  const touchStartCoordRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // レイアウト・高さ計算ロジック
   const calculateOptimalHeight = useCallback((isMobile: boolean) => {
     const windowH = window.innerHeight;
     if (isMobile) {
-      return Math.min(Math.max(windowH - 240, 220), 380);
+      return Math.min(Math.max(windowH - 240, 160), 380);
     } else {
-      return Math.min(Math.max(windowH - 210, 300), 620);
+      return Math.min(Math.max(windowH - 200, 280), 620);
     }
   }, []);
 
@@ -169,7 +173,7 @@ export function PlayGameContent({
   const handleResizePointerMove = (e: React.PointerEvent) => {
     if (!isResizingRef.current) return;
     const dy = e.clientY - resizeStartYRef.current;
-    setGameCanvasHeight(Math.min(Math.max(startHeightRef.current + dy, 200), 700));
+    setGameCanvasHeight(Math.min(Math.max(startHeightRef.current + dy, 140), 500));
   };
 
   const handleResizePointerUp = (e: React.PointerEvent) => {
@@ -180,47 +184,64 @@ export function PlayGameContent({
     } catch {}
   };
 
-  // タッチ・スワイプ操作ハンドラ
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse" && e.buttons !== 1 && e.button !== 0) return;
+  // フリータッチ・パッド操作ハンドラ
+  const updateDirectionFromClientCoord = (clientX: number, clientY: number) => {
+    if (!padRef.current) return;
+    const rect = padRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-    pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
-    pointerDownTimeRef.current = performance.now();
-    isSwipingRef.current = false;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const startDx = clientX - touchStartCoordRef.current.x;
+    const startDy = clientY - touchStartCoordRef.current.y;
+    const startDistance = Math.sqrt(startDx * startDx + startDy * startDy);
+
+    if (startDistance > DEADZONE) {
+      hasMovedRef.current = true;
+    }
+
+    if (distance > DEADZONE) {
+      const dirX = Math.abs(dx) > DEADZONE * 0.5 ? Math.sign(dx) : 0;
+      const dirY = Math.abs(dy) > DEADZONE * 0.5 ? Math.sign(dy) : 0;
+
+      setActiveDir({ x: dirX, y: dirY });
+      requestTouchMoveRef.current?.({ x: dirX, y: dirY });
+    } else {
+      setActiveDir(null);
+    }
+  };
+
+  const handlePadPointerDown = (e: React.PointerEvent) => {
+    isPadTouchingRef.current = true;
+    hasMovedRef.current = false;
+    touchStartTimeRef.current = performance.now();
+    touchStartCoordRef.current = { x: e.clientX, y: e.clientY };
+
+    updateDirectionFromClientCoord(e.clientX, e.clientY);
 
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {}
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse" && e.buttons === 0) return;
-
-    const dx = e.clientX - pointerDownPosRef.current.x;
-    const dy = e.clientY - pointerDownPosRef.current.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance > SWIPE_THRESHOLD) {
-      isSwipingRef.current = true;
-      const dirX = Math.abs(dx) > SWIPE_THRESHOLD ? (dx > 0 ? 1 : -1) : 0;
-      const dirY = Math.abs(dy) > SWIPE_THRESHOLD ? (dy > 0 ? 1 : -1) : 0;
-
-      requestTouchMoveRef.current?.({ x: dirX, y: dirY });
-    }
+  const handlePadPointerMove = (e: React.PointerEvent) => {
+    if (!isPadTouchingRef.current) return;
+    updateDirectionFromClientCoord(e.clientX, e.clientY);
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    const duration = performance.now() - pointerDownTimeRef.current;
-    const dx = e.clientX - pointerDownPosRef.current.x;
-    const dy = e.clientY - pointerDownPosRef.current.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+  const handlePadPointerUp = (e: React.PointerEvent) => {
+    const duration = performance.now() - touchStartTimeRef.current;
 
-    // 一定距離未満かつ短時間のタップなら攻撃トリガー
-    if (distance < SWIPE_THRESHOLD && duration < 300 && !isSwipingRef.current) {
+    if (!hasMovedRef.current && duration < 350) {
       requestTouchActionRef.current?.();
     }
 
-    // 指を離したら移動停止
+    isPadTouchingRef.current = false;
+    hasMovedRef.current = false;
+    setActiveDir(null);
     requestTouchReleaseRef.current?.();
 
     try {
@@ -228,103 +249,100 @@ export function PlayGameContent({
     } catch {}
   };
 
+  // 円形パネルの外側をタップしたときの攻撃ハンドラ
+  const handleOuterAreaClick = (e: React.MouseEvent) => {
+    // 円形パッド本体がクリックされた場合はバブリングで二重発火しないように除外
+    if (padRef.current && padRef.current.contains(e.target as Node)) {
+      return;
+    }
+    requestTouchActionRef.current?.();
+  };
+
   const activeTouchMode = forcedTouchMode !== null ? forcedTouchMode : isMobileScreen;
 
   return (
-    <main className="flex flex-col items-center p-2.5 sm:p-4 bg-stone-950 min-h-screen text-stone-100 select-none overflow-hidden">
-      <div className="w-full max-w-3xl flex flex-col items-center shrink-0">
-        {/* ヘッダーエリア */}
-        <div className="w-full flex items-center justify-between mb-1.5 gap-4">
-          <h1 className="text-lg sm:text-xl font-bold font-mono text-amber-400 tracking-wide truncate min-w-0 flex-1">
-            {dungeon.name}
-          </h1>
+    <main className="flex flex-col items-center p-2 bg-stone-950 h-[100dvh] text-stone-100 select-none overflow-hidden justify-start gap-1">
+      {/* ヘッダーエリア */}
+      <div className="w-full max-w-3xl flex items-center justify-between gap-2 shrink-0 py-0.5">
+        <h1 className="text-sm sm:text-lg font-bold font-mono text-amber-400 tracking-wide truncate min-w-0 flex-1">
+          {dungeon.name}
+        </h1>
 
-          <button
-            onClick={handleOpenConfirm}
-            className="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
-          >
-            <LogOut size={14} />
-            <span>{isTestPlay ? "テストプレイを中断する" : "探索を中断する"}</span>
-          </button>
+        <button
+          onClick={handleOpenConfirm}
+          className="flex items-center gap-1 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2 py-0.5 rounded-md text-[11px] font-bold transition-colors cursor-pointer shadow-sm shrink-0"
+        >
+          <LogOut size={14} />
+          <span>{isTestPlay ? "テストプレイを中断する" : "探索を中断する"}</span>
+        </button>
+      </div>
+
+      {/* ゲームエリア */}
+      <div className="w-full max-w-3xl flex flex-col relative shrink-0">
+        <div
+          style={{ height: `${gameCanvasHeight}px` }}
+          className="relative w-full border border-stone-700/80 rounded-lg overflow-hidden shadow-2xl bg-black flex items-center justify-center transition-all duration-75"
+        >
+          {enabled ? (
+            <div className="absolute inset-0 w-full h-full flex items-center justify-center [&>canvas]:w-full [&>canvas]:h-full [&>canvas]:object-fill">
+              <GameCanvas
+                key={`${dungeon.id ?? "game"}-${dungeon.timeLimit ?? 0}-${JSON.stringify(parsedMapData)}`}
+                mapData={parsedMapData}
+                timeLimit={dungeon.timeLimit}
+                onClear={handleClearWrapper}
+                onGameOver={handleGameOverWrapper}
+                onInterrupt={onInterrupt}
+                requestInterruptRef={requestInterruptRef}
+                requestZoomRef={requestZoomRef}
+                requestPauseRef={requestPauseRef}
+                requestTouchMoveRef={requestTouchMoveRef}
+                requestTouchActionRef={requestTouchActionRef}
+                requestTouchReleaseRef={requestTouchReleaseRef}
+              />
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-stone-950 text-stone-500 font-mono text-sm">
+              準備中...
+            </div>
+          )}
         </div>
 
-        {/* ゲームエリア */}
-        <div className="w-full flex flex-col mb-1 relative">
-          <div
-            style={{ height: `${gameCanvasHeight}px` }}
-            className="relative w-full border-2 border-stone-700/80 rounded-2xl overflow-hidden shadow-2xl bg-black flex items-center justify-center transition-all duration-75"
-          >
-            {enabled ? (
-              <div className="absolute inset-0 w-full h-full flex items-center justify-center [&>canvas]:w-full [&>canvas]:h-full [&>canvas]:object-fill">
-                <GameCanvas
-                  key={`${dungeon.id ?? "game"}-${dungeon.timeLimit ?? 0}-${JSON.stringify(parsedMapData)}`}
-                  mapData={parsedMapData}
-                  timeLimit={dungeon.timeLimit}
-                  onClear={handleClearWrapper}
-                  onGameOver={handleGameOverWrapper}
-                  onInterrupt={onInterrupt}
-                  requestInterruptRef={requestInterruptRef}
-                  requestZoomRef={requestZoomRef}
-                  requestPauseRef={requestPauseRef}
-                  requestTouchMoveRef={requestTouchMoveRef}
-                  requestTouchActionRef={requestTouchActionRef}
-                  requestTouchReleaseRef={requestTouchReleaseRef}
-                />
-              </div>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-stone-950 text-stone-500 font-mono text-sm">
-                準備中...
-              </div>
-            )}
-          </div>
+        {/* リサイズハンドル */}
+        <div
+          onPointerDown={handleResizePointerDown}
+          onPointerMove={handleResizePointerMove}
+          onPointerUp={handleResizePointerUp}
+          className="w-full h-1.5 bg-stone-900/60 hover:bg-amber-500/30 border-x border-b border-stone-800 rounded-b-lg flex items-center justify-center cursor-ns-resize transition-colors group mt-[-1px] relative z-10"
+          title="ドラッグしてゲーム画面の高さを変更"
+        >
+          <div className="w-6 h-0.5 bg-stone-600 group-hover:bg-amber-400 rounded-full" />
+        </div>
 
-          {/* リサイズハンドル */}
-          <div
-            onPointerDown={handleResizePointerDown}
-            onPointerMove={handleResizePointerMove}
-            onPointerUp={handleResizePointerUp}
-            className="w-full h-3 bg-stone-900/60 hover:bg-amber-500/30 border-x border-b border-stone-800 rounded-b-xl flex items-center justify-center cursor-ns-resize transition-colors group mt-[-2px] relative z-10"
-            title="ドラッグしてゲーム画面の高さを変更"
+        {/* 操作モード切り替え・ズームボタン */}
+        <div className="flex justify-end items-center gap-1 mt-0.5 px-0.5">
+          <button
+            onClick={() => setForcedTouchMode(!activeTouchMode)}
+            className="flex items-center gap-1 bg-stone-900 hover:bg-stone-800 border border-stone-800 px-2 py-0 rounded transition-colors cursor-pointer shadow-sm h-5 text-[11px]"
+            title="操作モード切り替え"
           >
-            <div className="w-10 h-1 bg-stone-600 group-hover:bg-amber-400 rounded-full" />
-          </div>
-
-          {/* 操作モード切り替え・ズームボタン */}
-          <div className="flex justify-end items-center gap-1.5 mt-1 px-1">
-            <button
-              onClick={() => setForcedTouchMode(!activeTouchMode)}
-              className="flex items-center gap-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-sm h-7"
-              title="操作モードを切り替え (PC / タッチ)"
-            >
-              <Keyboard
-                size={15}
-                className={
-                  !activeTouchMode ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" : "text-stone-600"
-                }
-              />
-              <span className="w-[1px] h-3.5 bg-stone-800" />
-              <Smartphone
-                size={15}
-                className={
-                  activeTouchMode ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" : "text-stone-600"
-                }
-              />
-            </button>
-            <button
-              onClick={() => requestZoomRef.current?.(false)}
-              className="w-7 h-7 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-xs border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
-              title="縮小"
-            >
-              ー
-            </button>
-            <button
-              onClick={() => requestZoomRef.current?.(true)}
-              className="w-7 h-7 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded-lg text-xs border border-stone-800 shadow-sm transition-colors active:scale-95 cursor-pointer"
-              title="拡大"
-            >
-              ＋
-            </button>
-          </div>
+            <Keyboard size={12} className={!activeTouchMode ? "text-amber-400" : "text-stone-600"} />
+            <span className="w-[1px] h-2.5 bg-stone-800" />
+            <Smartphone size={12} className={activeTouchMode ? "text-amber-400" : "text-stone-600"} />
+          </button>
+          <button
+            onClick={() => requestZoomRef.current?.(false)}
+            className="w-5 h-5 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded text-[11px] border border-stone-800 cursor-pointer"
+            title="縮小"
+          >
+            ー
+          </button>
+          <button
+            onClick={() => requestZoomRef.current?.(true)}
+            className="w-5 h-5 flex items-center justify-center bg-stone-900 hover:bg-stone-800 text-stone-300 rounded text-[11px] border border-stone-800 cursor-pointer"
+            title="拡大"
+          >
+            ＋
+          </button>
         </div>
       </div>
 
@@ -346,25 +364,54 @@ export function PlayGameContent({
         </div>
       )}
 
-      {/* タッチ操作パッド */}
+      {/* タッチ操作エリア */}
       {activeTouchMode && (
         <div
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          className="flex flex-1 w-full max-w-3xl bg-stone-900/95 rounded-2xl border-2 border-amber-500/50 backdrop-blur-md flex-col items-center justify-center gap-1.5 touch-none shadow-xl mt-1 p-3 text-center animate-in fade-in duration-150 cursor-grab active:cursor-grabbing"
+          onClick={handleOuterAreaClick}
+          className="flex flex-col w-full max-w-3xl bg-stone-900/95 rounded-lg border border-amber-500/40 backdrop-blur-md items-center justify-center touch-none shadow-xl p-1.5 text-center select-none flex-1 min-h-[140px] max-h-[220px] overflow-hidden mt-0.5 cursor-pointer"
         >
-          <div className="flex items-center flex-wrap justify-center gap-1 text-xs text-amber-300/90 font-mono font-medium">
-            <TileIconForm tileId="P" size={TILE_SIZE * 0.75} />
-            <span>プレイヤーを</span>
-            <TileIconForm tileId="G" size={TILE_SIZE * 0.75} />
-            <span>ゴールに導いてクリアしよう！</span>
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-amber-300/90 font-mono shrink-0 mb-1 pointer-events-none">
+            <TileIconForm tileId="P" size={TILE_SIZE * 0.45} />
+            <span>⇒</span>
+            <TileIconForm tileId="G" size={TILE_SIZE * 0.45} />
+            <span className="text-stone-400">
+              ｜ パッド外タップで<strong className="text-amber-400">攻撃</strong> / パッド内スライドで移動
+            </span>
           </div>
 
-          {/* タッチ操作方法の説明 */}
-          <div className="flex items-center gap-1.5 text-xs text-amber-300 font-mono font-bold">
-            <Hand size={16} className="animate-pulse text-amber-400 shrink-0" />
-            <span>ここをスワイプで移動 / タップで攻撃</span>
+          {/* 可変対応円形パッド */}
+          <div
+            ref={padRef}
+            onPointerDown={handlePadPointerDown}
+            onPointerMove={handlePadPointerMove}
+            onPointerUp={handlePadPointerUp}
+            className="relative w-[28vw] max-w-[120px] min-w-[90px] aspect-square bg-stone-950/80 rounded-full border-2 border-stone-800 flex items-center justify-center shadow-inner cursor-pointer touch-none my-auto"
+          >
+            <div className="absolute inset-1.5 rounded-full border border-amber-500/10 pointer-events-none" />
+
+            <span className="absolute top-0.5 text-[9px] font-mono text-stone-500 pointer-events-none">▲</span>
+            <span className="absolute bottom-0.5 text-[9px] font-mono text-stone-500 pointer-events-none">▼</span>
+            <span className="absolute left-1 text-[9px] font-mono text-stone-500 pointer-events-none">◀</span>
+            <span className="absolute right-1 text-[9px] font-mono text-stone-500 pointer-events-none">▶</span>
+
+            {activeDir && (
+              <div className="absolute inset-0 rounded-full bg-amber-500/15 border border-amber-400/40 pointer-events-none flex items-center justify-center">
+                {/* <span className="text-xs font-mono font-bold text-amber-300">
+                  {activeDir.x === 0 && activeDir.y === -1 && "上"}
+                  {activeDir.x === 0 && activeDir.y === 1 && "下"}
+                  {activeDir.x === -1 && activeDir.y === 0 && "左"}
+                  {activeDir.x === 1 && activeDir.y === 0 && "右"}
+                  {activeDir.x === -1 && activeDir.y === -1 && "左上"}
+                  {activeDir.x === 1 && activeDir.y === -1 && "右上"}
+                  {activeDir.x === -1 && activeDir.y === 1 && "左下"}
+                  {activeDir.x === 1 && activeDir.y === 1 && "右下"}
+                </span> */}
+              </div>
+            )}
+
+            {!activeDir && (
+              <div className="text-[9px] font-mono text-stone-400 pointer-events-none">スライドで移動</div>
+            )}
           </div>
         </div>
       )}
@@ -372,7 +419,7 @@ export function PlayGameContent({
       {/* 中断確認モーダル */}
       {isConfirmOpen && (
         <div className="fixed inset-0 bg-stone-950/85 backdrop-blur-md z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-stone-900 border border-stone-700 p-6 sm:p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-stone-900 border border-stone-700 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
             <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-400">
               <AlertTriangle size={24} />
             </div>

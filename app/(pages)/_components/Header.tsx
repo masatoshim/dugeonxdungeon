@@ -23,7 +23,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
 
   // ゲームプレイ画面か判定
-  const isPlayScreen = pathname?.endsWith("/play");
+  const isPlayScreen = pathname?.endsWith("/play") || pathname?.includes("/test-play");
 
   useEffect(() => {
     setMounted(true);
