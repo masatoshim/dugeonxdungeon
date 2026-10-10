@@ -61,7 +61,7 @@ export default function Header() {
             href="/"
             className="flex items-center gap-2 font-black text-base sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors shrink-0 group"
           >
-            <span>DUNGEON</span>
+            <span>DUNGEONZ</span>
             {/* クロスした剣のSVGアイコン */}
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5 text-[#4fd1d1] shrink-0 group-hover:rotate-12 transition-transform"
@@ -79,7 +79,7 @@ export default function Header() {
               <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
               <line x1="5" y1="19" x2="11" y2="13" />
             </svg>
-            <span>DUNGEON</span>
+            <span>DUNGEONZ</span>
           </Link>
 
           {/* PC用ナビゲーションリンク */}
@@ -119,12 +119,20 @@ export default function Header() {
                 </div>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all shrink-0"
-              >
-                ログイン
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all shrink-0"
+                >
+                  ログイン
+                </Link>
+                <Link
+                  href="/signup"
+                  className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all shrink-0"
+                >
+                  新規登録
+                </Link>
+              </>
             )}
           </div>
 
