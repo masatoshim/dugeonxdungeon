@@ -173,7 +173,7 @@ function DungeonsPageContent() {
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
         {/* タイトル領域 */}
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">EXPLORE DUNGEONS</h1>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">EXPLORE DUNGEONZ</h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
             世界中のクリエイターが作成したダンジョンに挑もう！
           </p>
