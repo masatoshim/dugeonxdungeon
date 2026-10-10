@@ -212,38 +212,42 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     const mainEl = mainRef.current;
     if (!mainEl) return;
 
-    let initialDist: number | null = null;
-    let initialZoom = zoom;
+    const pinchRef = useRef({
+      initialDist: null as number | null,
+      initialZoom: 1,
+    });
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        initialDist = Math.hypot(
+        const dist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
-        initialZoom = zoom;
+        pinchRef.current.initialDist = dist;
+        pinchRef.current.initialZoom = zoom;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && initialDist !== null) {
+      if (e.touches.length === 2 && pinchRef.current.initialDist !== null) {
         e.preventDefault();
         const currentDist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
 
-        // 距離の比率からスムーズに倍率を算出
-        const scaleFactor = currentDist / initialDist;
-        const newZoom = Math.min(Math.max(initialZoom * scaleFactor, MIN_ZOOM), MAX_ZOOM);
+        // 現在の指の間隔 / 最初に触ったときの間隔
+        const scaleFactor = currentDist / pinchRef.current.initialDist;
+        const newZoom = Math.min(Math.max(pinchRef.current.initialZoom * scaleFactor, MIN_ZOOM), MAX_ZOOM);
+
         setZoom(Number(newZoom.toFixed(2)));
       }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (e.touches.length < 2) {
-        initialDist = null;
+        pinchRef.current.initialDist = null;
       }
     };
 
@@ -256,7 +260,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
       mainEl.removeEventListener("touchmove", handleTouchMove);
       mainEl.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [zoom, MIN_ZOOM, MAX_ZOOM]);
+  }, [MIN_ZOOM, MAX_ZOOM, zoom]);
 
   // マウス/1本指ドラッグスクロール
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
