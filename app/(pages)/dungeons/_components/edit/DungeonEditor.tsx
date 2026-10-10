@@ -207,88 +207,87 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     return () => mainEl.removeEventListener("wheel", handleWheelNative);
   }, [MIN_ZOOM, MAX_ZOOM]);
 
-  // ピンチイン・ピンチアウトおよびタッチ操作管理用
-  const touchPointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const initialPinchDistRef = useRef<number | null>(null);
-  const initialZoomRef = useRef<number>(1);
+  // ピンチイン・ピンチアウト制御
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
 
-  // ポインターダウン
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      const mainEl = mainRef.current;
-      if (!mainEl) return;
+    let initialDist: number | null = null;
+    let initialZoom = 1;
 
-      touchPointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-      // 2本指になった瞬間にピンチの基準距離と当時のズーム倍率を記録
-      if (touchPointersRef.current.size === 2) {
-        const pointers = Array.from(touchPointersRef.current.values());
-        const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
-        initialPinchDistRef.current = dist;
-        initialZoomRef.current = zoom;
-      } else if (touchPointersRef.current.size === 1) {
-        // 1本指の場合、中クリック・Shift+クリック・または背景領域ならドラッグスクロール開始
-        if (e.button === 1 || e.shiftKey || (e.target as HTMLElement).tagName === "MAIN") {
-          isDraggingRef.current = true;
-          startPosRef.current = { x: e.clientX, y: e.clientY };
-          startScrollRef.current = { left: mainEl.scrollLeft, top: mainEl.scrollTop };
-        }
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        initialDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        initialZoom = zoom;
       }
+    };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialDist !== null) {
+        e.preventDefault();
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        const scaleFactor = currentDist / initialDist;
+        const newZoom = Math.min(Math.max(initialZoom * scaleFactor, MIN_ZOOM), MAX_ZOOM);
+        setZoom(Number(newZoom.toFixed(2)));
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialDist = null;
+      }
+    };
+
+    mainEl.addEventListener("touchstart", handleTouchStart, { passive: false });
+    mainEl.addEventListener("touchmove", handleTouchMove, { passive: false });
+    mainEl.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      mainEl.removeEventListener("touchstart", handleTouchStart);
+      mainEl.removeEventListener("touchmove", handleTouchMove);
+      mainEl.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [zoom, MIN_ZOOM, MAX_ZOOM]);
+
+  // マウス/1本指ドラッグスクロール
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const mainEl = mainRef.current;
+    if (!mainEl || e.pointerType === "touch") return; // タッチはネイティブイベントで処理するため除外
+
+    if (e.button === 1 || e.shiftKey || (e.target as HTMLElement).tagName === "MAIN") {
+      isDraggingRef.current = true;
+      startPosRef.current = { x: e.clientX, y: e.clientY };
+      startScrollRef.current = { left: mainEl.scrollLeft, top: mainEl.scrollTop };
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch {}
-    },
-    [zoom],
-  );
+    }
+  }, []);
 
-  // ポインター移動（ピンチイン・アウト & ドラッグスクロール）
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      const mainEl = mainRef.current;
-      if (!mainEl) return;
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingRef.current || !mainRef.current || e.pointerType === "touch") return;
+    const dx = e.clientX - startPosRef.current.x;
+    const dy = e.clientY - startPosRef.current.y;
 
-      if (touchPointersRef.current.has(e.pointerId)) {
-        touchPointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      }
-
-      // 2本指のピンチ操作中
-      if (touchPointersRef.current.size === 2 && initialPinchDistRef.current !== null) {
-        const pointers = Array.from(touchPointersRef.current.values());
-        const currentDist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
-
-        const scaleFactor = currentDist / initialPinchDistRef.current;
-        const newZoom = Math.min(Math.max(initialZoomRef.current * scaleFactor, MIN_ZOOM), MAX_ZOOM);
-
-        setZoom(Number(newZoom.toFixed(2)));
-        return;
-      }
-
-      // 1本指のドラッグスクロール中
-      if (!isDraggingRef.current) return;
-      const dx = e.clientX - startPosRef.current.x;
-      const dy = e.clientY - startPosRef.current.y;
-
-      mainEl.scrollLeft = startScrollRef.current.left - dx;
-      mainEl.scrollTop = startScrollRef.current.top - dy;
-    },
-    [MIN_ZOOM, MAX_ZOOM],
-  );
+    mainRef.current.scrollLeft = startScrollRef.current.left - dx;
+    mainRef.current.scrollTop = startScrollRef.current.top - dy;
+  }, []);
 
   // ポインターアップ（指を離したとき）
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    touchPointersRef.current.delete(e.pointerId);
-    if (touchPointersRef.current.size < 2) {
-      initialPinchDistRef.current = null;
-    }
-
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {}
     }
-
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {}
   }, []);
 
   useEffect(() => {
@@ -388,7 +387,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         {/* onSubmitのデフォルト挙動を無効化 */}
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="relative h-[calc(100vh-3.5rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
+          className="relative h-[calc(100dvh-64px)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
         >
           {/* ─── ヘッダー ─── */}
           <header className="z-40 w-full shrink-0 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-2">
@@ -475,7 +474,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              className="w-full h-full overflow-auto relative cursor-grab active:cursor-grabbing custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] flex"
+              className="w-full h-full overflow-auto relative cursor-grab active:cursor-grabbing custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] flex touch-none"
             >
               <div className="m-auto shrink-0 flex items-center justify-center p-[600px]">
                 <div
@@ -568,7 +567,10 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </div>
 
             {/* ─── ズームコントローラー ─── */}
-            <div className="absolute bottom-16 sm:bottom-4 right-4 z-30 pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-1 text-xs text-slate-300 shadow-2xl">
+            <div
+              className="absolute right-4 z-30 pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-1 text-xs text-slate-300 shadow-2xl"
+              style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}
+            >
               <button
                 type="button"
                 onClick={() => setZoom((z) => Math.max(Number((z - 0.1).toFixed(2)), MIN_ZOOM))}
