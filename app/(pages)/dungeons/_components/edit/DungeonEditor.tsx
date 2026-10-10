@@ -213,7 +213,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     if (!mainEl) return;
 
     let initialDist: number | null = null;
-    let initialZoom = 1;
+    let initialZoom = zoom;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
@@ -233,7 +233,9 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
-        const scaleFactor = 1 + (currentDist / initialDist - 1) * 0.7;
+
+        // 距離の比率からスムーズに倍率を算出
+        const scaleFactor = currentDist / initialDist;
         const newZoom = Math.min(Math.max(initialZoom * scaleFactor, MIN_ZOOM), MAX_ZOOM);
         setZoom(Number(newZoom.toFixed(2)));
       }
