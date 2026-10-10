@@ -64,7 +64,9 @@ function VerifyRequestContent() {
 
         <div className="mb-8 space-y-4 text-sm text-slate-400">
           <p>メール内のリンクをクリックして、冒険を開始してください。</p>
-          <p className="text-xs italic">※メールが届かない場合は、迷惑メールフォルダをご確認ください。</p>
+          <div className="p-3 my-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md">
+            ※メールが届かない場合は、迷惑メールフォルダをご確認ください。
+          </div>
         </div>
 
         <div className="flex flex-col gap-3">
