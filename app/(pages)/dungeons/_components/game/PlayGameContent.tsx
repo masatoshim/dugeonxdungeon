@@ -204,8 +204,25 @@ export function PlayGameContent({
     }
 
     if (distance > DEADZONE) {
-      const dirX = Math.abs(dx) > DEADZONE * 0.5 ? Math.sign(dx) : 0;
-      const dirY = Math.abs(dy) > DEADZONE * 0.5 ? Math.sign(dy) : 0;
+      // 角度を計算
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      const absAngle = Math.abs(angle);
+
+      let dirX = 0;
+      let dirY = 0;
+
+      // 上下左右の判定範囲を広く持たせる
+      if (absAngle >= 155 || absAngle <= 25) {
+        dirX = dx > 0 ? 1 : -1;
+        dirY = 0;
+      } else if (absAngle >= 65 && absAngle <= 115) {
+        dirX = 0;
+        dirY = dy > 0 ? 1 : -1;
+      } else {
+        // 斜め
+        dirX = dx > 0 ? 1 : -1;
+        dirY = dy > 0 ? 1 : -1;
+      }
 
       setActiveDir({ x: dirX, y: dirY });
       requestTouchMoveRef.current?.({ x: dirX, y: dirY });
@@ -368,13 +385,13 @@ export function PlayGameContent({
       {activeTouchMode && (
         <div
           onClick={handleOuterAreaClick}
-          className="flex flex-col w-full max-w-3xl bg-stone-900/95 rounded-lg border border-amber-500/40 backdrop-blur-md items-center justify-center touch-none shadow-xl p-1.5 text-center select-none flex-1 min-h-[140px] max-h-[220px] overflow-hidden mt-0.5 cursor-pointer"
+          className="flex flex-col w-full max-w-3xl bg-stone-900/95 rounded-lg border border-amber-500/40 backdrop-blur-md items-center justify-center touch-none shadow-xl p-2 text-center select-none flex-1 min-h-[160px] max-h-[240px] overflow-hidden mt-0.5 cursor-pointer relative"
         >
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-amber-300/90 font-mono shrink-0 mb-1 pointer-events-none">
-            <TileIconForm tileId="P" size={TILE_SIZE * 0.45} />
+          <div className="absolute top-2 left-0 right-0 flex items-center justify-center gap-1.5 text-[11px] text-amber-300/90 font-mono pointer-events-none px-2 truncate">
+            <TileIconForm tileId="P" size={TILE_SIZE * 0.5} />
             <span>⇒</span>
-            <TileIconForm tileId="G" size={TILE_SIZE * 0.45} />
-            <span className="text-stone-400">
+            <TileIconForm tileId="G" size={TILE_SIZE * 0.5} />
+            <span className="text-stone-400 truncate">
               ｜ パッド外タップで<strong className="text-amber-400">攻撃</strong> / パッド内スライドで移動
             </span>
           </div>
@@ -385,14 +402,14 @@ export function PlayGameContent({
             onPointerDown={handlePadPointerDown}
             onPointerMove={handlePadPointerMove}
             onPointerUp={handlePadPointerUp}
-            className="relative w-[28vw] max-w-[120px] min-w-[90px] aspect-square bg-stone-950/80 rounded-full border-2 border-stone-800 flex items-center justify-center shadow-inner cursor-pointer touch-none my-auto"
+            className="relative w-[36vw] max-w-[150px] min-w-[110px] aspect-square bg-stone-950/80 rounded-full border-2 border-stone-800 flex items-center justify-center shadow-inner cursor-pointer touch-none m-auto"
           >
-            <div className="absolute inset-1.5 rounded-full border border-amber-500/10 pointer-events-none" />
+            <div className="absolute inset-2 rounded-full border border-amber-500/10 pointer-events-none" />
 
-            <span className="absolute top-0.5 text-[9px] font-mono text-stone-500 pointer-events-none">▲</span>
-            <span className="absolute bottom-0.5 text-[9px] font-mono text-stone-500 pointer-events-none">▼</span>
-            <span className="absolute left-1 text-[9px] font-mono text-stone-500 pointer-events-none">◀</span>
-            <span className="absolute right-1 text-[9px] font-mono text-stone-500 pointer-events-none">▶</span>
+            <span className="absolute top-1 text-[10px] font-mono text-stone-500 pointer-events-none">▲</span>
+            <span className="absolute bottom-1 text-[10px] font-mono text-stone-500 pointer-events-none">▼</span>
+            <span className="absolute left-1.5 text-[10px] font-mono text-stone-500 pointer-events-none">◀</span>
+            <span className="absolute right-1.5 text-[10px] font-mono text-stone-500 pointer-events-none">▶</span>
 
             {activeDir && (
               <div className="absolute inset-0 rounded-full bg-amber-500/15 border border-amber-400/40 pointer-events-none flex items-center justify-center">
@@ -410,7 +427,7 @@ export function PlayGameContent({
             )}
 
             {!activeDir && (
-              <div className="text-[9px] font-mono text-stone-400 pointer-events-none">スライドで移動</div>
+              <div className="text-[10px] font-mono text-stone-400 pointer-events-none">スライドで移動</div>
             )}
           </div>
         </div>
