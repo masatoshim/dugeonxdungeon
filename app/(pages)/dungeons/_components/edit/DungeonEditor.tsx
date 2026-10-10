@@ -233,7 +233,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
-        const scaleFactor = currentDist / initialDist;
+        const scaleFactor = 1 + (currentDist / initialDist - 1) * 0.7;
         const newZoom = Math.min(Math.max(initialZoom * scaleFactor, MIN_ZOOM), MAX_ZOOM);
         setZoom(Number(newZoom.toFixed(2)));
       }
@@ -573,7 +573,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             >
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.max(Number((z - 0.1).toFixed(2)), MIN_ZOOM))}
+                onClick={() => setZoom((z) => Math.max(Number((z * 0.9).toFixed(2)), MIN_ZOOM))}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 active:bg-slate-700 transition-colors font-bold"
                 title="縮小"
               >
@@ -591,7 +591,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.min(Number((z + 0.1).toFixed(2)), MAX_ZOOM))}
+                onClick={() => setZoom((z) => Math.min(Number((z * 1.1).toFixed(2)), MAX_ZOOM))}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 active:bg-slate-700 transition-colors font-bold"
                 title="拡大"
               >
