@@ -80,7 +80,7 @@ function DungeonsPageContent() {
   const dungeonId = searchParams.get("dungeonId");
   const page = Number(searchParams.get("page")) || 1;
   const [targetPage, setTargetPage] = useState(page);
-  const limit = 20;
+  const limit = 24;
   const index = (page - 1) * limit;
 
   const sort = searchParams.get("sort") || "publishedAt";
@@ -169,41 +169,57 @@ function DungeonsPageContent() {
   const totalPages = Math.ceil((totalCount || 0) / limit);
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white p-4 sm:p-8">
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
-        {/* タイトル領域 */}
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">EXPLORE DUNGEONZ</h1>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
-            世界中のクリエイターが作成したダンジョンに挑もう！
-          </p>
+    <div className="min-h-screen bg-[#0f172a] text-white py-6 px-4 sm:px-8 flex flex-col items-center">
+      <div className="w-full flex flex-col items-center space-y-8">
+        {/* ヘッダー・検索領域 */}
+        <div className="w-full flex justify-center">
+          <header className="w-full max-w-[1168px] grid grid-cols-[repeat(auto-fit,280px)] justify-center gap-4">
+            <div className="col-span-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-[#4fd1d1] pl-4 w-full">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
+                  EXPLORE DUNGEONZ
+                </h1>
+                <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
+                  世界中のクリエイターが作成したダンジョンに挑もう！
+                </p>
+              </div>
+
+              {/* 右側の検索・ソートボタン群など */}
+              <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                  <DungeonSearchFilterModal initialValues={initialFilterValues} onSearch={handleSearch} />
+                  <div>
+                    <SortSelect
+                      sort={sort}
+                      order={order}
+                      options={DUNGEON_SORT_OPTIONS}
+                      onSelect={handleSortChange}
+                      onOrderToggle={handleOrderToggle}
+                    />
+                  </div>
+                </div>
+                <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
+                  Total: <span className="text-slate-400">{totalCount || 0}</span> dungeons
+                </div>
+              </div>
+            </div>
+          </header>
         </div>
 
-        {/* 右側の検索・ソートボタン群など */}
-        <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-            <DungeonSearchFilterModal initialValues={initialFilterValues} onSearch={handleSearch} />
-            <div>
-              <SortSelect
-                sort={sort}
-                order={order}
-                options={DUNGEON_SORT_OPTIONS}
-                onSelect={handleSortChange}
-                onOrderToggle={handleOrderToggle}
-              />
+        {/* ダンジョン一覧 */}
+        <div className="w-full">
+          <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+        </div>
+
+        {/* ページネーション */}
+        <div className="w-full flex justify-center pt-4">
+          <div className="w-full max-w-[1168px] grid grid-cols-[repeat(auto-fit,280px)] justify-center gap-4">
+            <div className="col-span-full flex justify-center">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
           </div>
-          <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-            Total: <span className="text-slate-400">{totalCount || 0}</span> dungeons
-          </div>
         </div>
-      </header>
-
-      {/* ダンジョン一覧 */}
-      <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
-
-      {/* ページネーション */}
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+      </div>
 
       {/* ダンジョン詳細モーダル表示 */}
       {dungeonId && (

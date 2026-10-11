@@ -4,14 +4,18 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DungeonSection } from "@/app/(pages)/_components/list/DungeonSection";
+import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
+import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
 import { useGetDungeons } from "@/app/_hooks";
 import { DungeonFilter } from "@/app/_types";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginAlertModal } from "./_components/LoginAlertModal";
 import { useDungeonAuth } from "@/app/_hooks/useDungeonAuth";
 
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const dungeonId = searchParams.get("dungeonId");
 
   // ポップアップの開閉管理
   const [showLoginAlert, setShowLoginAlert] = useState(false);
@@ -253,6 +257,13 @@ export default function Home() {
 
       {/* 未ログインユーザー用のポップアップ */}
       <LoginAlertModal isOpen={showLoginAlert} onClose={() => setShowLoginAlert(false)} />
+
+      {/* モーダル */}
+      {dungeonId && (
+        <DungeonDetailModal>
+          <DungeonDetailContent id={dungeonId} />
+        </DungeonDetailModal>
+      )}
     </div>
   );
 }

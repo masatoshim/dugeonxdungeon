@@ -287,7 +287,7 @@ export function PlayGameContent({
 
         <button
           onClick={handleOpenConfirm}
-          className="flex items-center gap-1 bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-rose-400 border border-stone-700 px-2 py-0.5 rounded-md text-[11px] font-bold transition-colors cursor-pointer shadow-sm shrink-0"
+          className="flex items-center gap-1 bg-rose-600 hover:bg-rose-500 text-white border border-rose-500 px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-colors cursor-pointer shadow-md shrink-0"
         >
           <LogOut size={14} />
           <span>{isTestPlay ? "テストプレイを中断する" : "探索を中断する"}</span>
