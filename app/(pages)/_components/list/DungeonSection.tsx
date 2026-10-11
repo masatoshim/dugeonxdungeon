@@ -10,7 +10,7 @@ interface DungeonSectionProps {
 
 export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: DungeonSectionProps) => {
   return (
-    <section className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+    <section className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl w-full">
       {/* セクションヘッダー */}
       <div className="flex flex-wrap justify-between items-end gap-x-4 gap-y-2 mb-6 border-l-4 border-[#4fd1d1] pl-4">
         <h3 className="text-xs sm:text-sm md:text-base font-bold text-white tracking-tight">{title}</h3>
@@ -22,13 +22,13 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
         </Link>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 justify-items-start">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 justify-items-center sm:justify-items-start">
         {isLoading ? (
           // ローディング中のスケルトン表示（4件分）
           [...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 h-[220px] w-full animate-pulse flex flex-col justify-between"
+              className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 h-[280px] w-full max-w-[320px] animate-pulse flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="h-3 bg-slate-800 rounded w-1/3" />
@@ -43,10 +43,14 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
           ))
         ) : dungeons && dungeons.length > 0 ? (
           // データがある場合の通常表示
-          dungeons.slice(0, 4).map((dungeon) => <DungeonCard key={dungeon.id} dungeon={dungeon} />)
+          dungeons.slice(0, 4).map((dungeon) => (
+            <div key={dungeon.id} className="w-full max-w-[320px]">
+              <DungeonCard dungeon={dungeon} isCleared={dungeon.isCleared} />
+            </div>
+          ))
         ) : (
           // データが0件の場合
-          <div className="col-span-full py-10 border-2 border-dashed border-slate-800 rounded-xl flex items-center justify-center">
+          <div className="col-span-full py-10 border-2 border-dashed border-slate-800 rounded-xl flex items-center justify-center w-full">
             <p className="text-slate-600 text-sm font-mono uppercase tracking-widest">ダンジョンがありません</p>
           </div>
         )}

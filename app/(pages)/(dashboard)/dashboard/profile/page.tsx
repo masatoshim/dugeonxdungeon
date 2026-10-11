@@ -78,38 +78,40 @@ function ProfilePageContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 pt-0">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
-        {/* プロフィール詳細 */}
-        <div className="lg:col-span-4 xl:col-span-4">
-          <ProfileCard user={user} mutate={mutateUser} update={update} />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 pt-0 flex flex-col items-center w-full">
+      <div className="w-full max-w-[1200px] space-y-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* プロフィール詳細 */}
+          <div className="lg:col-span-4 xl:col-span-4">
+            <ProfileCard user={user} mutate={mutateUser} update={update} />
+          </div>
+          {/* 統計情報 */}
+          <div className="lg:col-span-8 xl:col-span-8">
+            <UserStatsCard user={user} />
+          </div>
         </div>
-        {/* 統計情報 */}
-        <div className="lg:col-span-8 xl:col-span-8">
-          <UserStatsCard user={user} />
-        </div>
-      </div>
 
-      {/* 各ダンジョンリスト */}
-      <div className="space-y-8">
-        <DungeonSection
-          title="構築中のダンジョン"
-          viewMoreLink="/dashboard/dungeons"
-          dungeons={draftDungeons}
-          isLoading={isDraftLoading}
-        />
-        <DungeonSection
-          title="お気に入りダンジョン"
-          viewMoreLink="/dashboard/favorites"
-          dungeons={favDungeons}
-          isLoading={isFavLoading}
-        />
-        <DungeonSection
-          title="最近遊んだダンジョン"
-          viewMoreLink="/dashboard/history"
-          dungeons={histDungeons}
-          isLoading={isHistLoading}
-        />
+        {/* 各ダンジョンリスト */}
+        <div className="space-y-8 w-full">
+          <DungeonSection
+            title="構築中のダンジョン"
+            viewMoreLink="/dashboard/dungeons"
+            dungeons={draftDungeons}
+            isLoading={isDraftLoading}
+          />
+          <DungeonSection
+            title="お気に入りダンジョン"
+            viewMoreLink="/dashboard/favorites"
+            dungeons={favDungeons}
+            isLoading={isFavLoading}
+          />
+          <DungeonSection
+            title="最近遊んだダンジョン"
+            viewMoreLink="/dashboard/history"
+            dungeons={histDungeons}
+            isLoading={isHistLoading}
+          />
+        </div>
       </div>
 
       {/* モーダル */}
