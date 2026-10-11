@@ -33,6 +33,7 @@ function UserRankingPageContent() {
 
   const { users, totalCount, isLoading } = useGetUsers({
     playDungeonCountFrom: 1,
+    roleList: "USER",
     sort: "totalPlayScore",
     order: "desc",
     limit,

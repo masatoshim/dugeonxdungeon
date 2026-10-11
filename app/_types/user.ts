@@ -35,6 +35,7 @@ export interface UserFilter {
   order?: "asc" | "desc";
   // ユーザー基本情報
   role?: Role;
+  roleList?: string;
   Id?: string;
   createdBy?: string;
   updatedBy?: string;
