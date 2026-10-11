@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DungeonSection } from "@/app/(pages)/_components/list/DungeonSection";
@@ -13,6 +13,14 @@ import { LoginAlertModal } from "./_components/LoginAlertModal";
 import { useDungeonAuth } from "@/app/_hooks/useDungeonAuth";
 
 export default function Home() {
+  return (
+    <Suspense fallback={<div className="text-white p-8">読み込み中...</div>}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dungeonId = searchParams.get("dungeonId");
