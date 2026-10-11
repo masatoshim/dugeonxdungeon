@@ -78,7 +78,7 @@ function ProfilePageContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 pt-0 flex flex-col items-center w-full">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 pt-0 flex flex-col items-center w-full">
       <div className="w-full max-w-[1200px] space-y-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* プロフィール詳細 */}

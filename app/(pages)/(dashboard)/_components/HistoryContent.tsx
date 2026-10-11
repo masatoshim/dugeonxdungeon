@@ -72,7 +72,7 @@ export function HistoryContent({ user }: HistoryContentProps) {
   };
 
   return (
-    <div className="w-full h-auto text-white">
+    <div className="w-full h-auto text-white px-4 sm:px-6 pb-24">
       {/* ヘッダー */}
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
         <div>
