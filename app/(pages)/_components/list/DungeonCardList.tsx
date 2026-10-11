@@ -19,7 +19,7 @@ export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListP
 
   return (
     <div className="w-full flex justify-center">
-      <div className="w-fit">
+      <div className="w-full max-w-[1168px]">
         {isLoading ? (
           <div className="grid grid-cols-[repeat(auto-fit,280px)] justify-center gap-4 w-full">
             {[...Array(8)].map((_, i) => (
