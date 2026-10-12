@@ -23,12 +23,13 @@ export const ENEMY_TILES = {
     },
   },
   ES2: {
-    name: "にこにこハズミン",
+    name: "ハズミン",
+    description: "常に弾んでいる。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "slimeBA2",
     enemyData: {
       id: "E_SLIME_2",
-      name: "にこにこハズミン",
+      name: "ハズミン",
       hp: 1,
       score: 700,
       xsize: 26,
@@ -44,12 +45,13 @@ export const ENEMY_TILES = {
     },
   },
   ES3: {
-    name: "げきおこハズミン",
+    name: "レッドハズミン",
+    description: "常に怒っている。そして弾んでいる。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "slimeBA3",
     enemyData: {
       id: "E_SLIME_3",
-      name: "げきおこハズミン",
+      name: "レッドハズミン",
       hp: 2,
       score: 1000,
       xsize: 26,
@@ -65,13 +67,13 @@ export const ENEMY_TILES = {
     },
   },
   EIB: {
-    name: "ムテキくろ",
-    description: "とても強い。攻撃が効かない",
+    name: "ムテキブラック",
+    description: "とても強いが横方向にしか動けない。攻撃が効かない。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "blackMan",
     enemyData: {
       id: "E_BLACK_1",
-      name: "ムテキくろ",
+      name: "ムテキブラック",
       hp: 9999999,
       score: 9999999,
       xsize: 24,
@@ -88,13 +90,13 @@ export const ENEMY_TILES = {
     },
   },
   EIR: {
-    name: "ムテキあか",
-    description: "とても強い。攻撃が効かない",
+    name: "ムテキレッドアイ",
+    description: "とても強い縦方向にしか動けない。攻撃が効かない。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "redEyeDice",
     enemyData: {
       id: "E_RED_1",
-      name: "ムテキあか",
+      name: "ムテキレッドアイ",
       hp: 9999999,
       score: 9999999,
       xsize: 24,
@@ -111,13 +113,13 @@ export const ENEMY_TILES = {
     },
   },
   EF: {
-    name: "ほのお",
+    name: "フレイム",
     description: "じわじわと追いかけてくる",
     category: TILE_CATEGORIES.ENEMY,
     texture: "flameRed1",
     enemyData: {
       id: "E_CHASE_1",
-      name: "ほのお",
+      name: "フレイム",
       hp: 1,
       score: 600,
       xsize: 24,
@@ -134,13 +136,13 @@ export const ENEMY_TILES = {
     },
   },
   EIF: {
-    name: "ムテキほのお",
-    description: "じわじわと追いかけてくる。むてき",
+    name: "ムテキフレイム",
+    description: "じわじわと追いかけてくる。攻撃が効かない。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "flameBlue1",
     enemyData: {
       id: "E_CHASE_2",
-      name: "ムテキほのお",
+      name: "ムテキフレイム",
       hp: 9999999,
       score: 9999999,
       xsize: 24,
@@ -233,7 +235,7 @@ export const ENEMY_TILES = {
   },
   EOB: {
     name: "あおおに",
-    description: "みつけたら追いかけてくる。速い",
+    description: "みつけたら追いかけてくる。速い。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "aooni",
     enemyData: {
@@ -259,7 +261,7 @@ export const ENEMY_TILES = {
   },
   EDR: {
     name: "ドラゴン",
-    description: "火を噴いてくる",
+    description: "火を噴いてくる。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "dragon",
     enemyData: {
@@ -293,7 +295,7 @@ export const ENEMY_TILES = {
   },
   EDRR: {
     name: "レッドドラゴン",
-    description: "めっちゃ火を噴いてくる",
+    description: "めっちゃ火を噴いてくる。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "dragonRed",
     enemyData: {
@@ -327,6 +329,7 @@ export const ENEMY_TILES = {
   },
   ESH: {
     name: "ステルス",
+    description: "近づかないと姿が見えない。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "shadow",
     enemyData: {
@@ -349,6 +352,7 @@ export const ENEMY_TILES = {
   },
   EM: {
     name: "マンチカン",
+    description: "攻撃が効かない。ただし触れても大丈夫。かわいい。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "munchkin",
     enemyData: {
@@ -380,6 +384,7 @@ export const ENEMY_TILES = {
   },
   EGO: {
     name: "ゴーレム",
+    description: "動きがのろい。ただし固い。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "golem",
     enemyData: {
@@ -403,12 +408,13 @@ export const ENEMY_TILES = {
     },
   },
   ECC: {
-    name: "たいほう",
+    name: "キャノン",
+    description: "動きがめちゃくちゃのろい。弾を飛ばしてくる。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "cannon",
     enemyData: {
       id: "E_CANNON",
-      name: "たいほう",
+      name: "キャノン",
       hp: 1,
       score: 1500,
       xsize: 24,
@@ -435,12 +441,13 @@ export const ENEMY_TILES = {
     },
   },
   EFS: {
-    name: "あしあと",
+    name: "ブラッドステップ",
+    description: "動くたびに足跡を残してくる。足跡はなかなか消えない。",
     category: TILE_CATEGORIES.ENEMY,
     texture: "step",
     enemyData: {
       id: "E_STEP",
-      name: "あしあと",
+      name: "ブラッドステップ",
       hp: 1,
       score: 500,
       xsize: 26,
