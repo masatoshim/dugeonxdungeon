@@ -75,6 +75,7 @@ export interface PaletteSubGroup {
 
 export interface PaletteGroup {
   label: string;
+  comments?: string;
   icon: LucideIcon;
   subGroups: PaletteSubGroup[];
 }
