@@ -292,6 +292,7 @@ export const ENEMY_TILES = {
       chaseDistance: 5,
       speedUp: 1.1,
     },
+    setLoadTexture: "fireBall",
   },
   EDRR: {
     name: "レッドドラゴン",
@@ -326,6 +327,7 @@ export const ENEMY_TILES = {
       chaseDistance: 5,
       speedUp: 1.1,
     },
+    setLoadTexture: "fireBall",
   },
   ESH: {
     name: "ステルス",
@@ -381,6 +383,7 @@ export const ENEMY_TILES = {
         animType: "RANDOM",
       },
     },
+    setLoadTexture: "paws",
   },
   EGO: {
     name: "ゴーレム",
@@ -439,6 +442,7 @@ export const ENEMY_TILES = {
       isGhost: false,
       chaseDistance: 10,
     },
+    setLoadTexture: "cannonBall",
   },
   EFS: {
     name: "ブラッドステップ",
@@ -470,6 +474,7 @@ export const ENEMY_TILES = {
         animSize: 3,
       },
     },
+    setLoadTexture: "stepStep",
   },
   EBO: {
     name: "栗いのしし",
@@ -494,27 +499,5 @@ export const ENEMY_TILES = {
       frameRate: 6,
       stunDuration: 300,
     },
-  },
-  // 画像の読み込み用宣言
-  EFB: {
-    name: "ファイアーボール",
-    description: "ドラゴンの炎",
-    category: TILE_CATEGORIES.ENEMY,
-    texture: "fireBall",
-  },
-  ECCB: {
-    name: "大砲の玉",
-    category: TILE_CATEGORIES.ENEMY,
-    texture: "cannonBall",
-  },
-  EFSS: {
-    name: "足跡",
-    category: TILE_CATEGORIES.ENEMY,
-    texture: "stepStep",
-  },
-  EP: {
-    name: "肉球",
-    category: TILE_CATEGORIES.ENEMY,
-    texture: "paws",
   },
 } as const satisfies Record<string, TileConfig>;

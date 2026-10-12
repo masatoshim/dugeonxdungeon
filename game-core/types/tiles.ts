@@ -60,6 +60,8 @@ export interface TileConfig {
   item?: Item;
   weaponData?: WeaponData;
   description?: string;
+  alwaysLoad?: boolean;
+  setLoadTexture?: string;
 }
 
 // エディタパレット用型定義

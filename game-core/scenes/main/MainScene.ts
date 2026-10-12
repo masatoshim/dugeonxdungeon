@@ -20,6 +20,7 @@ import {
   CombatManager,
   DoorManager,
 } from "@/game-core/scenes/main/managers";
+import { getRequiredAssetKeys } from "@/game-core/master/libs";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -81,9 +82,12 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // すべてのアセットを一律で TILE_SIZExTILE_SIZE のスプライトシートとして全自動ロード
-    Object.entries(ASSETS).forEach(([key, path]) => {
-      this.load.spritesheet(key, path, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+    const requiredKeys = getRequiredAssetKeys(this.mapData);
+    requiredKeys.forEach((key) => {
+      const path = ASSETS[key as keyof typeof ASSETS];
+      if (path) {
+        this.load.spritesheet(key, path, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+      }
     });
   }
 
