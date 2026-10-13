@@ -173,6 +173,13 @@ export const TilePalette = ({
             </div>
           </div>
 
+          {/* グループ固有の注釈がある場合に表示 */}
+          {currentGroup.comments && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-amber-300 shrink-0 leading-tight">
+              {currentGroup.comments}
+            </div>
+          )}
+
           {/* 展開/最小化 */}
           <div
             className={`grid transition-all duration-200 ease-in-out min-h-0 flex-1 ${

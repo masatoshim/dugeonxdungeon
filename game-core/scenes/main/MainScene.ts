@@ -20,6 +20,7 @@ import {
   CombatManager,
   DoorManager,
 } from "@/game-core/scenes/main/managers";
+import { getRequiredAssetKeys } from "@/game-core/master/libs";
 
 export class MainScene extends Phaser.Scene {
   private startTime: number = 0;
@@ -81,9 +82,12 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // すべてのアセットを一律で TILE_SIZExTILE_SIZE のスプライトシートとして全自動ロード
-    Object.entries(ASSETS).forEach(([key, path]) => {
-      this.load.spritesheet(key, path, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+    const requiredKeys = getRequiredAssetKeys(this.mapData);
+    requiredKeys.forEach((key) => {
+      const path = ASSETS[key as keyof typeof ASSETS];
+      if (path) {
+        this.load.spritesheet(key, path, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+      }
     });
   }
 
@@ -316,7 +320,11 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(
       this.enemies,
       this.walls,
-      undefined,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        // ぶつかった瞬間に方向転換を強制実行
+        this.enemyManager.changeDirection(enemy);
+      },
       (enemyObj) => {
         const enemy = enemyObj as Enemy;
         return !enemy.getEnemyData().isGhost;
@@ -328,7 +336,10 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(
       this.enemies,
       this.breakableWalls,
-      undefined,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        this.enemyManager.changeDirection(enemy);
+      },
       (enemyObj) => {
         const enemy = enemyObj as Enemy;
         return !enemy.getEnemyData().isGhost;
@@ -340,7 +351,10 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(
       this.enemies,
       this.doors,
-      undefined,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        this.enemyManager.changeDirection(enemy);
+      },
       (enemyObj) => {
         const enemy = enemyObj as Enemy;
         return !enemy.getEnemyData().isGhost;
@@ -349,30 +363,38 @@ export class MainScene extends Phaser.Scene {
     );
 
     // 敵と石の衝突設定
-    this.physics.add.collider(this.enemies, this.movableStones, (enemyObj, stoneObj) => {
-      const enemy = enemyObj as Enemy;
-      const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
-      const stoneType = stone.getData("stoneType");
-      // MIRRORタイプの敵のみ石を押せるように判定
-      if (enemy.getEnemyData().moveType === "MIRROR") {
-        if (stoneType === "HEAVY" || stoneType === "SPIKE") return;
-        this.stoneManager.handleStonePush(
-          enemy,
-          stone,
-          this.enemies,
-          this.walls,
-          this.breakableWalls,
-          this.doors,
-          this.movableStones,
-        );
-        return;
-      }
-      // 石が移動中の場合のみ、衝突時に停止処理を行う
-      if (stone.getData("isMoving")) {
-        // 進行方向に敵がいるかチェックして止める
-        this.stoneManager.checkAndStopStoneOnEnemyCollision(enemyObj as Phaser.Physics.Arcade.Sprite, stone);
-      }
-    });
+    this.physics.add.collider(
+      this.enemies,
+      this.movableStones,
+      (enemyObj) => {
+        const enemy = enemyObj as Enemy;
+        this.enemyManager.changeDirection(enemy);
+      },
+      (enemyObj, stoneObj) => {
+        const enemy = enemyObj as Enemy;
+        const stone = stoneObj as Phaser.Physics.Arcade.Sprite;
+        const stoneType = stone.getData("stoneType");
+        // MIRRORタイプの敵のみ石を押せるように判定
+        if (enemy.getEnemyData().moveType === "MIRROR") {
+          if (stoneType === "HEAVY" || stoneType === "SPIKE") return;
+          this.stoneManager.handleStonePush(
+            enemy,
+            stone,
+            this.enemies,
+            this.walls,
+            this.breakableWalls,
+            this.doors,
+            this.movableStones,
+          );
+          return;
+        }
+        // 石が移動中の場合のみ、衝突時に停止処理を行う
+        if (stone.getData("isMoving")) {
+          // 進行方向に敵がいるかチェックして止める
+          this.stoneManager.checkAndStopStoneOnEnemyCollision(enemyObj as Phaser.Physics.Arcade.Sprite, stone);
+        }
+      },
+    );
 
     // 敵とワープマスの重ね合わせ判定
     this.physics.add.overlap(

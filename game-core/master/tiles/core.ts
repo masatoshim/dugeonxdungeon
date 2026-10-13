@@ -1,9 +1,9 @@
 import { TileConfig, TILE_CATEGORIES } from "@/game-core/types/tiles";
 
 export const CORE_TILES = {
-  P: { name: "プレイヤー", category: TILE_CATEGORIES.PLAYER, texture: "player" },
-  G: { name: "ゴール", category: TILE_CATEGORIES.GOAL, texture: "goal" },
-  W: { name: "壁", category: TILE_CATEGORIES.WALL, texture: "wall" },
+  P: { name: "プレイヤー", category: TILE_CATEGORIES.PLAYER, texture: "player", alwaysLoad: true },
+  G: { name: "ゴール", category: TILE_CATEGORIES.GOAL, texture: "goal", alwaysLoad: true },
+  W: { name: "壁", category: TILE_CATEGORIES.WALL, texture: "wall", alwaysLoad: true },
   WB1: {
     name: "--未使用 壊れる壁1",
     category: TILE_CATEGORIES.WALL,
@@ -53,5 +53,5 @@ export const CORE_TILES = {
     color: "GREEN",
     isBreakable: false,
   },
-  " ": { name: "床", category: TILE_CATEGORIES.EMPTY, texture: "empty" },
+  " ": { name: "床", category: TILE_CATEGORIES.EMPTY, texture: "floor", alwaysLoad: true },
 } as const satisfies Record<string, TileConfig>;
