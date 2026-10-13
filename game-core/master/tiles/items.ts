@@ -6,12 +6,14 @@ export const ITEM_TILES = {
     category: TILE_CATEGORIES.ITEM,
     texture: "weaponSword",
     weaponData: { id: "SWORD", name: "剣", range: 28, size: 10, damage: 1 },
+    setLoadTexture: ["playerSword", "weaponSwordAttackEffect"],
   },
   S2: {
     name: "ボロボロの剣",
     category: TILE_CATEGORIES.ITEM,
     texture: "weaponBrokenSword",
     weaponData: { id: "BROKEN_SWORD", name: "ボロボロの剣", range: 28, size: 10, damage: 1, durability: 1 },
+    setLoadTexture: ["playerBrokenSword", "weaponSwordAttackEffect"],
   },
   J1: {
     name: "あかい宝石",

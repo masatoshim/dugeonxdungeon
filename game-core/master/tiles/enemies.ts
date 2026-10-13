@@ -292,7 +292,7 @@ export const ENEMY_TILES = {
       chaseDistance: 5,
       speedUp: 1.1,
     },
-    setLoadTexture: "fireBall",
+    setLoadTexture: ["fireBall"],
   },
   EDRR: {
     name: "レッドドラゴン",
@@ -327,7 +327,7 @@ export const ENEMY_TILES = {
       chaseDistance: 5,
       speedUp: 1.1,
     },
-    setLoadTexture: "fireBall",
+    setLoadTexture: ["fireBall"],
   },
   ESH: {
     name: "ステルス",
@@ -383,7 +383,7 @@ export const ENEMY_TILES = {
         animType: "RANDOM",
       },
     },
-    setLoadTexture: "paws",
+    setLoadTexture: ["paws"],
   },
   EGO: {
     name: "ゴーレム",
@@ -442,7 +442,7 @@ export const ENEMY_TILES = {
       isGhost: false,
       chaseDistance: 10,
     },
-    setLoadTexture: "cannonBall",
+    setLoadTexture: ["cannonBall"],
   },
   EFS: {
     name: "ブラッドステップ",
@@ -474,7 +474,7 @@ export const ENEMY_TILES = {
         animSize: 3,
       },
     },
-    setLoadTexture: "stepStep",
+    setLoadTexture: ["stepStep"],
   },
   EBO: {
     name: "栗いのしし",

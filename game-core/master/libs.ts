@@ -18,7 +18,8 @@ export function getRequiredAssetKeys(mapData: MapData): string[] {
         const config = TILE_CONFIG[tileId];
         if (config) {
           if (config.texture) requiredAssetKeys.add(config.texture);
-          if (config.setLoadTexture) requiredAssetKeys.add(config.setLoadTexture);
+          if (config.setLoadTexture && config.setLoadTexture.length > 0)
+            config.setLoadTexture.forEach((texture) => requiredAssetKeys.add(texture));
         }
       });
     });
@@ -30,7 +31,8 @@ export function getRequiredAssetKeys(mapData: MapData): string[] {
       const config = TILE_CONFIG[entity.tileId];
       if (config) {
         if (config.texture) requiredAssetKeys.add(config.texture);
-        if (config.setLoadTexture) requiredAssetKeys.add(config.setLoadTexture);
+        if (config.setLoadTexture && config.setLoadTexture.length > 0)
+          config.setLoadTexture.forEach((texture) => requiredAssetKeys.add(texture));
       }
     });
   }
