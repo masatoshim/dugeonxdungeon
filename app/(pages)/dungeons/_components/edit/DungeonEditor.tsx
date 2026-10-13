@@ -584,7 +584,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </div>
 
             {/* ─── ズームコントローラー ─── */}
-            <div className="absolute top-1 right-4 z-40 pointer-events-auto flex items-center bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl px-2 py-1 text-xs text-slate-300 shadow-2xl">
+            <div className="absolute top-1 right-6 z-40 pointer-events-auto flex items-center bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl px-2 py-1 text-xs text-slate-300 shadow-2xl">
               {isEditingZoom ? (
                 <input
                   type="number"
