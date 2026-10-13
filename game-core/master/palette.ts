@@ -4,6 +4,7 @@ import { PaletteGroup } from "@/game-core/types/tiles";
 export const TILE_PALETTE_SCHEMA: PaletteGroup[] = [
   {
     label: "プレイヤーとゴール",
+    comments: "※プレイヤーは必ず1つ、ゴールは1つ以上配置してください。",
     icon: User,
     subGroups: [
       {

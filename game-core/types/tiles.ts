@@ -60,6 +60,8 @@ export interface TileConfig {
   item?: Item;
   weaponData?: WeaponData;
   description?: string;
+  alwaysLoad?: boolean;
+  setLoadTexture?: string;
 }
 
 // エディタパレット用型定義
@@ -75,6 +77,7 @@ export interface PaletteSubGroup {
 
 export interface PaletteGroup {
   label: string;
+  comments?: string;
   icon: LucideIcon;
   subGroups: PaletteSubGroup[];
 }

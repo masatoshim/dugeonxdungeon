@@ -62,6 +62,7 @@ export const GIMMICK_TILES = {
     name: "下ブロック",
     category: TILE_CATEGORIES.STONE,
     texture: "blockDown",
+    allowedDirection: "DOWN",
     stoneData: { id: "B_DOWN", stoneType: "NORMAL", element: "BLOCK" },
   },
   BLH: {

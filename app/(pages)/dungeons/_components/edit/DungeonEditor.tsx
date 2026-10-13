@@ -386,6 +386,17 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     return LINKING_GUIDE_MESSAGES[linkingState.pendingType] ?? "ペアとなるギミックを配置してください";
   };
 
+  // ズーム数値直接入力用
+  const [isEditingZoom, setIsEditingZoom] = useState(false);
+
+  // 初回マウント時にダンジョン名にフォーカスを当てる
+  useEffect(() => {
+    const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+    if (nameInput) {
+      nameInput.focus();
+    }
+  }, []);
+
   return (
     <>
       {/* FormProviderで囲み、子コンポーネントがContext経由でReact Hook Formを扱えるようにする */}
@@ -573,36 +584,45 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
             </div>
 
             {/* ─── ズームコントローラー ─── */}
-            <div
-              className="absolute right-4 z-30 pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-1 text-xs text-slate-300 shadow-2xl"
-              style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}
-            >
-              <button
-                type="button"
-                onClick={() => setZoom((z) => Math.max(Number((z * 0.9).toFixed(2)), MIN_ZOOM))}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 active:bg-slate-700 transition-colors font-bold"
-                title="縮小"
-              >
-                -
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setZoom(1);
-                }}
-                className="px-2 py-1 rounded-lg hover:bg-slate-800 font-mono text-amber-400 transition-colors"
-                title="100%にリセット"
-              >
-                {Math.round(zoom * 100)}%
-              </button>
-              <button
-                type="button"
-                onClick={() => setZoom((z) => Math.min(Number((z * 1.1).toFixed(2)), MAX_ZOOM))}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 active:bg-slate-700 transition-colors font-bold"
-                title="拡大"
-              >
-                +
-              </button>
+            <div className="absolute top-1 right-4 z-40 pointer-events-auto flex items-center bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl px-2 py-1 text-xs text-slate-300 shadow-2xl">
+              {isEditingZoom ? (
+                <input
+                  type="number"
+                  min={25}
+                  max={300}
+                  defaultValue={Math.round(zoom * 100)}
+                  autoFocus
+                  onBlur={(e) => {
+                    const val = Number(e.target.value);
+                    if (!isNaN(val)) {
+                      const clamped = Math.max(25, Math.min(300, val));
+                      setZoom(clamped / 100);
+                    }
+                    setIsEditingZoom(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = Number(e.currentTarget.value);
+                      if (!isNaN(val)) {
+                        const clamped = Math.max(25, Math.min(300, val));
+                        setZoom(clamped / 100);
+                      }
+                      setIsEditingZoom(false);
+                    }
+                  }}
+                  className="w-14 bg-slate-800 text-amber-400 font-mono text-center rounded px-1 outline-none border border-amber-500/50 text-xs py-0.5"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onDoubleClick={() => setIsEditingZoom(true)}
+                  onClick={() => setIsEditingZoom(true)}
+                  className="px-2 py-1 rounded-lg hover:bg-slate-800 font-mono text-amber-400 transition-colors cursor-pointer"
+                  title="ダブルクリックまたはタップして数値を入力（25%〜300%）"
+                >
+                  {Math.round(zoom * 100)}%
+                </button>
+              )}
             </div>
           </div>
         </form>
