@@ -13,7 +13,7 @@ import { DUNGEON_DEFAULT, TILE_CATEGORIES } from "@/game-core/types";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { EditorInfoHeader, TileIconForm, TilePalette } from "@/app/(pages)/dungeons/_components";
 import { useGetUser } from "@/app/_hooks";
-import { useTileImages, useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
+import { useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
 import { DungeonMetadataCard } from "./DungeonMetadataCard";
 import { DungeonResponse } from "@/app/_types";
@@ -379,8 +379,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
     [handleCellClick, selectedTile, tiles, rows, cols, getCurrentSnapshot, pushHistory],
   );
 
-  const { images, isLoaded } = useTileImages();
-
   const getLinkingGuideMessage = () => {
     if (!linkingState.active || !linkingState.pendingType) return null;
     return LINKING_GUIDE_MESSAGES[linkingState.pendingType] ?? "ペアとなるギミックを配置してください";
@@ -507,8 +505,6 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
                     entities={entities}
                     rows={rows}
                     cols={cols}
-                    images={images}
-                    isLoaded={isLoaded}
                     linkingState={linkingState}
                     onCanvasAction={handleCanvasAction}
                     selectedTile={selectedTile}

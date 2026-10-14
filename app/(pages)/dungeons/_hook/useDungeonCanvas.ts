@@ -1,35 +1,57 @@
-import { useCallback, useRef, useEffect } from "react";
-import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
-import { EntityData } from "@/game-core/types";
-import { TILE_SIZE } from "@/game-core/types";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { ASSETS, TILE_CONFIG, TileConfigKey } from "@/game-core/master";
+import { TILE_SIZE, EntityData } from "@/game-core/types";
 
 interface UseDungeonCanvasProps {
   tiles: TileConfigKey[][];
   entities: EntityData[];
   rows: number;
   cols: number;
-  images: Record<string, HTMLImageElement>;
-  isLoaded: boolean;
   linkingState: {
     active: boolean;
     firstEntityId: string | null;
   };
 }
 
-export function useDungeonCanvas({
-  tiles,
-  entities,
-  rows,
-  cols,
-  images,
-  isLoaded,
-  linkingState,
-}: UseDungeonCanvasProps) {
+export function useDungeonCanvas({ tiles, entities, rows, cols, linkingState }: UseDungeonCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // 画像オブジェクトとロード完了フラグをキャッシュするマップ
+  const imageCacheRef = useRef<Map<string, { img: HTMLImageElement; isLoaded: boolean }>>(new Map());
+
+  // 画像ロード完了時に再描画を走らせるためのステート
+  const [renderKey, setRenderKey] = useState(0);
+
+  // 画像を取得または非同期でロードする関数
+  const getOrLoadImage = useCallback((src: string): HTMLImageElement | null => {
+    const cache = imageCacheRef.current;
+
+    if (cache.has(src)) {
+      const cached = cache.get(src)!;
+      return cached.isLoaded ? cached.img : null;
+    }
+
+    const img = new window.Image();
+    const entry = { img, isLoaded: false };
+    cache.set(src, entry);
+
+    img.onload = () => {
+      entry.isLoaded = true;
+      // 画像の読み込みが完了したら renderKey を更新して再描画をトリガーする
+      setRenderKey((n) => n + 1);
+    };
+
+    img.onerror = () => {
+      console.error(`Failed to load image: ${src}`);
+    };
+
+    img.src = src;
+    return null;
+  }, []);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !isLoaded) return;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -59,26 +81,27 @@ export function useDungeonCanvas({
 
         // マスタ設定を先に取得する
         const config = TILE_CONFIG[tileId];
-        // 登録されているテクスチャキー（例: "wall"）を使って images から画像を探す
-        const img = config?.texture ? images[config.texture] : null;
-
         // 床などの基本タイルを描画
-        if (img && config) {
-          const sx = 0;
-          const sy = 0;
-
-          ctx.drawImage(img, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+        const textureSrc = config?.texture ? ASSETS[config.texture] : null;
+        if (textureSrc) {
+          const img = getOrLoadImage(textureSrc);
+          if (img) {
+            ctx.drawImage(img, 0, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+          }
         }
 
-        // エンティティ（鍵や扉）の描画
+        // エンティティ（鍵や扉など）の描画
         const entity = entityMap.get(`${c}-${r}`);
         if (entity) {
           const entityTileId = entity.tileId;
           const entityConfig = entityTileId ? TILE_CONFIG[entityTileId] : null;
-          const entityImg = entityConfig?.texture ? images[entityConfig.texture] : null;
+          const entityTextureSrc = entityConfig?.texture ? ASSETS[entityConfig.texture] : null;
 
-          if (entityImg && entityConfig) {
-            ctx.drawImage(entityImg, 0, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+          if (entityTextureSrc) {
+            const entityImg = getOrLoadImage(entityTextureSrc);
+            if (entityImg) {
+              ctx.drawImage(entityImg, 0, 0, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+            }
           }
 
           // セット設置中のハイライト
@@ -97,11 +120,12 @@ export function useDungeonCanvas({
         ctx.strokeRect(dx, dy, TILE_SIZE, TILE_SIZE);
       }
     }
-  }, [tiles, entities, rows, cols, isLoaded, images, linkingState.firstEntityId]);
+  }, [tiles, entities, rows, cols, linkingState.firstEntityId, getOrLoadImage]);
 
+  // マウント時、データ変更時、および画像ロード完了時に描画を走らせる
   useEffect(() => {
     draw();
-  }, [draw]);
+  }, [draw, renderKey]);
 
   return { canvasRef };
 }
