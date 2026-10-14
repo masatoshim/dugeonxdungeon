@@ -11,8 +11,6 @@ interface Props {
   entities: EntityData[];
   rows: number;
   cols: number;
-  images: any;
-  isLoaded: boolean;
   linkingState: any;
   onCanvasAction: (r: number, c: number) => void;
   selectedTile?: TileConfigKey | null;
@@ -23,8 +21,6 @@ export function DungeonCanvasView({
   entities,
   rows,
   cols,
-  images,
-  isLoaded,
   linkingState,
   onCanvasAction,
   selectedTile = " ",
@@ -34,8 +30,6 @@ export function DungeonCanvasView({
     entities,
     rows,
     cols,
-    images,
-    isLoaded,
     linkingState,
   });
 
@@ -89,12 +83,6 @@ export function DungeonCanvasView({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-amber-500 z-10">
-          読み込み中...
-        </div>
-      )}
-
       <canvas
         ref={canvasRef}
         width={cols * TILE_SIZE}
