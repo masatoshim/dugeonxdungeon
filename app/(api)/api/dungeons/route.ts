@@ -154,7 +154,17 @@ export async function GET(request: Request) {
     const difficultyListParam = searchParams.get("difficultyList");
     if (difficultyListParam) {
       const difficultyList = difficultyListParam.split(",").map(Number);
-      andConditions.push({ difficulty: { in: difficultyList } });
+
+      if (difficultyList.length > 0) {
+        const difficultyConditions = difficultyList.map((val) => ({
+          difficulty: {
+            gte: val,
+            lt: val + 1,
+          },
+        }));
+
+        andConditions.push({ OR: difficultyConditions });
+      }
     }
 
     // プレイ状況による絞り込みロジック
