@@ -133,7 +133,7 @@ export async function GET(request: Request) {
     const rankMapRaw = await prisma.$queryRaw<UserRankRaw[]>`
       SELECT id, RANK() OVER (ORDER BY "totalPlayScore" DESC) as global_rank
       FROM "User"
-      WHERE "deletedFlg" = false AND "isActive" = true
+      WHERE "deletedFlg" = false AND "isActive" = true AND "role" = ${Role.USER}
     `;
     // Mapオブジェクトに変換
     const rankMap = new Map<string, number>(rankMapRaw.map((item) => [item.id, Number(item.global_rank)]));

@@ -85,6 +85,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
           totalPlayScore: {
             gt: user.totalPlayScore, // greater than (より大きい)
           },
+          role: "USER",
           isActive: true,
           deletedFlg: false,
         },
