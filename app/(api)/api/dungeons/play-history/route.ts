@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/_libs/auth";
 import { prisma } from "@/app/_libs/prisma";
-import { DungeonResponse, DungeonsIndexResponse } from "@/app/_types";
+import { DungeonDetailResponse, DungeonsIndexResponse } from "@/app/_types";
 import { DungeonStatus } from "@prisma/client";
 import { mapDataSchema } from "@/game-core/schemas/map";
 
@@ -104,7 +104,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const dungeons: DungeonResponse[] = dungeonsData.map((d) => {
+    const dungeons: DungeonDetailResponse[] = dungeonsData.map((d) => {
       const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
       const parsedMapData = mapDataSchema.safeParse(d.mapData);
       const validMapData = parsedMapData.success

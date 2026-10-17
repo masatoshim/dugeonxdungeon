@@ -1,10 +1,10 @@
 import useSWRMutation from "swr/mutation";
 import { createDungeon } from "@/app/_apis/dungeons-api";
-import { CreateDungeonRequest, DungeonResponse } from "@/app/_types";
+import { CreateDungeonRequest, DungeonDetailResponse } from "@/app/_types";
 import { toast } from "sonner";
 
 export const useCreateDungeon = () => {
-  const { trigger, isMutating, error } = useSWRMutation<DungeonResponse, Error, string, CreateDungeonRequest>(
+  const { trigger, isMutating, error } = useSWRMutation<DungeonDetailResponse, Error, string, CreateDungeonRequest>(
     "/api/dungeons",
     (_, { arg }) => createDungeon(arg),
     {

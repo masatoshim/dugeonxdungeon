@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Heart, Maximize, Clock, Footprints, Timer, Star, Play } from "lucide-react";
-import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
 import {
   useProfileIcon,
@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 
 interface DungeonInfoProps {
-  dungeon: DungeonResponse;
+  dungeon: DungeonDetailResponse;
   isCleared: boolean;
   targetPage?: number;
 }

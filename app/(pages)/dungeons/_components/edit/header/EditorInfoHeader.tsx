@@ -9,7 +9,7 @@ import { BackButton } from "./BackButton";
 import { DeleteActionGroup } from "./DeleteActionGroup";
 import { SaveActionGroup } from "./SaveActionGroup";
 import { HistoryActionGroup } from "./HistoryActionGroup";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
 import { TileConfigKey } from "@/game-core/master";
 
@@ -20,7 +20,7 @@ type Props = {
   rows: number;
   onSizeChange: (r: number, c: number) => void;
   onConfigConfirm: () => void;
-  initialData?: DungeonResponse;
+  initialData?: DungeonDetailResponse;
   user: { id: string; [key: string]: any };
   tiles: TileConfigKey[][];
   entities: any;

@@ -16,7 +16,7 @@ import { useGetUser } from "@/app/_hooks";
 import { useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
 import { DungeonMetadataCard } from "./DungeonMetadataCard";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({
@@ -60,7 +60,7 @@ const ENTITY_TYPE_TO_TILE: Record<string, TileConfigKey> = {
 };
 
 interface DungeonEditorProps {
-  initialData?: DungeonResponse; // 編集時は既存データが入る
+  initialData?: DungeonDetailResponse; // 編集時は既存データが入る
   isAdmin: boolean;
 }
 

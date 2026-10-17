@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonBase, DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
+import { DungeonBase, DungeonDetailResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 import { mapDataSchema } from "@/game-core/schemas/map";
 
@@ -19,14 +19,18 @@ function mapToDungeonResponse(
   hasPrivateAccess: boolean,
 ): DungeonBase {
   const parsedMapData = mapDataSchema.parse(dungeon.mapData);
+  const { user, ...rest } = dungeon;
 
   return {
-    ...dungeon,
+    ...rest,
     mapData: parsedMapData,
     tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
     nickName: dungeon.user.nickName,
     userIconImageKey: dungeon.user.iconImageKey,
+    userId: hasPrivateAccess ? dungeon.userId : undefined,
     userName: hasPrivateAccess ? dungeon.user.userName : undefined,
+    createdBy: hasPrivateAccess ? dungeon.createdBy : undefined,
+    updatedBy: hasPrivateAccess ? dungeon.updatedBy : undefined,
   };
 }
 
@@ -67,7 +71,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const hasPrivateAccess = isAdmin || sessionUserId === dungeon.userId;
     const dungeonBase = mapToDungeonResponse(dungeon, hasPrivateAccess);
 
-    const response: DungeonResponse = {
+    const response: DungeonDetailResponse = {
       ...dungeonBase,
       favoritesCount: dungeon.favoritesCount,
       clearPlayCount: dungeon.clearPlayCount,
@@ -76,8 +80,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       totalPlayCount: dungeon.clearPlayCount + dungeon.failurePlayCount + dungeon.interruptPlayCount,
       createdAt: dungeon.createdAt.toISOString(),
       updatedAt: dungeon.updatedAt.toISOString(),
-      createdBy: hasPrivateAccess ? dungeon.createdBy : undefined,
-      updatedBy: hasPrivateAccess ? dungeon.updatedBy : undefined,
     };
 
     return NextResponse.json(response);
