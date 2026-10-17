@@ -461,6 +461,11 @@ export class MainScene extends Phaser.Scene {
     this.enemyBullets.add(bullet);
   }
 
+  // 現在ポーズ中かどうかを返す
+  public isGamePaused(): boolean {
+    return this.isPaused;
+  }
+
   update() {
     // ゲーム終了時は何もしない
     if (this.isGameOver || this.isPaused) return;

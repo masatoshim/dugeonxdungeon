@@ -1,4 +1,5 @@
 import * as Phaser from "phaser";
+import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 
 export interface ButtonConfig {
@@ -23,6 +24,9 @@ export class Button extends Phaser.Physics.Arcade.Sprite {
 
   private activeFrame: number;
   private inactiveFrame: number;
+
+  private unpressedFramesCount: number = 0;
+  private readonly RELEASE_DELAY_FRAMES = 15; // 一定フレーム接触が途切れないと離れたとみなさない
 
   constructor(
     scene: Phaser.Scene,
@@ -60,12 +64,14 @@ export class Button extends Phaser.Physics.Arcade.Sprite {
    * プレイヤーや石などがボタンに乗っている間、毎フレーム呼び出される処理
    */
   public onOverlap(): void {
+    // 接触があったらカウンターをリセット
+    this.unpressedFramesCount = 0;
     this.wasPressedThisFrame = true;
 
     if (!this.isPressed) {
       this.isPressed = true;
       this.setFrame(this.activeFrame);
-      this.doorManager.activateTarget(this.targetId);
+      this.doorManager.activateTarget(this.targetId, true);
     }
   }
 
@@ -73,14 +79,26 @@ export class Button extends Phaser.Physics.Arcade.Sprite {
    * overlapが発生したかを検証する
    */
   private postUpdateCheck(): void {
+    // シーンがポーズ中の場合は、カウンターを進めたり状態をリセットしたりしない
+    const mainScene = this.scene as MainScene;
+    if (mainScene && typeof mainScene.isGamePaused === "function" && mainScene.isGamePaused()) {
+      this.wasPressedThisFrame = false;
+      return;
+    }
     // 押しっぱなし固定の場合は離れた判定を行わない
     if (this.isOneTime && this.isPressed) {
       this.wasPressedThisFrame = false;
       return;
     }
 
-    // 押されている状態でoverlapが呼ばれていなければ離れたと判断
-    if (this.isPressed && !this.wasPressedThisFrame) {
+    if (!this.wasPressedThisFrame) {
+      this.unpressedFramesCount++;
+    } else {
+      this.unpressedFramesCount = 0;
+    }
+
+    // 一定フレーム数連続して接触がなかった場合のみ、離れたと判定
+    if (this.isPressed && this.unpressedFramesCount >= this.RELEASE_DELAY_FRAMES) {
       this.isPressed = false;
       this.setFrame(this.inactiveFrame);
       this.doorManager.deactivateTarget(this.targetId);
