@@ -190,7 +190,7 @@ function UserRankingPageContent() {
                   <th className="py-4 px-6">ユーザー</th>
                   <th className="py-4 px-6 text-right">トータルスコア</th>
                   <th className="py-4 px-6 text-right">プレイ回数</th>
-                  <th className="py-4 px-6 text-right">ダンジョン踏破数</th>
+                  <th className="py-4 px-6 text-right">ダンジョン踏破回数</th>
                   <th className="py-4 px-6 text-right">トータルプレイ時間</th>
                 </tr>
               </thead>

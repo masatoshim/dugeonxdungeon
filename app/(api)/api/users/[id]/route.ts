@@ -9,7 +9,7 @@ import bcrypt from "bcrypt";
 /**
  * GET: ユーザー詳細取得
  */
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -114,6 +114,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       clearPlayCount: user.clearPlayCount,
       failurePlayCount: user.failurePlayCount,
       interruptPlayCount: user.interruptPlayCount,
+      uniqueClearDungeonCount: user.uniqueClearDungeonCount,
+      uniqueFailureDungeonCount: user.uniqueFailureDungeonCount,
+      uniqueInterruptDungeonCount: user.uniqueInterruptDungeonCount,
+
+      // クリエイト情報
       dungeonCount: user.dungeons.length,
       publishedDungeonCount: user.dungeons.filter((d) => d.status === "PUBLISHED").length,
       // ダンジョン関連

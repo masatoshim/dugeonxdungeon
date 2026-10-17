@@ -8,20 +8,27 @@ interface UserStatsCardProps {
 }
 
 export function UserStatsCard({ user }: UserStatsCardProps) {
+  // 円グラフ
   const chartData = [
-    { name: "踏破", value: user.clearPlayCount, fill: "#ef4444" },
-    { name: "失敗", value: user.failurePlayCount, fill: "#b91c1c" },
-    { name: "中断", value: user.interruptPlayCount, fill: "#7f1d1d" },
+    { name: "踏破ダンジョン", value: user.uniqueClearDungeonCount, fill: "#34d399" },
+    { name: "失敗ダンジョン", value: user.uniqueFailureDungeonCount, fill: "#f87171" },
+    { name: "中断ダンジョン", value: user.uniqueInterruptDungeonCount, fill: "#fbbf24" },
   ];
 
-  const statItems = [
-    { label: "トータルプレイ回数", value: user.totalPlayCount },
-    { label: "挑戦ダンジョン数", value: user.playDungeonCount },
-    { label: "踏破済みダンジョン数", value: user.clearPlayCount },
-    { label: "失敗ダンジョン数", value: user.failurePlayCount },
-    { label: "中断ダンジョン数", value: user.interruptPlayCount },
-    { label: "マイダンジョン数", value: user.dungeonCount },
-    { label: "公開済みダンジョン数", value: user.publishedDungeonCount },
+  // ダンジョン攻略状況
+  const uniqueStats = [
+    { label: "挑戦ダンジョン数", value: user.playDungeonCount, color: "#4fd1d1" },
+    { label: "踏破ダンジョン数", value: user.uniqueClearDungeonCount, color: "#34d399" },
+    { label: "失敗ダンジョン数", value: user.uniqueFailureDungeonCount, color: "#f87171" },
+    { label: "中断ダンジョン数", value: user.uniqueInterruptDungeonCount, color: "#fbbf24" },
+  ];
+
+  // プレイ実績（累計系）
+  const totalStats = [
+    { label: "トータルプレイ回数", value: user.totalPlayCount, color: "#94a3b8" },
+    { label: "ダンジョン踏破回数", value: user.clearPlayCount, color: "#94a3b8" },
+    { label: "ダンジョン失敗回数", value: user.failurePlayCount, color: "#94a3b8" },
+    { label: "ダンジョン中断回数", value: user.interruptPlayCount, color: "#94a3b8" },
   ];
 
   const topMetrics = [
@@ -29,6 +36,9 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
     { label: "トータルスコア", value: user.totalPlayScore.toLocaleString(), unit: "pt" },
     { label: "トータル時間", value: user.totalPlayTime.toLocaleString(), unit: "sec" },
   ];
+
+  const totalUniqueCount =
+    user.uniqueClearDungeonCount + user.uniqueFailureDungeonCount + user.uniqueInterruptDungeonCount;
 
   return (
     <div className="bg-[#1a1d2b] border border-slate-700/80 rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl h-full flex flex-col justify-between">
@@ -41,27 +51,11 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
               idx === 2 ? "col-span-2 sm:col-span-1" : "col-span-1"
             }`}
           >
-            <span
-              className={`text-[#4fd1d1] font-mono tracking-wider uppercase mb-1 whitespace-nowrap ${
-                metric.label.length > 8 ? "text-[9px] sm:text-[10px]" : "text-[10px] sm:text-xs"
-              }`}
-            >
+            <span className="text-[#4fd1d1] font-mono text-[10px] sm:text-xs tracking-wider uppercase mb-1 whitespace-nowrap">
               {metric.label}
             </span>
             <span className="text-lg sm:text-xl lg:text-2xl font-bold text-white font-mono leading-tight whitespace-nowrap">
-              {(() => {
-                const valStr = String(metric.value);
-                if (valStr.includes(".")) {
-                  const [intPart, decimalPart] = valStr.split(".");
-                  return (
-                    <>
-                      <span>{intPart}</span>
-                      <span className="text-xs sm:text-sm font-normal text-slate-400">.{decimalPart}</span>
-                    </>
-                  );
-                }
-                return metric.value;
-              })()}
+              {metric.value}
               {metric.unit && (
                 <span className="text-xs sm:text-sm font-normal text-slate-400 ml-0.5">{metric.unit}</span>
               )}
@@ -73,52 +67,83 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
       {/* 下部：数値リスト & 円グラフ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center flex-1">
         {/* 左：数値リスト */}
-        <div className="lg:col-span-7 space-y-2.5 min-w-0">
-          {statItems.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between border-b border-slate-700/40 pb-1.5 gap-2">
-              <span
-                className={`text-[#4fd1d1] whitespace-nowrap ${
-                  item.label.length > 10 ? "text-[11px] sm:text-xs" : "text-xs sm:text-sm"
-                }`}
-              >
-                {item.label}
-              </span>
-              <span className="text-base sm:text-lg text-slate-100 font-mono font-semibold shrink-0">{item.value}</span>
+        <div className="lg:col-span-7 space-y-4 min-w-0">
+          {/* ユニーク系セクション */}
+          <div className="space-y-2">
+            <div className="text-[10px] sm:text-xs font-mono text-slate-300 uppercase tracking-wider mb-1.5 border-b border-slate-700/60 pb-1 flex items-center justify-between">
+              <span>ダンジョン攻略状況</span>
             </div>
-          ))}
+            {uniqueStats.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between border-b border-slate-700/30 pb-1.5 gap-2">
+                <span style={{ color: item.color }} className="text-xs sm:text-sm font-medium whitespace-nowrap">
+                  {item.label}
+                </span>
+                <span className="text-base sm:text-lg text-slate-100 font-mono font-semibold shrink-0">
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* 累計系セクション */}
+          <div className="space-y-1.5 pt-1">
+            <div className="text-[9px] sm:text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1 border-b border-slate-700/40 pb-1">
+              プレイ実績 (累計)
+            </div>
+            {totalStats.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between border-b border-slate-700/20 pb-1 gap-2">
+                <span style={{ color: item.color }} className="text-[11px] sm:text-xs whitespace-nowrap font-normal">
+                  {item.label}
+                </span>
+                <span className="text-sm sm:text-base text-slate-200 font-mono font-medium shrink-0">{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* 右：円グラフ */}
-        <div className="lg:col-span-5 h-[200px] sm:h-[240px] lg:h-[260px] w-full relative flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart key={user.id}>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius="55%"
-                outerRadius="85%"
-                dataKey="value"
-                stroke="none"
-                isAnimationActive={true}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1a1d2b",
-                  border: "1px solid #334155",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                }}
-                itemStyle={{ color: "#4fd1d1" }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          {/* データがない場合のガード */}
-          {user.clearPlayCount + user.failurePlayCount + user.interruptPlayCount === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-xs font-mono bg-[#1a1d2b]/60 rounded-xl">
-              データなし
-            </div>
-          )}
+        {/* 右：円グラフ ＆ 凡例 */}
+        <div className="lg:col-span-5 flex flex-col items-center justify-center">
+          <div className="h-[180px] sm:h-[210px] lg:h-[230px] w-full relative flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart key={user.id}>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="50%"
+                  outerRadius="80%"
+                  dataKey="value"
+                  stroke="none"
+                  isAnimationActive={true}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1a1d2b",
+                    border: "1px solid #334155",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                  itemStyle={{ color: "#4fd1d1" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+
+            {totalUniqueCount === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-xs font-mono bg-[#1a1d2b]/60 rounded-xl">
+                データなし
+              </div>
+            )}
+          </div>
+
+          {/* カラー凡例 */}
+          <div className="flex flex-wrap justify-center gap-3 mt-2 text-[11px] font-mono text-slate-300">
+            {chartData.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+                <span>{item.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -123,7 +123,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // ─── 【最適化】ウィンドウ関数を使って、全ユーザーの「トータルスコア絶対順位」を一発で計算 ───
+    // ウィンドウ関数を使って、全ユーザーの「トータルスコア絶対順位」を一発で計算
     interface UserRankRaw {
       id: string;
       global_rank: bigint;

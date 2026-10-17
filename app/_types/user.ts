@@ -99,9 +99,12 @@ export interface UserResponse extends UserBase {
   interruptPlayCount: number;
   publishedDungeonCount: number;
   dungeonCount: number;
-  dungeons?: { dungeonCode?: string }[] | null;
-  playHistories?: { dungeonCode?: string; userId: string; createdAt?: string }[] | null;
-  favoriteDungeons?: { dungeonCode?: string }[] | null;
+  uniqueClearDungeonCount: number;
+  uniqueFailureDungeonCount: number;
+  uniqueInterruptDungeonCount: number;
+  dungeons?: { dungeonCode?: string }[];
+  playHistories?: { dungeonCode?: string; userId: string; createdAt?: string }[];
+  favoriteDungeons?: { dungeonCode?: string }[];
   isGoogleUser?: boolean;
 }
 

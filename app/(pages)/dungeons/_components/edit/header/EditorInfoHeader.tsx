@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { DungeonStatus } from "@prisma/client";
-import { Clock, FileText, Settings } from "lucide-react";
+import { Clock, FileText, Maximize } from "lucide-react";
 import { EditorSizeInput } from "@/app/(pages)/dungeons/_components";
 import { BackButton } from "./BackButton";
 import { DeleteActionGroup } from "./DeleteActionGroup";
@@ -190,7 +190,7 @@ export const EditorInfoHeader = ({
               {/* サイズ */}
               <div className="flex items-center justify-between sm:justify-start gap-2.5 bg-slate-950/40 px-3.5 py-1.5 rounded-xl border border-slate-800/80 flex-1 sm:flex-initial h-full transition-all duration-200 focus-within:border-cyan-500/80 focus-within:bg-slate-900/60 focus-within:shadow-lg focus-within:shadow-cyan-500/5 group/size min-w-0">
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <Settings
+                  <Maximize
                     size={18}
                     className="text-slate-500 group-focus-within/size:text-cyan-400 transition-colors shrink-0"
                   />

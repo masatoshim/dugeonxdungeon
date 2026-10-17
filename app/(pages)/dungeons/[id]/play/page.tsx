@@ -201,10 +201,24 @@ function GamePlayContentWrapper() {
 
             {/* スコア・タイム表示カード */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl">
+              <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl text-center">
                 <p className="text-xs text-slate-400 font-mono mb-1">TIME</p>
-                <p className="text-xl sm:text-2xl font-bold font-mono text-white">
-                  {isClear ? `${clearTime ?? 0} sec` : "--:--"}
+                <p className="text-xl sm:text-2xl font-bold font-mono text-white flex items-baseline justify-center gap-0.5">
+                  {isClear ? (
+                    (() => {
+                      const time = clearTime ?? 0;
+                      const [intPart, decPart] = time.toFixed(2).split(".");
+                      return (
+                        <>
+                          <span>{intPart}</span>
+                          <span className="text-sm font-normal text-slate-100">.{decPart}</span>
+                          <span> sec</span>
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <span>--:--</span>
+                  )}
                 </p>
               </div>
               <div className="bg-slate-800/50 border border-slate-700/60 p-3 rounded-xl">
