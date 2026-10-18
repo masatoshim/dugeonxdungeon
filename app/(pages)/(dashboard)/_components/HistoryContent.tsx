@@ -7,7 +7,7 @@ import { usegetPlayHistoryDungeons } from "@/app/_hooks";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
-import { UserResponse } from "@/app/_types";
+import { UserDetailResponse } from "@/app/_types";
 import { Pagination } from "@/app/(pages)/_components/Pagination";
 import { useSWRConfig } from "swr";
 
@@ -22,7 +22,7 @@ const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
 ];
 
 interface HistoryContentProps {
-  user?: UserResponse;
+  user?: UserDetailResponse;
 }
 
 export function HistoryContent({ user }: HistoryContentProps) {

@@ -91,7 +91,7 @@ export function UserSearchSelect({ selectedUserId, onSelect }: UserSearchSelectP
               type="button"
               onClick={() => {
                 // 親のメソッドを呼ぶ。ここでURLが更新される。
-                onSelect(user.id, user.userName);
+                onSelect(user.id || "", user.userName);
                 setQuery(""); // 自身の入力はクリア（URL側の表示に切り替わる）
                 setIsOpen(false);
               }}

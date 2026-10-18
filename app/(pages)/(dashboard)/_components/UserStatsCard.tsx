@@ -1,10 +1,10 @@
 "use client";
 
 import { PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
-import { UserResponse } from "@/app/_types";
+import { UserDetailResponse } from "@/app/_types";
 
 interface UserStatsCardProps {
-  user: UserResponse;
+  user: UserDetailResponse;
 }
 
 export function UserStatsCard({ user }: UserStatsCardProps) {
@@ -26,9 +26,9 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
   // プレイ実績（累計系）
   const totalStats = [
     { label: "トータルプレイ回数", value: user.totalPlayCount, color: "#94a3b8" },
-    { label: "ダンジョン踏破回数", value: user.clearPlayCount, color: "#94a3b8" },
-    { label: "ダンジョン失敗回数", value: user.failurePlayCount, color: "#94a3b8" },
-    { label: "ダンジョン中断回数", value: user.interruptPlayCount, color: "#94a3b8" },
+    { label: "ダンジョン踏破回数", value: user.totalClearPlayCount, color: "#94a3b8" },
+    { label: "ダンジョン失敗回数", value: user.totalFailurePlayCount, color: "#94a3b8" },
+    { label: "ダンジョン中断回数", value: user.totalInterruptPlayCount, color: "#94a3b8" },
   ];
 
   const topMetrics = [
@@ -136,14 +136,16 @@ export function UserStatsCard({ user }: UserStatsCardProps) {
           </div>
 
           {/* カラー凡例 */}
-          <div className="flex flex-wrap justify-center gap-3 mt-2 text-[11px] font-mono text-slate-300">
-            {chartData.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
-                <span>{item.name}</span>
-              </div>
-            ))}
-          </div>
+          {totalUniqueCount > 0 && (
+            <div className="flex flex-wrap justify-center gap-3 mt-2 text-[11px] font-mono text-slate-300">
+              {chartData.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+                  <span>{item.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

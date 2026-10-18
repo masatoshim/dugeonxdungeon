@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
 import { createUser } from "@/app/_apis/users-api";
-import { CreateUserRequest, UserResponse } from "@/app/_types";
+import { CreateUserRequest, UserDetailResponse } from "@/app/_types";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ export const useCreateUser = () => {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const { trigger, isMutating, error } = useSWRMutation<UserResponse, Error, string, CreateUserRequest>(
+  const { trigger, isMutating, error } = useSWRMutation<UserDetailResponse, Error, string, CreateUserRequest>(
     "/api/users",
     (_, { arg }) => createUser(arg),
     {

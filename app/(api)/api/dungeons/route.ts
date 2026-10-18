@@ -277,7 +277,6 @@ export async function GET(request: Request) {
             ? {
                 where: { userId: effectiveCheckUserId, playStatus: "CLEAR" },
                 take: 1,
-                select: { id: true },
               }
             : false,
           // ログイン中ユーザーの「お気に入り」があるか
@@ -285,7 +284,6 @@ export async function GET(request: Request) {
             ? {
                 where: { userId: effectiveCheckUserId },
                 take: 1,
-                select: { userId: true },
               }
             : false,
         },

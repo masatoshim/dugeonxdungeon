@@ -1,28 +1,4 @@
 import { Role } from "@prisma/client";
-import { DateTime } from "next-auth/providers/kakao";
-
-/**
- * ユーザー情報の共通プロパティ
- */
-export interface UserBase {
-  id: string;
-  userName: string;
-  nickName: string | null;
-  iconImageKey: string | null;
-  createDungeonLimit?: number;
-
-  // 管理者のみ、または本人のみ取得可能にする項目
-  emailVerified?: string | null; // ISO 8601 文字列
-  lastLoginAt?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  email?: string | null;
-  isActive?: boolean;
-  deletedFlg?: boolean;
-  createdBy?: string | null;
-  updatedBy?: string | null;
-  role?: Role;
-}
 
 /**
  * 検索項目
@@ -84,33 +60,87 @@ export interface UserFilter {
 }
 
 /**
+ * ユーザー情報の共通プロパティ
+ */
+export interface UserBase {
+  id?: string;
+  userName: string;
+  nickName: string | null;
+  iconImageKey: string | null;
+  createDungeonLimit?: number;
+
+  // 管理者のみ、または本人のみ取得可能にする項目
+  emailVerified?: string | null; // ISO 8601 文字列
+  lastLoginAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  email?: string | null;
+  isActive?: boolean;
+  deletedFlg?: boolean;
+  createdBy?: string | null;
+  updatedBy?: string | null;
+  role?: Role;
+}
+
+/**
  * APIレスポンス
  */
-export interface UserResponse extends UserBase {
+// 詳細用レスポンス
+export interface UserDetailResponse extends UserBase {
   activeDungeonCount?: number;
   // 統計情報
   rank: number;
   totalPlayScore: number;
   totalPlayTime: number;
   totalPlayCount: number;
+  totalClearPlayCount: number;
+  totalFailurePlayCount: number;
+  totalInterruptPlayCount: number;
   playDungeonCount: number;
-  clearPlayCount: number;
-  failurePlayCount: number;
-  interruptPlayCount: number;
-  publishedDungeonCount: number;
-  dungeonCount: number;
   uniqueClearDungeonCount: number;
   uniqueFailureDungeonCount: number;
   uniqueInterruptDungeonCount: number;
-  dungeons?: { dungeonCode?: string }[];
+  createDungeonCount: number;
+  publishedDungeonCount: number;
+  createDungeons?: { dungeonCode?: string }[];
   playHistories?: { dungeonCode?: string; userId: string; createdAt?: string }[];
   favoriteDungeons?: { dungeonCode?: string }[];
   isGoogleUser?: boolean;
 }
 
+// 一覧用レスポンス
+export interface UserResponse extends UserBase {
+  // 統計情報
+  rank: number;
+  totalPlayScore: number;
+  totalPlayTime: number;
+  totalPlayCount: number;
+  totalClearPlayCount: number;
+  totalFailurePlayCount: number;
+  totalInterruptPlayCount: number;
+}
+
+// 更新レスポンス
+export interface UpdateUserResponse {
+  message: string;
+  user: UserBase;
+}
+
+// 一覧取得のレスポンス
+export interface UsersIndexResponse {
+  users: UserResponse[];
+  meta: {
+    totalCount: number;
+    index: number;
+    limit: number;
+    hasNext: boolean;
+  };
+}
+
 /**
- * 新規作成リクエスト
+ * リクエスト
  */
+// 新規作成リクエスト
 export interface CreateUserRequest {
   id: string;
   userName: string;
@@ -123,9 +153,7 @@ export interface CreateUserRequest {
   hashedPassword: string; // todo: 必要か？
 }
 
-/**
- * 更新リクエスト
- */
+// 更新リクエスト
 export interface UpdateUserRequest {
   nickName?: string | null;
   iconImageKey?: string | null;
@@ -137,25 +165,4 @@ export interface UpdateUserRequest {
   deletedFlg?: boolean;
   createdBy?: string | null;
   updatedBy?: string | null;
-}
-
-/**
- * 更新レスポンス
- */
-export interface UpdateUserResponse {
-  message: string;
-  user: UserBase;
-}
-
-/**
- * 一覧取得のレスポンス
- */
-export interface UsersIndexResponse {
-  users: UserResponse[];
-  meta: {
-    totalCount: number;
-    index: number;
-    limit: number;
-    hasNext: boolean;
-  };
 }

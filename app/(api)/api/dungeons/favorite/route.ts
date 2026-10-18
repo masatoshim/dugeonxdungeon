@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/_libs/auth";
 import { prisma } from "@/app/_libs/prisma";
-import { DungeonDetailResponse, DungeonsIndexResponse } from "@/app/_types";
+import { DungeonResponse, DungeonsIndexResponse } from "@/app/_types";
 import { DungeonStatus } from "@prisma/client";
 import { mapDataSchema } from "@/game-core/schemas/map";
 
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   if (!sessionUserId) {
     return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
   }
+  const isAdmin = session?.user?.role === "ADMIN";
 
   // ページネーション・ソート設定
   const { searchParams } = new URL(request.url);
@@ -44,9 +45,25 @@ export async function GET(request: Request) {
         skip: index,
         include: {
           dungeon: {
-            include: {
-              user: { select: { nickName: true, iconImageKey: true } },
-              dungeonTags: { include: { tag: true } },
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              userId: true,
+              description: true,
+              mapSizeHeight: true,
+              mapSizeWidth: true,
+              mapSize: true,
+              timeLimit: true,
+              difficulty: true,
+              status: true,
+              isTemplate: true,
+              favoritesCount: true,
+              createdBy: true,
+              updatedBy: true,
+              createdAt: true,
+              updatedAt: true,
+              user: { select: { userName: true, nickName: true, iconImageKey: true } },
               playHistories: {
                 where: { userId: targetUserId, playStatus: "CLEAR" },
                 take: 1,
@@ -73,9 +90,25 @@ export async function GET(request: Request) {
         orderBy: { [sortField]: sortOrder },
         take: limit,
         skip: index,
-        include: {
-          user: { select: { nickName: true, iconImageKey: true } },
-          dungeonTags: { include: { tag: true } },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          userId: true,
+          description: true,
+          mapSizeHeight: true,
+          mapSizeWidth: true,
+          mapSize: true,
+          timeLimit: true,
+          difficulty: true,
+          status: true,
+          isTemplate: true,
+          favoritesCount: true,
+          createdBy: true,
+          updatedBy: true,
+          createdAt: true,
+          updatedAt: true,
+          user: { select: { userName: true, nickName: true, iconImageKey: true } },
           playHistories: {
             where: { userId: targetUserId, playStatus: "CLEAR" },
             take: 1,
@@ -88,26 +121,23 @@ export async function GET(request: Request) {
       });
     }
 
-    const dungeons: DungeonDetailResponse[] = dungeonsData.map((d) => {
-      const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
-      const parsedMapData = mapDataSchema.safeParse(d.mapData);
-      const validMapData = parsedMapData.success
-        ? parsedMapData.data
-        : { tiles: [], entities: [], width: 0, height: 0 };
+    const dungeons: DungeonResponse[] = dungeonsData.map((d) => {
+      const { user, userId, playHistories, favoritedBy, ...rest } = d;
+      const hasPrivateAccess = isAdmin || sessionUserId === d.userId;
 
       return {
         ...rest,
-        mapData: validMapData,
         nickName: user.nickName || "USER_NAME",
         userIconImageKey: user.iconImageKey,
-        totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         isCleared: (playHistories?.length ?? 0) > 0,
-        clearedVersionMajor: playHistories?.[0]?.versionMajor,
-        clearedVersionMinor: playHistories?.[0]?.versionMinor,
         isFavorited: (favoritedBy?.length ?? 0) > 0,
-        tags: dungeonTags.map((dt) => dt.tag.name),
-        createdAt: d.createdAt.toISOString(),
-        updatedAt: d.updatedAt.toISOString(),
+        // 管理者のみ、または本人のみ取得可能にする項目
+        userId: hasPrivateAccess ? userId : undefined,
+        userName: hasPrivateAccess ? user.userName : undefined,
+        createdBy: hasPrivateAccess ? d.createdBy : undefined,
+        updatedBy: hasPrivateAccess ? d.updatedBy : undefined,
+        createdAt: hasPrivateAccess ? d.createdAt.toISOString() : undefined,
+        updatedAt: hasPrivateAccess ? d.updatedAt.toISOString() : undefined,
       };
     });
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { UserResponse, UpdateUserRequest, UpdateUserResponse } from "@/app/_types";
+import { UserDetailResponse, UpdateUserRequest, UpdateUserResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 
@@ -101,7 +101,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     });
 
     const hasPrivateAccess = isAdmin || session?.user?.id === user.id;
-    const response: UserResponse = {
+    const response: UserDetailResponse = {
       id: user.id,
       rank: rank,
       userName: user.userName,
@@ -112,18 +112,18 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       totalPlayTime: user.totalPlayTime,
       totalPlayCount: user.clearPlayCount + user.failurePlayCount + user.interruptPlayCount,
       playDungeonCount: user.playDungeonCount,
-      clearPlayCount: user.clearPlayCount,
-      failurePlayCount: user.failurePlayCount,
-      interruptPlayCount: user.interruptPlayCount,
+      totalClearPlayCount: user.clearPlayCount,
+      totalFailurePlayCount: user.failurePlayCount,
+      totalInterruptPlayCount: user.interruptPlayCount,
       uniqueClearDungeonCount: user.uniqueClearDungeonCount,
       uniqueFailureDungeonCount: user.uniqueFailureDungeonCount,
       uniqueInterruptDungeonCount: user.uniqueInterruptDungeonCount,
 
       // クリエイト情報
-      dungeonCount: user.dungeons.length,
+      createDungeonCount: user.dungeons.length,
       publishedDungeonCount: user.dungeons.filter((d) => d.status === "PUBLISHED").length,
       // ダンジョン関連
-      dungeons: user.dungeons
+      createDungeons: user.dungeons
         .filter((d) => hasPrivateAccess || d.status === "PUBLISHED")
         .map((d) => {
           return { dungeonCode: d.code };
