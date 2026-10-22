@@ -4,35 +4,34 @@ import { useState, useEffect } from "react";
 import { Heart, Maximize, Clock, Footprints, Timer, Star, Play } from "lucide-react";
 import { DungeonDetailResponse, FavoriteDungeonResponse } from "@/app/_types";
 import { useSession } from "next-auth/react";
-import {
-  useProfileIcon,
-  useGetFavoriteDungeonStatus,
-  useCreateFavoriteDungeon,
-  useDeleteFavoriteDungeon,
-} from "@/app/_hooks";
+import { useCreateFavoriteDungeon, useDeleteFavoriteDungeon, useProfileIcon } from "@/app/_hooks";
 import { toast } from "sonner";
 
 interface DungeonInfoProps {
   dungeon: DungeonDetailResponse;
-  isCleared: boolean;
-  targetPage?: number;
 }
 
-export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonInfoProps) {
-  const router = useRouter();
+export function DungeonInfoSection({ dungeon }: DungeonInfoProps) {
   const { data: session, status } = useSession();
   const currentUserId = session?.user?.id;
-  const { isFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
+  const router = useRouter();
+
+  const [isFavorited, setIsFavorited] = useState(dungeon.isFavorited);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
+
+  useEffect(() => {
+    setIsFavorited(dungeon.isFavorited);
+  }, [dungeon]);
+
+  useEffect(() => {
+    setFavoritesCount(dungeon.favoritesCount);
+  }, [dungeon.favoritesCount]);
+
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
   const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
 
   const isOwnDungeon = status === "authenticated" && currentUserId === dungeon.userId;
-
-  useEffect(() => {
-    setFavoritesCount(dungeon.favoritesCount);
-  }, [dungeon.favoritesCount]);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Link の遷移を防止
@@ -44,6 +43,16 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
     }
 
     if (isCreating || isDeleting) return;
+
+    // レスポンスを待たずに即座に画面上のカウントとアイコン状態を反転させる
+    const previousIsFavorited = isFavorited;
+    const previousCount = favoritesCount;
+    const nextIsFavorited = !previousIsFavorited;
+    const nextCount = nextIsFavorited ? previousCount + 1 : Math.max(0, previousCount - 1);
+
+    setIsFavorited(nextIsFavorited);
+    setFavoritesCount(nextCount);
+
     try {
       let result: FavoriteDungeonResponse;
       if (isFavorited) {
@@ -52,9 +61,12 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
         result = await create(dungeon.id);
       }
       setFavoritesCount(result.count);
-      mutate();
     } catch (err) {
       console.error(err);
+      // エラー時は元の状態に戻す
+      setIsFavorited(previousIsFavorited);
+      setFavoritesCount(previousCount);
+      toast.error("お気に入り処理に失敗しました");
     }
   };
 
@@ -114,12 +126,12 @@ export function DungeonInfoSection({ dungeon, isCleared, targetPage }: DungeonIn
           ) : (
             <div
               className={`px-3 py-1 rounded-full text-xs font-bold ${
-                isCleared
+                dungeon.isCleared
                   ? "bg-green-500/20 text-green-400 border border-green-500/30"
                   : "bg-slate-700/50 text-slate-400 border border-slate-600"
               }`}
             >
-              {isCleared ? "攻略済み" : "未攻略"}
+              {dungeon.isCleared ? "攻略済み" : "未攻略"}
             </div>
           )}
         </div>

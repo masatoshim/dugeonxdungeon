@@ -32,7 +32,7 @@ export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListP
           <div className="grid grid-cols-[repeat(auto-fit,280px)] justify-center gap-4 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
             {dungeons?.map((dungeon) => (
               <div key={dungeon.id} className="w-[280px] shrink-0">
-                <DungeonCard dungeon={dungeon} isCleared={dungeon.isCleared} />
+                <DungeonCard dungeon={dungeon} />
               </div>
             ))}
           </div>

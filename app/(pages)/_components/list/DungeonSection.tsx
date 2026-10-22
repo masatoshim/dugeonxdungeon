@@ -45,7 +45,7 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
           // データがある場合の通常表示
           dungeons.slice(0, 4).map((dungeon) => (
             <div key={dungeon.id} className="w-full max-w-[320px]">
-              <DungeonCard dungeon={dungeon} isCleared={dungeon.isCleared} />
+              <DungeonCard dungeon={dungeon} />
             </div>
           ))
         ) : (
