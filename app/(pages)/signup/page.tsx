@@ -7,6 +7,7 @@ import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 // バリデーションスキーマの定義
 const passwordSchema = z
@@ -17,11 +18,17 @@ const passwordSchema = z
   .regex(/[A-Z]/, "大文字を含めてください")
   .regex(/[0-9]/, "数字を含めてください");
 
-const signupSchema = z.object({
-  userName: z.string().min(3, "ユーザー名は3文字以上で入力してください"),
-  email: z.string().email("有効なメールアドレスを入力してください"),
-  password: passwordSchema,
-});
+const signupSchema = z
+  .object({
+    userName: z.string().min(3, "ユーザー名は3文字以上で入力してください"),
+    email: z.string().email("有効なメールアドレスを入力してください"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "パスワードが一致しません",
+    path: ["confirmPassword"],
+  });
 
 type SignupSchema = z.infer<typeof signupSchema>;
 
@@ -43,6 +50,10 @@ function SignupForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/profile";
   const authError = searchParams.get("error");
+
+  // パスワードの表示・非表示切り替え用
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (authError === "AlreadyRegisteredWithPassword" || authError === "OAuthAccountNotLinked") {
@@ -69,11 +80,13 @@ function SignupForm() {
   const onSubmit = async (data: SignupSchema) => {
     setLoading(true);
 
+    const { confirmPassword, ...submitData } = data;
+
     try {
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       });
 
       if (res.status === 201) {
@@ -131,14 +144,48 @@ function SignupForm() {
           {/* パスワード */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-300 ml-1">パスワード</label>
-            <input
-              type="password"
-              {...register("password")}
-              className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all"
-              placeholder="8文字以上のパスワード"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all"
+                placeholder="8文字以上のパスワード"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-400 text-xs mt-1 ml-1 font-medium">{errors.password.message}</span>
+            )}
+          </div>
+
+          {/* パスワード（確認用） */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-300 ml-1">パスワード（確認用）</label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                {...register("confirmPassword")}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all"
+                placeholder="もう一度パスワードを入力"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <span className="text-red-400 text-xs mt-1 ml-1 font-medium">{errors.confirmPassword.message}</span>
             )}
           </div>
 

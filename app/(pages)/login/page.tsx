@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -31,6 +32,9 @@ function LoginForm() {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // パスワードの表示・非表示切り替え用
+  const [showPassword, setShowPassword] = useState(false);
 
   // 認証完了後のメッセージ表示
   useEffect(() => {
@@ -112,15 +116,25 @@ function LoginForm() {
           {/* パスワード */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-300 ml-1">パスワード</label>
-            <input
-              type="password"
-              className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all text-sm"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all text-sm"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <div className="flex justify-end mt-1 mr-1">
               <Link href="/login/forgot-password" className="text-xs text-[#4fd1d1] hover:underline">
                 パスワードをお忘れですか？
