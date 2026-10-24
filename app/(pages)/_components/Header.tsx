@@ -22,14 +22,43 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
   // ゲームプレイ画面か判定
   const isPlayScreen = pathname?.endsWith("/play") || pathname?.includes("/test-play");
 
+  // ダッシュボード画面または編集・作成画面かどうかを判定
+  const isCompactPage = pathname?.startsWith("/dashboard") || pathname?.endsWith("/edit") || pathname?.endsWith("/new");
+
   useEffect(() => {
     setMounted(true);
-  }, []);
 
-  // ドロワー開閉時に body のスクロールをロックして右端のズレ・見切れを抑止
+    // ダッシュボードや編集画面の場合はコンパクトに固定
+    if (isCompactPage) {
+      setIsScrolled(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // 一番上にいるときだけ通常の高さ
+      if (currentScrollY <= 5) {
+        setIsScrolled(false);
+      }
+      // 下スクロールされたら高さを狭くする
+      else {
+        setIsScrolled(true);
+      }
+    };
+
+    // 初期表示時の一致
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [pathname, isCompactPage]);
+
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
@@ -54,17 +83,25 @@ export default function Header() {
 
   return (
     <>
-      <header className="px-4 sm:px-8 py-3.5 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200">
+      <header
+        className={`px-4 sm:px-8 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200 transition-all duration-300 ${
+          isScrolled ? "py-1.5 shadow-xl bg-slate-950/95" : "py-3.5"
+        }`}
+      >
         <div className="flex items-center gap-8 min-w-0">
           {/* ロゴエリア */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-black text-base sm:text-xl tracking-tighter text-white hover:text-[#4fd1d1] transition-colors shrink-0 group"
+            className={`flex items-center gap-2 font-black tracking-tighter text-white hover:text-[#4fd1d1] transition-all shrink-0 group ${
+              isScrolled ? "text-sm sm:text-base" : "text-base sm:text-xl"
+            }`}
           >
             <span>DUNGEONZ</span>
             {/* クロスした剣のSVGアイコン */}
             <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 text-[#4fd1d1] shrink-0 group-hover:rotate-12 transition-transform"
+              className={`text-[#4fd1d1] shrink-0 group-hover:rotate-12 transition-all duration-300 ${
+                isScrolled ? "w-3 h-3 sm:w-3.5 sm:h-3.5" : "w-4 h-4 sm:w-5 sm:h-5"
+              }`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -84,19 +121,27 @@ export default function Header() {
 
           {/* PC用ナビゲーションリンク */}
           <nav className="hidden md:flex items-center gap-6 shrink-0">
-            <Link href="/dungeons" className="text-sm font-medium hover:text-[#4fd1d1] transition-colors">
+            <Link
+              href="/dungeons"
+              className={`font-medium hover:text-[#4fd1d1] transition-all ${isScrolled ? "text-xs" : "text-sm"}`}
+            >
               遊ぶ
             </Link>
 
             <button
               type="button"
               onClick={handleCreateClick}
-              className="text-sm font-medium hover:text-[#4fd1d1] transition-colors cursor-pointer bg-transparent border-none p-0"
+              className={`font-medium hover:text-[#4fd1d1] transition-all cursor-pointer bg-transparent border-none p-0 ${
+                isScrolled ? "text-xs" : "text-sm"
+              }`}
             >
               創る
             </button>
 
-            <Link href="/ranking" className="text-sm font-medium hover:text-[#4fd1d1] transition-colors">
+            <Link
+              href="/ranking"
+              className={`font-medium hover:text-[#4fd1d1] transition-all ${isScrolled ? "text-xs" : "text-sm"}`}
+            >
               競う
             </Link>
           </nav>
@@ -110,10 +155,15 @@ export default function Header() {
               <span className="text-xs text-slate-500 font-mono animate-pulse">読み込み中...</span>
             ) : session ? (
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-sm font-medium text-slate-300 min-w-0 truncate max-w-[260px] lg:max-w-[260px] xl:max-w-none">
+                <span
+                  className={`font-medium text-slate-300 min-w-0 truncate transition-all ${
+                    isScrolled ? "text-xs max-w-[200px]" : "text-sm max-w-[260px]"
+                  }`}
+                >
                   {session.user?.nickName || session.user?.name}
                   <span className="text-xs text-slate-500 ml-1 shrink-0">さん</span>
                 </span>
+
                 <div className="shrink-0">
                   <HeaderUserMenu />
                 </div>
@@ -122,13 +172,17 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all shrink-0"
+                  className={`font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 rounded-full transition-all shrink-0 ${
+                    isScrolled ? "text-xs px-3 py-1" : "text-sm px-4 py-1.5"
+                  }`}
                 >
                   ログイン
                 </Link>
                 <Link
                   href="/signup"
-                  className="text-sm font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 px-4 py-1.5 rounded-full transition-all shrink-0"
+                  className={`font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 rounded-full transition-all shrink-0 ${
+                    isScrolled ? "text-xs px-3 py-1" : "text-sm px-4 py-1.5"
+                  }`}
                 >
                   新規登録
                 </Link>
@@ -148,7 +202,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ─── モバイルドロワー ─── */}
+      {/* モバイルドロワー */}
       {mounted &&
         isMenuOpen &&
         createPortal(

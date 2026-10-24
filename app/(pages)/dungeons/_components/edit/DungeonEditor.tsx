@@ -402,7 +402,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         {/* onSubmitのデフォルト挙動を無効化 */}
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="relative h-[calc(100vh-4rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
+          className="relative h-[calc(100vh-2.8rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
         >
           {/* ─── ヘッダー ─── */}
           <header className="z-40 w-full shrink-0 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-2">

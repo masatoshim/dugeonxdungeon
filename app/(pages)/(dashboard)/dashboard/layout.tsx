@@ -14,7 +14,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed top-16 bottom-0 left-0 right-0 flex w-screen h-[calc(100vh-64px)] overflow-hidden bg-[#0f111a]">
+    <div className="fixed top-10 bottom-0 left-0 right-0 flex w-screen overflow-hidden bg-[#0f111a]">
       {/* モバイル用 */}
       {isOpen && (
         <div
