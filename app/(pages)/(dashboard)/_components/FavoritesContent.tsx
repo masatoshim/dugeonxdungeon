@@ -104,7 +104,7 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
 
         {/* お気に入り一覧 */}
         <div className="w-full">
-          <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+          <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} variant="dashboard" />
         </div>
 
         {/* ページネーション */}

@@ -104,7 +104,7 @@ export function HistoryContent({ user }: HistoryContentProps) {
 
         {/* 履歴一覧 */}
         <div className="w-full">
-          <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+          <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} variant="dashboard" />
         </div>
 
         {/* ページネーション */}

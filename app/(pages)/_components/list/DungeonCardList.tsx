@@ -7,9 +7,25 @@ interface DungeonCardListProps {
   dungeons: DungeonResponse[] | undefined;
   isLoading: boolean;
   error: string;
+  variant?: "default" | "dashboard";
 }
 
-export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListProps) {
+export function DungeonCardList({ dungeons, isLoading, error, variant }: DungeonCardListProps) {
+  // レイアウト調整用
+  const isDashboard = variant === "dashboard";
+  const maxWidthClass = isDashboard ? "max-w-[1110px]" : "max-w-[1168px]";
+  const cardWidthClass = isDashboard ? "w-[265px]" : "w-[280px]";
+  const gapClass = isDashboard ? "gap-3" : "gap-4";
+  const cardWidthNum = isDashboard ? 265 : 280;
+  const totalCount = dungeons?.length || 0;
+
+  // 【判定ロジック】
+  // 総数が4枚未満であり、かつ画面幅が十分に広くて1行で収まるときは左寄せ（justify-start）にする。
+  // 総数が4枚以上、または横幅を狭めて折り返しが発生したときは中央寄せ（justify-center）にする。
+  const gridClass = `grid grid-cols-[repeat(auto-fit,${cardWidthNum}px)] ${gapClass} w-full ${
+    totalCount < 4 ? "justify-start lg:justify-start" : "justify-center"
+  }`;
+
   if (error)
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-red-500">
@@ -18,20 +34,20 @@ export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListP
     );
 
   return (
-    <div className="w-full">
-      <div className={`w-full`}>
+    <div className="w-full flex justify-center">
+      <div className={`w-full ${maxWidthClass}`}>
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          <div className={gridClass}>
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="w-full">
+              <div key={i} className={`${cardWidthClass} shrink-0`}>
                 <DungeonCardSkeleton />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className={`${gridClass} animate-in fade-in slide-in-from-bottom-4 duration-700`}>
             {dungeons?.map((dungeon) => (
-              <div key={dungeon.id} className="w-full">
+              <div key={dungeon.id} className={`${cardWidthClass} shrink-0`}>
                 <DungeonCard dungeon={dungeon} />
               </div>
             ))}

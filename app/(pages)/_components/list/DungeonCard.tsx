@@ -93,9 +93,9 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon }: DungeonC
       }`}
     >
       {/* ヘッダー */}
-      <div className="flex justify-between items-start mb-1.5">
-        <span className="text-[10px] font-mono text-slate-500 tracking-wider">{dungeon.code}</span>
-        <div className="flex items-center gap-2">
+      <div className="flex justify-between items-start gap-2 mb-1.5 min-w-0">
+        <span className="text-[10px] font-mono text-slate-500 tracking-wider truncate min-w-0">{dungeon.code}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* お気に入り */}
           <button
             type="button"
@@ -110,7 +110,7 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon }: DungeonC
           {/* クリア済みチェック */}
           {isOwnDungeon ? (
             <div
-              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30"
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 whitespace-nowrap shrink-0"
               title="あなたが作成したダンジョンです"
             >
               <span>マイダンジョン</span>
