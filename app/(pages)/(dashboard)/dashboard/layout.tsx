@@ -7,7 +7,7 @@ import { LogOut, Menu } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { getNavItems } from "@/app/(pages)/_components/navigation";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function UserDashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const navItems = getNavItems(session?.user?.role);
   const pathname = usePathname();
