@@ -72,9 +72,9 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
   };
 
   return (
-    <div className="w-full h-auto text-white px-4 sm:px-6 pb-24">
+    <div className="w-full h-auto text-white px-4 sm:px-6 pb-24 flex flex-col items-center">
       {/* ヘッダー */}
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
+      <header className="w-full max-w-[1140px] mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-200">
             {user && `${user.nickName}さん の`}
@@ -102,12 +102,14 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
       </header>
 
       {/* お気に入り一覧 */}
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full flex justify-center">
         <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
       </div>
 
       {/* ページネーション */}
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+      <div className="w-full max-w-[1140px] mt-8 flex justify-center">
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+      </div>
 
       {/* ダンジョン詳細モーダル表示 */}
       {dungeonId && (

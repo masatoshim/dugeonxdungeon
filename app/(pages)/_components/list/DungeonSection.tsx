@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { DungeonResponse } from "@/app/_types";
 import { DungeonCard } from "@/app/(pages)/_components/list/DungeonCard";
 
 interface DungeonSectionProps {
   title: string;
   viewMoreLink: string;
-  dungeons: any[] | undefined; // 読み込み中は undefined
+  dungeons: DungeonResponse[] | undefined; // 読み込み中は undefined
   isLoading: boolean;
 }
 
