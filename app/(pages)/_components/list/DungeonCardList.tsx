@@ -18,30 +18,32 @@ export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListP
     );
 
   return (
-    <div className="w-full max-w-[1168px]">
-      {isLoading ? (
-        <div className="grid grid-cols-[repeat(auto-fit,280px)] gap-4 w-full">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="w-[280px] shrink-0">
-              <DungeonCardSkeleton />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,280px)] gap-4 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-          {dungeons?.map((dungeon) => (
-            <div key={dungeon.id} className="w-[280px] shrink-0">
-              <DungeonCard dungeon={dungeon} />
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="w-full">
+      <div className={`w-full`}>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="w-full">
+                <DungeonCardSkeleton />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {dungeons?.map((dungeon) => (
+              <div key={dungeon.id} className="w-full">
+                <DungeonCard dungeon={dungeon} />
+              </div>
+            ))}
+          </div>
+        )}
 
-      {!isLoading && dungeons?.length === 0 && (
-        <div className="w-full text-center py-16 bg-slate-900/40 rounded-2xl border border-dashed border-slate-800">
-          <p className="text-slate-500 text-sm">ダンジョンがありません。</p>
-        </div>
-      )}
+        {!isLoading && dungeons?.length === 0 && (
+          <div className="w-full text-center py-16 bg-slate-900/40 rounded-2xl border border-dashed border-slate-800">
+            <p className="text-slate-500 text-sm">ダンジョンがありません。</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -86,9 +86,9 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon }: DungeonC
 
   const cardContent = (
     <div
-      className={`group relative max-w-[320px] min-w-[200px] bg-[#1a233a] border rounded-lg p-2.5 shadow-lg transition-all hover:-translate-y-1 cursor-pointer flex flex-col ${
+      className={`group relative max-w-[320px] bg-[#1a233a] border rounded-lg p-2.5 shadow-lg transition-all hover:-translate-y-1 cursor-pointer flex flex-col ${
         dungeon.isCleared
-          ? "border-slate-700/60 opacity-60 hover:opacity-90 bg-[#141b2d] hover:shadow-[0_0_15px_rgba(59,130,246,0.1)]" // クリア済み：少し暗く＆落ち着いた背景に
+          ? "border-slate-700/60 opacity-60 hover:opacity-90 bg-[#141b2d]"
           : "border-slate-700 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
       }`}
     >
