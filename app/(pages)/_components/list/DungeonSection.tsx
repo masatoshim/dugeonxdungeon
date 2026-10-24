@@ -23,13 +23,13 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
         </Link>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 justify-items-center sm:justify-items-start">
+      <div className="grid grid-cols-[repeat(auto-fit,240px)] justify-start gap-3 w-full">
         {isLoading ? (
           // ローディング中のスケルトン表示（4件分）
           [...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 h-[280px] w-full max-w-[320px] animate-pulse flex flex-col justify-between"
+              className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-4 h-[280px] w-[240px] shrink-0 animate-pulse flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="h-3 bg-slate-800 rounded w-1/3" />
@@ -45,7 +45,7 @@ export const DungeonSection = ({ title, viewMoreLink, dungeons, isLoading }: Dun
         ) : dungeons && dungeons.length > 0 ? (
           // データがある場合の通常表示
           dungeons.slice(0, 4).map((dungeon) => (
-            <div key={dungeon.id} className="w-full max-w-[320px]">
+            <div key={dungeon.id} className="w-[240px] shrink-0">
               <DungeonCard dungeon={dungeon} />
             </div>
           ))
