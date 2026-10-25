@@ -1,7 +1,7 @@
-import { UserResponse, UserFilter, UsersIndexResponse, CreateUserRequest, UpdateUserRequest } from "@/app/_types";
+import { UserDetailResponse, UserFilter, UsersIndexResponse, CreateUserRequest, UpdateUserRequest } from "@/app/_types";
 
 // ユーザーを登録する関数
-export const createUser = async (data: CreateUserRequest): Promise<UserResponse> => {
+export const createUser = async (data: CreateUserRequest): Promise<UserDetailResponse> => {
   const res = await fetch("/api/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -26,14 +26,14 @@ export const fetchUsers = async (params?: UserFilter): Promise<UsersIndexRespons
 };
 
 // ユーザー詳細を取得する関数
-export const getUser = async (id: string): Promise<UserResponse> => {
+export const getUser = async (id: string): Promise<UserDetailResponse> => {
   const res = await fetch(`/api/users/${id}`);
   if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
   return await res.json();
 };
 
 // ユーザーを更新する関数
-export const updateUser = async (id: string, data: UpdateUserRequest): Promise<UserResponse> => {
+export const updateUser = async (id: string, data: UpdateUserRequest): Promise<UserDetailResponse> => {
   const res = await fetch(`/api/users/${id}`, {
     method: "PATCH", // または PUT
     headers: { "Content-Type": "application/json" },

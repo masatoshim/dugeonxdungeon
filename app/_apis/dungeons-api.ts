@@ -1,5 +1,5 @@
 import {
-  DungeonResponse,
+  DungeonDetailResponse,
   DungeonFilter,
   DungeonsIndexResponse,
   CreateDungeonRequest,
@@ -13,7 +13,7 @@ import {
 } from "@/app/_types";
 
 // ダンジョンを登録する関数
-export const createDungeon = async (data: CreateDungeonRequest): Promise<DungeonResponse> => {
+export const createDungeon = async (data: CreateDungeonRequest): Promise<DungeonDetailResponse> => {
   const res = await fetch("/api/dungeons", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -38,14 +38,14 @@ export const fetchDungeons = async (params?: DungeonFilter): Promise<DungeonsInd
 };
 
 // ダンジョン詳細を取得する関数
-export const getDungeon = async (id: string): Promise<DungeonResponse> => {
+export const getDungeon = async (id: string): Promise<DungeonDetailResponse> => {
   const res = await fetch(`/api/dungeons/${id}`);
   if (!res.ok) throw new Error(`取得に失敗しました: ${res.status}`);
   return await res.json();
 };
 
 // ダンジョンを更新する関数
-export const updateDungeon = async (id: string, data: UpdateDungeonRequest): Promise<DungeonResponse> => {
+export const updateDungeon = async (id: string, data: UpdateDungeonRequest): Promise<DungeonDetailResponse> => {
   const res = await fetch(`/api/dungeons/${id}`, {
     method: "PATCH", // または PUT
     headers: { "Content-Type": "application/json" },

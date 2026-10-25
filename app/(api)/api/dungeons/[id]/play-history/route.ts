@@ -9,7 +9,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   if (!userId) {
-    return NextResponse.json({ message: "認証が必要です" }, { status: 0 });
+    return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
   }
 
   try {
@@ -21,17 +21,71 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // プレイ履歴の作成
       const history = await tx.playHistory.create({
         data: {
-          userId: userId!,
+          userId,
           dungeonId,
           playTime,
           playScore,
           playStatus,
-          versionMajor: versionMajor,
-          versionMinor: versionMinor,
+          versionMajor,
+          versionMinor,
         },
       });
 
-      // 既存のダンジョン統計データの取得
+      // 更新前のUserDungeonBestを取得
+      const currentBest = await tx.userDungeonBest.findUnique({
+        where: { userId_dungeonId: { userId, dungeonId } },
+      });
+
+      const wasAlreadyCleared = currentBest?.hasCleared ?? false;
+      const prevStatus = currentBest?.latestStatus;
+
+      // ユニークカウントの差分の計算
+      let clearDelta = 0;
+      let failureDelta = 0;
+      let interruptDelta = 0;
+
+      if (isClear) {
+        // 今回クリアした場合
+        if (!wasAlreadyCleared) {
+          // 初めてのクリアなので、ユニーク踏破数が +1
+          clearDelta = 1;
+
+          // もし過去に未クリア状態で「失敗」または「中断」としてカウントされていたなら、相殺する
+          if (prevStatus === PlayStatus.FAILURE) {
+            failureDelta = -1;
+          } else if (prevStatus === PlayStatus.INTERRUPT) {
+            interruptDelta = -1;
+          }
+        }
+        // すでにクリア済みの場合は、何をしてもユニーク数は変わらない
+      } else {
+        // 今回クリア以外（失敗 または 中断）の場合
+        if (!wasAlreadyCleared) {
+          // まだ一度もクリアしていないダンジョンの場合のみ、失敗/中断のユニーク数に関与する
+          if (playStatus === PlayStatus.FAILURE) {
+            if (prevStatus === PlayStatus.INTERRUPT) {
+              // 中断 → 失敗 に変わった
+              interruptDelta = -1;
+              failureDelta = 1;
+            } else if (prevStatus !== PlayStatus.FAILURE) {
+              // 初めての失敗、または履歴なし
+              failureDelta = 1;
+            }
+          } else if (playStatus === PlayStatus.INTERRUPT) {
+            if (prevStatus === PlayStatus.FAILURE) {
+              // 失敗 → 中断 に変わった
+              failureDelta = -1;
+              interruptDelta = 1;
+            } else if (prevStatus !== PlayStatus.INTERRUPT) {
+              // 初めての中断、または履歴なし
+              interruptDelta = 1;
+            }
+          }
+        }
+        // すでにクリア済みのダンジョンでの失敗・中断は、ユニーク失敗・中断数にはカウントしない
+      }
+
+      // ダンジョン自体の統計更新（難易度や各回数）
       const currentDungeon = await tx.dungeon.findUnique({
         where: { id: dungeonId },
         select: {
@@ -109,45 +163,48 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         },
       });
 
-      if (isClear) {
-        const currentBest = await tx.userDungeonBest.findUnique({
-          where: { userId_dungeonId: { userId, dungeonId } },
-        });
+      // UserDungeonBestの更新・作成
+      const previousBestScore = currentBest?.bestScore ?? 0;
+      const isNewRecord = isClear && playScore > previousBestScore;
+      const scoreDiff = isNewRecord ? playScore - previousBestScore : 0;
+      const nextHasCleared = wasAlreadyCleared || isClear;
 
-        const previousBestScore = currentBest?.bestScore ?? 0;
-        const isNewRecord = playScore > previousBestScore;
-        const scoreDiff = isNewRecord ? playScore - previousBestScore : 0;
+      await tx.userDungeonBest.upsert({
+        where: { userId_dungeonId: { userId, dungeonId } },
+        update: {
+          ...(isNewRecord && {
+            bestScore: playScore,
+            bestTime: playTime,
+          }),
+          hasCleared: nextHasCleared,
+          latestStatus: playStatus,
+        },
+        create: {
+          userId,
+          dungeonId,
+          bestScore: isClear ? playScore : 0,
+          bestTime: isClear ? playTime : 0,
+          hasCleared: isClear,
+          latestStatus: playStatus,
+        },
+      });
 
-        if (isNewRecord) {
-          await tx.userDungeonBest.upsert({
-            where: { userId_dungeonId: { userId, dungeonId } },
-            update: { bestScore: playScore, bestTime: playTime },
-            create: { userId, dungeonId, bestScore: playScore, bestTime: playTime },
-          });
-        }
-
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            updatedBy: userId,
-            clearPlayCount: { increment: 1 },
-            playDungeonCount: { increment: currentBest ? 0 : 1 }, // 初回クリアのみ加算
-            totalPlayTime: { increment: playTime },
-            totalPlayScore: { increment: scoreDiff }, // ベスト更新分のみ加算
-          },
-        });
-      } else {
-        // クリア失敗時のユーザー統計更新
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            updatedBy: userId,
-            failurePlayCount: { increment: playStatus === PlayStatus.FAILURE ? 1 : 0 },
-            interruptPlayCount: { increment: playStatus === PlayStatus.INTERRUPT ? 1 : 0 },
-            totalPlayTime: { increment: playTime },
-          },
-        });
-      }
+      // User テーブルの統計更新
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          updatedBy: userId,
+          clearPlayCount: { increment: isClear ? 1 : 0 },
+          failurePlayCount: { increment: playStatus === PlayStatus.FAILURE ? 1 : 0 },
+          interruptPlayCount: { increment: playStatus === PlayStatus.INTERRUPT ? 1 : 0 },
+          playDungeonCount: { increment: !wasAlreadyCleared && isClear ? 1 : 0 },
+          totalPlayTime: { increment: playTime },
+          totalPlayScore: { increment: scoreDiff },
+          uniqueClearDungeonCount: { increment: clearDelta },
+          uniqueFailureDungeonCount: { increment: failureDelta },
+          uniqueInterruptDungeonCount: { increment: interruptDelta },
+        },
+      });
 
       return history;
     });

@@ -259,10 +259,6 @@ function HomeContent() {
         <DungeonSection title="おすすめダンジョン" viewMoreLink="/dungeons" dungeons={dungeons} isLoading={isLoading} />
       </div>
 
-      <footer className="w-full py-8 text-center text-xs text-stone-500 border-t border-stone-800/80 mt-16 font-mono">
-        © 2026 DUNGEONZ×DUNGEONZ
-      </footer>
-
       {/* 未ログインユーザー用のポップアップ */}
       <LoginAlertModal isOpen={showLoginAlert} onClose={() => setShowLoginAlert(false)} />
 

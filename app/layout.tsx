@@ -1,6 +1,7 @@
 import "./globals.css";
 import { NextAuthProvider } from "@/app/(pages)/_components/NextAuthProvider";
 import Header from "@/app/(pages)/_components/Header";
+import { Footer } from "./(pages)/_components/Footer";
 import { Toaster } from "sonner";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               },
             }}
           />
+          <Footer />
         </NextAuthProvider>
       </body>
     </html>

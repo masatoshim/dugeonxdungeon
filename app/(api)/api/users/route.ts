@@ -123,7 +123,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // ─── 【最適化】ウィンドウ関数を使って、全ユーザーの「トータルスコア絶対順位」を一発で計算 ───
+    // ウィンドウ関数を使って、全ユーザーの「トータルスコア絶対順位」を一発で計算
     interface UserRankRaw {
       id: string;
       global_rank: bigint;
@@ -133,7 +133,7 @@ export async function GET(request: Request) {
     const rankMapRaw = await prisma.$queryRaw<UserRankRaw[]>`
       SELECT id, RANK() OVER (ORDER BY "totalPlayScore" DESC) as global_rank
       FROM "User"
-      WHERE "deletedFlg" = false AND "isActive" = true
+      WHERE "deletedFlg" = false AND "isActive" = true AND "role" = ${Role.USER}
     `;
     // Mapオブジェクトに変換
     const rankMap = new Map<string, number>(rankMapRaw.map((item) => [item.id, Number(item.global_rank)]));
@@ -143,30 +143,29 @@ export async function GET(request: Request) {
       prisma.user.count({ where: { AND: andConditions } }),
       prisma.user.findMany({
         where: { AND: andConditions },
-        include: {
+        select: {
+          id: true,
+          userName: true,
+          nickName: true,
+          iconImageKey: true,
+          failurePlayCount: true,
+          clearPlayCount: true,
+          interruptPlayCount: true,
+          totalPlayScore: true,
+          totalPlayTime: true,
+          createdBy: true,
+          updatedBy: true,
+          createdAt: true,
+          updatedAt: true,
+          lastLoginAt: true,
+          isActive: true,
+          deletedFlg: true,
+          role: true,
           dungeons: {
             select: {
               id: true,
               code: true,
               status: true,
-            },
-          },
-          playHistories: {
-            select: {
-              createdAt: true,
-              dungeon: {
-                select: { code: true, status: true },
-              },
-              user: {
-                select: { id: true },
-              },
-            },
-          },
-          favoriteDungeons: {
-            select: {
-              dungeon: {
-                select: { code: true, status: true },
-              },
             },
           },
         },
@@ -178,7 +177,7 @@ export async function GET(request: Request) {
 
     // 後処理
     const users: UserResponse[] = usersRaw.map((u) => {
-      const { hashedPassword, ...rest } = u;
+      const { dungeons, clearPlayCount, failurePlayCount, interruptPlayCount, ...rest } = u;
       const hasPrivateAccess = isAdmin || session?.user?.id === u.id;
 
       const absoluteRank = rankMap.get(u.id) || 0;
@@ -186,35 +185,20 @@ export async function GET(request: Request) {
       return {
         ...rest,
         rank: absoluteRank,
-        dungeons: u.dungeons
-          .filter((d) => hasPrivateAccess || d.status === "PUBLISHED")
-          .map((d) => {
-            return { dungeonCode: d.code };
-          }),
-        playHistories: u.playHistories
-          .filter((h) => hasPrivateAccess || h.dungeon.status === "PUBLISHED")
-          .map((h) => {
-            return { dungeonCode: h.dungeon.code, userId: h.user.id, createdAt: h.createdAt.toISOString() };
-          }),
-        favoriteDungeons: u.favoriteDungeons
-          .filter((f) => hasPrivateAccess || f.dungeon.status === "PUBLISHED")
-          .map((f) => {
-            return { dungeonCode: f.dungeon.code };
-          }),
         totalPlayCount: u.clearPlayCount + u.failurePlayCount + u.interruptPlayCount,
-        publishedDungeonCount: u.dungeons.filter((d) => d.status === "PUBLISHED").length,
+        totalClearPlayCount: u.clearPlayCount,
+        totalFailurePlayCount: u.failurePlayCount,
+        totalInterruptPlayCount: u.interruptPlayCount,
         // 管理者のみ、または本人のみ取得可能にする項目
-        dungeonCount: hasPrivateAccess ? u.dungeons.length : 0,
+        id: hasPrivateAccess ? u.id : undefined,
         createdBy: hasPrivateAccess ? u.createdBy : undefined,
         updatedBy: hasPrivateAccess ? u.updatedBy : undefined,
         createdAt: hasPrivateAccess ? u.createdAt.toISOString() : undefined,
         updatedAt: hasPrivateAccess ? u.updatedAt.toISOString() : undefined,
-        emailVerified: hasPrivateAccess ? u.emailVerified?.toISOString() : undefined,
         lastLoginAt: hasPrivateAccess ? u.lastLoginAt?.toISOString() : undefined,
-        email: hasPrivateAccess ? u.email : undefined,
-        isActive: hasPrivateAccess ? u.isActive : undefined,
-        deletedFlg: hasPrivateAccess ? u.deletedFlg : undefined,
-        role: hasPrivateAccess ? u.role : undefined,
+        isActive: isAdmin ? u.isActive : undefined,
+        deletedFlg: isAdmin ? u.deletedFlg : undefined,
+        role: isAdmin ? u.role : undefined,
       };
     });
 

@@ -2,33 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/_libs/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/_libs/auth";
-import { DungeonBase, DungeonResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse, UpdateDungeonRequest, UpdateDungeonResponse } from "@/app/_types";
 import { Prisma } from "@prisma/client";
 import { mapDataSchema } from "@/game-core/schemas/map";
-
-/**
- * レスポンス構造の詰め替えを一元管理する共通ヘルパー
- */
-function mapToDungeonResponse(
-  dungeon: Prisma.DungeonGetPayload<{
-    include: {
-      user: { select: { userName: true; nickName: true; iconImageKey: true } };
-      dungeonTags: { include: { tag: true } };
-    };
-  }>,
-  hasPrivateAccess: boolean,
-): DungeonBase {
-  const parsedMapData = mapDataSchema.parse(dungeon.mapData);
-
-  return {
-    ...dungeon,
-    mapData: parsedMapData,
-    tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
-    nickName: dungeon.user.nickName,
-    userIconImageKey: dungeon.user.iconImageKey,
-    userName: hasPrivateAccess ? dungeon.user.userName : undefined,
-  };
-}
 
 /**
  * GET: ダンジョン詳細取得
@@ -52,6 +28,20 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const dungeon = await prisma.dungeon.findFirst({
       where: andConditions,
       include: {
+        // ログイン中ユーザーの「クリア実績」があるか（Ver問わず1件あればOK）
+        playHistories: sessionUserId
+          ? {
+              where: { userId: sessionUserId, playStatus: "CLEAR" },
+              take: 1,
+            }
+          : false,
+        // ログイン中ユーザーの「お気に入り」があるか
+        favoritedBy: sessionUserId
+          ? {
+              where: { userId: sessionUserId },
+              take: 1,
+            }
+          : false,
         user: { select: { userName: true, nickName: true, iconImageKey: true } },
         dungeonTags: { include: { tag: true } },
       },
@@ -65,19 +55,28 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     }
 
     const hasPrivateAccess = isAdmin || sessionUserId === dungeon.userId;
-    const dungeonBase = mapToDungeonResponse(dungeon, hasPrivateAccess);
+    const { user, userId, playHistories, favoritedBy, ...rest } = dungeon;
 
-    const response: DungeonResponse = {
-      ...dungeonBase,
+    const response: DungeonDetailResponse = {
+      ...rest,
+      isCleared: (playHistories?.length ?? 0) > 0,
+      isFavorited: (favoritedBy?.length ?? 0) > 0,
+      mapData: mapDataSchema.parse(dungeon.mapData),
+      tags: dungeon.dungeonTags.map((dt) => dt.tag.name),
+      nickName: user.nickName,
+      userIconImageKey: user.iconImageKey,
       favoritesCount: dungeon.favoritesCount,
       clearPlayCount: dungeon.clearPlayCount,
       failurePlayCount: dungeon.failurePlayCount,
       interruptPlayCount: dungeon.interruptPlayCount,
       totalPlayCount: dungeon.clearPlayCount + dungeon.failurePlayCount + dungeon.interruptPlayCount,
-      createdAt: dungeon.createdAt.toISOString(),
-      updatedAt: dungeon.updatedAt.toISOString(),
+      // 管理者のみ、または本人のみ取得可能にする項目
+      userId: hasPrivateAccess ? userId : undefined,
+      userName: hasPrivateAccess ? user.userName : undefined,
       createdBy: hasPrivateAccess ? dungeon.createdBy : undefined,
       updatedBy: hasPrivateAccess ? dungeon.updatedBy : undefined,
+      createdAt: hasPrivateAccess ? dungeon.createdAt.toISOString() : undefined,
+      updatedAt: hasPrivateAccess ? dungeon.updatedAt.toISOString() : undefined,
     };
 
     return NextResponse.json(response);
@@ -141,9 +140,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
+    const { user, ...rest } = updatedDungeon;
+
     const response: UpdateDungeonResponse = {
       message: "ダンジョン情報を更新しました",
-      dungeon: mapToDungeonResponse(updatedDungeon, hasPrivateAccess),
+      dungeon: {
+        ...rest,
+        mapData: mapDataSchema.parse(updatedDungeon.mapData),
+        tags: updatedDungeon.dungeonTags.map((dt) => dt.tag.name),
+        nickName: updatedDungeon.user.nickName,
+        userIconImageKey: updatedDungeon.user.iconImageKey,
+        userId: hasPrivateAccess ? updatedDungeon.userId : undefined,
+        userName: hasPrivateAccess ? updatedDungeon.user.userName : undefined,
+        createdBy: hasPrivateAccess ? updatedDungeon.createdBy : undefined,
+        updatedBy: hasPrivateAccess ? updatedDungeon.updatedBy : undefined,
+      },
     };
 
     return NextResponse.json(response);

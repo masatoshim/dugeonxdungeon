@@ -6,12 +6,12 @@ import { toast } from "sonner";
 import { useCreateDungeon, useUpdateDungeon } from "@/app/_hooks";
 import { TILE_CONFIG, TileConfigKey } from "@/game-core/master";
 import { TILE_CATEGORIES } from "@/game-core/types";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 import { DungeonFormData } from "../DungeonEditor";
 import { nanoid } from "nanoid";
 
 type Props = {
-  initialData?: DungeonResponse;
+  initialData?: DungeonDetailResponse;
   isAdmin: boolean;
   user: { id: string; role?: string; [key: string]: any };
   tiles: TileConfigKey[][];
@@ -52,7 +52,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
   const onDraftSubmit = async (data: DungeonFormData) => {
     try {
       const { mapDataCheck, metaDataCheck, ...rest } = data;
-      let savedDungeon: DungeonResponse;
+      let savedDungeon: DungeonDetailResponse;
 
       if (isEditMode) {
         savedDungeon = await update({
@@ -136,7 +136,7 @@ export const SaveActionGroup = ({ initialData, isAdmin, user, tiles, entities, r
 
     try {
       const { mapDataCheck, metaDataCheck, ...rest } = data;
-      let savedDungeon: DungeonResponse;
+      let savedDungeon: DungeonDetailResponse;
 
       // テストプレイ前に編集データを一旦保存
       if (isEditMode) {

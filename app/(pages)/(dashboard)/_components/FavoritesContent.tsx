@@ -7,7 +7,7 @@ import { useGetFavoriteDungeons } from "@/app/_hooks";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { DungeonDetailModal } from "@/app/(pages)/_components/detail/DungeonDetailModal";
 import { DungeonDetailContent } from "@/app/(pages)/_components/detail/DungeonDetailContent";
-import { UserResponse } from "@/app/_types";
+import { UserDetailResponse } from "@/app/_types";
 import { Pagination } from "@/app/(pages)/_components/Pagination";
 import { useSWRConfig } from "swr";
 
@@ -22,7 +22,7 @@ const DUNGEON_SORT_OPTIONS: SortOptionItem[] = [
 ];
 
 interface FavoritesContentProps {
-  user?: UserResponse;
+  user?: UserDetailResponse;
 }
 
 export function FavoritesContent({ user }: FavoritesContentProps) {
@@ -72,42 +72,46 @@ export function FavoritesContent({ user }: FavoritesContentProps) {
   };
 
   return (
-    <div className="w-full h-auto text-white px-4 sm:px-6 pb-24">
-      {/* ヘッダー */}
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-200">
-            {user && `${user.nickName}さん の`}
-            お気に入りダンジョン
-          </h1>
-        </div>
-
-        {/* ソート */}
-        <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-            <SortSelect
-              sort={sort}
-              order={order}
-              options={DUNGEON_SORT_OPTIONS}
-              onSelect={(val) => setSort(val)}
-              onOrderToggle={handleOrderToggle}
-            />
+    <div className="w-full h-auto text-white px-4 sm:px-6 pb-24 flex flex-col items-center">
+      <div className="w-full max-w-[1140px] flex flex-col space-y-8">
+        {/* ヘッダー */}
+        <header className="w-full flex flex-col md:flex-row justify-between items-start md:items-start gap-4 border-l-4 border-[#4fd1d1] pl-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-200">
+              {user && `${user.nickName}さん の`}
+              お気に入りダンジョン
+            </h1>
           </div>
 
-          {/* トータル数 */}
-          <div className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">
-            Total: <span className="text-slate-400">{totalCount || 0}</span> dungeons
-          </div>
-        </div>
-      </header>
+          {/* ソート */}
+          <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+              <SortSelect
+                sort={sort}
+                order={order}
+                options={DUNGEON_SORT_OPTIONS}
+                onSelect={(val) => setSort(val)}
+                onOrderToggle={handleOrderToggle}
+              />
+            </div>
 
-      {/* お気に入り一覧 */}
-      <div className="max-w-7xl mx-auto">
-        <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} />
+            {/* トータル数 */}
+            <div className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">
+              Total: <span className="text-slate-400">{totalCount || 0}</span> dungeons
+            </div>
+          </div>
+        </header>
+
+        {/* お気に入り一覧 */}
+        <div className="w-full">
+          <DungeonCardList dungeons={dungeons} isLoading={isLoading} error={error} variant="dashboard" />
+        </div>
+
+        {/* ページネーション */}
+        <div className="w-full flex justify-center pt-4">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+        </div>
       </div>
-
-      {/* ページネーション */}
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
 
       {/* ダンジョン詳細モーダル表示 */}
       {dungeonId && (

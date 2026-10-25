@@ -16,7 +16,7 @@ import { useGetUser } from "@/app/_hooks";
 import { useDungeonEditorLogic, useEditorHistory } from "@/app/(pages)/dungeons/_hook";
 import { DungeonCanvasView } from "./DungeonCanvasView";
 import { DungeonMetadataCard } from "./DungeonMetadataCard";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 
 // Zodによるバリデーションスキーマ
 const dungeonSchema = z.object({
@@ -60,7 +60,7 @@ const ENTITY_TYPE_TO_TILE: Record<string, TileConfigKey> = {
 };
 
 interface DungeonEditorProps {
-  initialData?: DungeonResponse; // 編集時は既存データが入る
+  initialData?: DungeonDetailResponse; // 編集時は既存データが入る
   isAdmin: boolean;
 }
 
@@ -402,7 +402,7 @@ export function DungeonEditor({ initialData, isAdmin }: DungeonEditorProps) {
         {/* onSubmitのデフォルト挙動を無効化 */}
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="relative h-[calc(100vh-4rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
+          className="relative h-[calc(100vh-2.8rem)] w-full bg-slate-950 text-white overflow-hidden select-none flex flex-col"
         >
           {/* ─── ヘッダー ─── */}
           <header className="z-40 w-full shrink-0 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-2">

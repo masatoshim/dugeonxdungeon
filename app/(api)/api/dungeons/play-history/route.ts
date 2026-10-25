@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   if (!sessionUserId) {
     return NextResponse.json({ message: "認証が必要です" }, { status: 401 });
   }
+  const isAdmin = session?.user?.role === "ADMIN";
 
   // ページネーション・ソート設定
   const { searchParams } = new URL(request.url);
@@ -56,9 +57,25 @@ export async function GET(request: Request) {
         skip: index,
         include: {
           dungeon: {
-            include: {
-              user: { select: { nickName: true, iconImageKey: true } },
-              dungeonTags: { include: { tag: true } },
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              userId: true,
+              description: true,
+              mapSizeHeight: true,
+              mapSizeWidth: true,
+              mapSize: true,
+              timeLimit: true,
+              difficulty: true,
+              status: true,
+              isTemplate: true,
+              favoritesCount: true,
+              createdBy: true,
+              updatedBy: true,
+              createdAt: true,
+              updatedAt: true,
+              user: { select: { userName: true, nickName: true, iconImageKey: true } },
               playHistories: {
                 where: { userId: targetUserId, playStatus: "CLEAR" },
                 take: 1,
@@ -82,9 +99,25 @@ export async function GET(request: Request) {
         orderBy: { [sortField]: sortOrder },
         take: limit,
         skip: index,
-        include: {
-          dungeonTags: { include: { tag: true } },
-          user: { select: { nickName: true, iconImageKey: true } },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          userId: true,
+          description: true,
+          mapSizeHeight: true,
+          mapSizeWidth: true,
+          mapSize: true,
+          timeLimit: true,
+          difficulty: true,
+          status: true,
+          isTemplate: true,
+          favoritesCount: true,
+          createdBy: true,
+          updatedBy: true,
+          createdAt: true,
+          updatedAt: true,
+          user: { select: { userName: true, nickName: true, iconImageKey: true } },
           // ログイン中ユーザーの「クリア実績」
           playHistories: {
             where: {
@@ -105,25 +138,21 @@ export async function GET(request: Request) {
     }
 
     const dungeons: DungeonResponse[] = dungeonsData.map((d) => {
-      const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
-      const parsedMapData = mapDataSchema.safeParse(d.mapData);
-      const validMapData = parsedMapData.success
-        ? parsedMapData.data
-        : { tiles: [], entities: [], width: 0, height: 0 };
+      const { user, userId, playHistories, favoritedBy, ...rest } = d;
 
       return {
         ...rest,
-        mapData: validMapData,
         nickName: user.nickName || "USER_NAME",
         userIconImageKey: user.iconImageKey,
-        totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
         isCleared: (playHistories?.length ?? 0) > 0,
-        clearedVersionMajor: playHistories?.[0]?.versionMajor,
-        clearedVersionMinor: playHistories?.[0]?.versionMinor,
         isFavorited: (favoritedBy?.length ?? 0) > 0,
-        tags: dungeonTags.map((dt) => dt.tag.name),
-        createdAt: d.createdAt.toISOString(),
-        updatedAt: d.updatedAt.toISOString(),
+        // 管理者のみ取得可能にする項目(自作ダンジョンは履歴に残らない為、USERは取得不可)
+        userId: isAdmin ? userId : undefined,
+        userName: isAdmin ? user.userName : undefined,
+        createdBy: isAdmin ? d.createdBy : undefined,
+        updatedBy: isAdmin ? d.updatedBy : undefined,
+        createdAt: isAdmin ? d.createdAt.toISOString() : undefined,
+        updatedAt: isAdmin ? d.updatedAt.toISOString() : undefined,
       };
     });
 

@@ -23,6 +23,10 @@ model User {
   playDungeonCount   Int                 @default(0) // 1ダンジョンにつき初回クリア時のみ加算
   totalPlayTime      Float               @default(0)
   totalPlayScore     Int                 @default(0)
+  uniqueClearDungeonCount      Int       @default(0)
+  uniqueFailureDungeonCount    Int       @default(0)
+  uniqueInterruptDungeonCount  Int       @default(0)
+
   
   // --- ステータスフラグ ---
   isActive           Boolean             @default(true)
@@ -192,17 +196,21 @@ model FavoritesDungeon {
   @@index([dungeonId])
 }
 
-// ユーザー×ダンジョンの組み合わせで最高スコアのみを保持する中間テーブル
+// ユーザー×ダンジョンの組み合わせを保持する中間テーブル
 model UserDungeonBest {
-  id         String   @id @default(uuid())
-  userId     String
-  dungeonId  String
-  bestScore  Int      @default(0)
-  bestTime   Float    @default(0)
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(uuid())
+  userId       String
+  dungeonId    String
+  bestScore    Int      @default(0)
+  bestTime     Float    @default(0)
+  
+  hasCleared   Boolean    @default(false) // 一度でもクリアしたか（trueになったら以降不変）
+  latestStatus PlayStatus // このダンジョンにおける最新のプレイステータス
 
-  user       User     @relation(fields: [userId], references: [id])
-  dungeon    Dungeon  @relation(fields: [dungeonId], references: [id])
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id])
+  dungeon      Dungeon  @relation(fields: [dungeonId], references: [id])
 
   @@unique([userId, dungeonId]) // ユーザー×ダンジョンで1レコードに限定
   @@index([userId])

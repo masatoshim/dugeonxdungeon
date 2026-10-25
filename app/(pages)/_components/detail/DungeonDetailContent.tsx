@@ -36,7 +36,7 @@ export function DungeonDetailContent({ id, targetPage }: DungeonDetailProps) {
   return (
     <div className="flex flex-col gap-8">
       {/* 上部：基本情報セクション */}
-      <DungeonInfoSection dungeon={dungeon} isCleared={!!rankingData?.myRecord} targetPage={targetPage} />
+      <DungeonInfoSection dungeon={dungeon} />
 
       {/* <hr className="border-slate-800" /> */}
 

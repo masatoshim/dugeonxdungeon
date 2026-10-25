@@ -7,6 +7,8 @@ import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 // バリデーションスキーマの定義
 const passwordSchema = z
@@ -17,11 +19,18 @@ const passwordSchema = z
   .regex(/[A-Z]/, "大文字を含めてください")
   .regex(/[0-9]/, "数字を含めてください");
 
-const signupSchema = z.object({
-  userName: z.string().min(3, "ユーザー名は3文字以上で入力してください"),
-  email: z.string().email("有効なメールアドレスを入力してください"),
-  password: passwordSchema,
-});
+const signupSchema = z
+  .object({
+    userName: z.string().min(3, "ユーザー名は3文字以上で入力してください"),
+    email: z.string().email("有効なメールアドレスを入力してください"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    agreeTerms: z.literal(true, "利用規約およびプライバシーポリシーへの同意が必要です"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "パスワードが一致しません",
+    path: ["confirmPassword"],
+  });
 
 type SignupSchema = z.infer<typeof signupSchema>;
 
@@ -44,6 +53,10 @@ function SignupForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/profile";
   const authError = searchParams.get("error");
 
+  // パスワードの表示・非表示切り替え用
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   useEffect(() => {
     if (authError === "AlreadyRegisteredWithPassword" || authError === "OAuthAccountNotLinked") {
       toast.error("このメールアドレスは既にパスワードで登録されています。ログイン画面からログインしてください。", {
@@ -63,17 +76,22 @@ function SignupForm() {
     formState: { errors },
   } = useForm<SignupSchema>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      agreeTerms: false as any,
+    },
   });
 
   // ID/パスワードによる登録処理
   const onSubmit = async (data: SignupSchema) => {
     setLoading(true);
 
+    const { confirmPassword, agreeTerms, ...submitData } = data;
+
     try {
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       });
 
       if (res.status === 201) {
@@ -131,14 +149,72 @@ function SignupForm() {
           {/* パスワード */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-300 ml-1">パスワード</label>
-            <input
-              type="password"
-              {...register("password")}
-              className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all"
-              placeholder="8文字以上のパスワード"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all"
+                placeholder="8文字以上のパスワード"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-400 text-xs mt-1 ml-1 font-medium">{errors.password.message}</span>
+            )}
+          </div>
+
+          {/* パスワード（確認用） */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-300 ml-1">パスワード（確認用）</label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                {...register("confirmPassword")}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#4fd1d1]/50 focus:border-[#4fd1d1] transition-all"
+                placeholder="もう一度パスワードを入力"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <span className="text-red-400 text-xs mt-1 ml-1 font-medium">{errors.confirmPassword.message}</span>
+            )}
+          </div>
+
+          {/* 利用規約・プライバシーポリシー同意チェックボックス */}
+          <div className="flex flex-col gap-1 mt-1">
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                {...register("agreeTerms")}
+                className="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#4fd1d1] focus:ring-[#4fd1d1] focus:ring-offset-slate-900 cursor-pointer shrink-0"
+              />
+              <span className="text-xs text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors">
+                <Link href="/terms" target="_blank" className="text-[#4fd1d1] underline hover:text-[#3dbdbd]">
+                  利用規約
+                </Link>
+                および
+                <Link href="/privacy" target="_blank" className="text-[#4fd1d1] underline hover:text-[#3dbdbd]">
+                  プライバシーポリシー
+                </Link>
+                に同意する <span className="text-red-400">*</span>
+              </span>
+            </label>
+            {errors.agreeTerms && (
+              <span className="text-red-400 text-xs mt-0.5 ml-6 font-medium">{errors.agreeTerms.message}</span>
             )}
           </div>
 

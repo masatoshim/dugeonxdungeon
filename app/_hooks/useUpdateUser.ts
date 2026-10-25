@@ -1,13 +1,13 @@
 import useSWRMutation from "swr/mutation";
 import { updateUser } from "@/app/_apis/users-api";
-import { UpdateUserRequest, UserResponse } from "@/app/_types";
+import { UpdateUserRequest, UserDetailResponse } from "@/app/_types";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 
 export const useUpdateUser = (id: string) => {
   const { mutate } = useSWRConfig();
 
-  const { trigger, isMutating, error } = useSWRMutation<UserResponse, Error, string[], UpdateUserRequest>(
+  const { trigger, isMutating, error } = useSWRMutation<UserDetailResponse, Error, string[], UpdateUserRequest>(
     ["/api/users", id],
     (key, { arg }) => updateUser(id, arg),
     {

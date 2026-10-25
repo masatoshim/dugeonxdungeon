@@ -1,13 +1,13 @@
 import useSWRMutation from "swr/mutation";
 import { updateDungeon } from "@/app/_apis/dungeons-api";
-import { UpdateDungeonRequest, DungeonResponse } from "@/app/_types";
+import { UpdateDungeonRequest, DungeonDetailResponse } from "@/app/_types";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 
 export const useUpdateDungeon = (id: string) => {
   const { mutate } = useSWRConfig();
 
-  const { trigger, isMutating, error } = useSWRMutation<DungeonResponse, Error, string[], UpdateDungeonRequest>(
+  const { trigger, isMutating, error } = useSWRMutation<DungeonDetailResponse, Error, string[], UpdateDungeonRequest>(
     ["/api/dungeons", id],
     (key, { arg }) => updateDungeon(id, arg),
     {

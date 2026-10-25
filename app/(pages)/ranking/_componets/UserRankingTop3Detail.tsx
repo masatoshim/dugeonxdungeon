@@ -68,8 +68,10 @@ export function UserRankingTop3Detail({ user, index }: UserRankingTop3DetailPage
         </div>
 
         <div className="grid grid-cols-1 min-[300px]:grid-cols-2 items-center text-slate-400 gap-0.5 min-[300px]:gap-4">
-          <span className="text-[11px]">ダンジョン踏破数:</span>
-          <span className="font-bold text-slate-200 text-right text-sm">{user.clearPlayCount.toLocaleString()}</span>
+          <span className="text-[11px]">ダンジョン踏破回数:</span>
+          <span className="font-bold text-slate-200 text-right text-sm">
+            {user.totalClearPlayCount.toLocaleString()}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 min-[300px]:grid-cols-2 items-center text-slate-400 gap-0.5 min-[300px]:gap-4">

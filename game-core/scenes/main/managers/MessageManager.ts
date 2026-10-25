@@ -12,6 +12,7 @@ export class MessageManager {
   private bg?: Phaser.GameObjects.Graphics;
   private text?: Phaser.GameObjects.Text;
   private hideTimer?: Phaser.Time.TimerEvent;
+  private FONT_SIZE = "16px";
 
   public static getInstance(): MessageManager {
     if (!MessageManager.instance) {
@@ -79,7 +80,7 @@ export class MessageManager {
     this.container.add(this.bg);
 
     this.text = scene.add.text(0, 0, "", {
-      fontSize: "14px",
+      fontSize: this.FONT_SIZE,
       color: "#ffffff",
       align: "center",
     });
