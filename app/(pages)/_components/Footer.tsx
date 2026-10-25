@@ -9,7 +9,7 @@ export function Footer() {
 
   const isPlayScreen = pathname?.endsWith("/play") || pathname?.includes("/test-play");
   const isCreateScreen = pathname === "/dungeons/new" || pathname.endsWith("/edit");
-  const isDashboardScreen = pathname.startsWith("/dashboard");
+  const isDashboardScreen = pathname.startsWith("/dashboard") || pathname.startsWith("/admin/dashboard");
 
   if (isPlayScreen || isCreateScreen || isDashboardScreen) {
     return null;
