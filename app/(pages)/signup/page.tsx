@@ -8,6 +8,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 // バリデーションスキーマの定義
 const passwordSchema = z
@@ -24,6 +25,7 @@ const signupSchema = z
     email: z.string().email("有効なメールアドレスを入力してください"),
     password: passwordSchema,
     confirmPassword: z.string(),
+    agreeTerms: z.literal(true, "利用規約およびプライバシーポリシーへの同意が必要です"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "パスワードが一致しません",
@@ -74,13 +76,16 @@ function SignupForm() {
     formState: { errors },
   } = useForm<SignupSchema>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      agreeTerms: false as any,
+    },
   });
 
   // ID/パスワードによる登録処理
   const onSubmit = async (data: SignupSchema) => {
     setLoading(true);
 
-    const { confirmPassword, ...submitData } = data;
+    const { confirmPassword, agreeTerms, ...submitData } = data;
 
     try {
       const res = await fetch("/api/users", {
@@ -186,6 +191,30 @@ function SignupForm() {
             </div>
             {errors.confirmPassword && (
               <span className="text-red-400 text-xs mt-1 ml-1 font-medium">{errors.confirmPassword.message}</span>
+            )}
+          </div>
+
+          {/* 利用規約・プライバシーポリシー同意チェックボックス */}
+          <div className="flex flex-col gap-1 mt-1">
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                {...register("agreeTerms")}
+                className="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#4fd1d1] focus:ring-[#4fd1d1] focus:ring-offset-slate-900 cursor-pointer shrink-0"
+              />
+              <span className="text-xs text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors">
+                <Link href="/terms" target="_blank" className="text-[#4fd1d1] underline hover:text-[#3dbdbd]">
+                  利用規約
+                </Link>
+                および
+                <Link href="/privacy" target="_blank" className="text-[#4fd1d1] underline hover:text-[#3dbdbd]">
+                  プライバシーポリシー
+                </Link>
+                に同意する <span className="text-red-400">*</span>
+              </span>
+            </label>
+            {errors.agreeTerms && (
+              <span className="text-red-400 text-xs mt-0.5 ml-6 font-medium">{errors.agreeTerms.message}</span>
             )}
           </div>
 
