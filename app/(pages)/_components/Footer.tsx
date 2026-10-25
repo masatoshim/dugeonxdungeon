@@ -37,6 +37,9 @@ export function Footer() {
           <Link href="/privacy" className="hover:text-stone-200 transition-colors">
             プライバシーポリシー
           </Link>
+          <Link href="/contact" className="hover:text-stone-200 transition-colors">
+            お問い合わせ
+          </Link>
         </div>
 
         <div className="text-xs text-stone-600 font-mono">© {new Date().getFullYear()} DUNGEONZ×DUNGEONZ</div>
