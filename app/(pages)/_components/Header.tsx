@@ -30,29 +30,35 @@ export default function Header() {
   // ダッシュボード画面または編集・作成画面かどうかを判定
   const isCompactPage = pathname?.startsWith("/dashboard") || pathname?.endsWith("/edit") || pathname?.endsWith("/new");
 
+  // スクロール監視
   useEffect(() => {
     setMounted(true);
-
     // ダッシュボードや編集画面の場合はコンパクトに固定
     if (isCompactPage) {
       setIsScrolled(true);
       return;
     }
+    // 通常ページに遷移したときは通常サイズにリセット
+    setIsScrolled(false);
 
+    let ticking = false;
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // 一番上にいるときだけ通常の高さ
-      if (currentScrollY <= 5) {
-        setIsScrolled(false);
-      }
-      // 下スクロールされたら高さを狭くする
-      else {
-        setIsScrolled(true);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const y = window.scrollY;
+          // トップ付近に戻ったら通常に戻す
+          if (y < 5) {
+            setIsScrolled(false);
+          }
+          // 下へスクロールされたらコンパクトにする
+          else if (y > 30) {
+            setIsScrolled(true);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
-
-    // 初期表示時の一致
     handleScroll();
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -85,7 +91,7 @@ export default function Header() {
     <>
       <header
         className={`px-4 sm:px-8 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center text-slate-200 transition-all duration-300 ${
-          isScrolled ? "py-1.5 shadow-xl bg-slate-950/95" : "py-3.5"
+          isScrolled || isCompactPage ? "py-1.5 shadow-xl bg-slate-950/95" : "py-3.5"
         }`}
       >
         <div className="flex items-center gap-8 min-w-0">
@@ -93,14 +99,14 @@ export default function Header() {
           <Link
             href="/"
             className={`flex items-center gap-2 font-black tracking-tighter text-white hover:text-[#4fd1d1] transition-all shrink-0 group ${
-              isScrolled ? "text-sm sm:text-base" : "text-base sm:text-xl"
+              isScrolled || isCompactPage ? "text-sm sm:text-base" : "text-base sm:text-xl"
             }`}
           >
             <span>DUNGEONZ</span>
             {/* クロスした剣のSVGアイコン */}
             <svg
               className={`text-[#4fd1d1] shrink-0 group-hover:rotate-12 transition-all duration-300 ${
-                isScrolled ? "w-3 h-3 sm:w-3.5 sm:h-3.5" : "w-4 h-4 sm:w-5 sm:h-5"
+                isScrolled || isCompactPage ? "w-3 h-3 sm:w-3.5 sm:h-3.5" : "w-4 h-4 sm:w-5 sm:h-5"
               }`}
               viewBox="0 0 24 24"
               fill="none"
@@ -123,7 +129,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-6 shrink-0">
             <Link
               href="/dungeons"
-              className={`font-medium hover:text-[#4fd1d1] transition-all ${isScrolled ? "text-xs" : "text-sm"}`}
+              className={`font-medium hover:text-[#4fd1d1] transition-all ${isScrolled || isCompactPage ? "text-xs" : "text-sm"}`}
             >
               遊ぶ
             </Link>
@@ -132,7 +138,7 @@ export default function Header() {
               type="button"
               onClick={handleCreateClick}
               className={`font-medium hover:text-[#4fd1d1] transition-all cursor-pointer bg-transparent border-none p-0 ${
-                isScrolled ? "text-xs" : "text-sm"
+                isScrolled || isCompactPage ? "text-xs" : "text-sm"
               }`}
             >
               創る
@@ -140,7 +146,7 @@ export default function Header() {
 
             <Link
               href="/ranking"
-              className={`font-medium hover:text-[#4fd1d1] transition-all ${isScrolled ? "text-xs" : "text-sm"}`}
+              className={`font-medium hover:text-[#4fd1d1] transition-all ${isScrolled || isCompactPage ? "text-xs" : "text-sm"}`}
             >
               競う
             </Link>
@@ -157,7 +163,7 @@ export default function Header() {
               <div className="flex items-center gap-2.5 min-w-0">
                 <span
                   className={`font-medium text-slate-300 min-w-0 truncate transition-all ${
-                    isScrolled ? "text-xs max-w-[200px]" : "text-sm max-w-[260px]"
+                    isScrolled || isCompactPage ? "text-xs max-w-[200px]" : "text-sm max-w-[260px]"
                   }`}
                 >
                   {session.user?.nickName || session.user?.name}
@@ -173,7 +179,7 @@ export default function Header() {
                 <Link
                   href="/login"
                   className={`font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 rounded-full transition-all shrink-0 ${
-                    isScrolled ? "text-xs px-3 py-1" : "text-sm px-4 py-1.5"
+                    isScrolled || isCompactPage ? "text-xs px-3 py-1" : "text-sm px-4 py-1.5"
                   }`}
                 >
                   ログイン
@@ -181,7 +187,7 @@ export default function Header() {
                 <Link
                   href="/signup"
                   className={`font-bold text-[#4fd1d1] hover:text-white border border-[#4fd1d1]/50 hover:bg-[#4fd1d1]/10 rounded-full transition-all shrink-0 ${
-                    isScrolled ? "text-xs px-3 py-1" : "text-sm px-4 py-1.5"
+                    isScrolled || isCompactPage ? "text-xs px-3 py-1" : "text-sm px-4 py-1.5"
                   }`}
                 >
                   新規登録
