@@ -9,7 +9,7 @@ import { LoginAlertModal } from "./LoginAlertModal";
 import { LogIn, Menu, X, Gamepad2, Hammer, Trophy } from "lucide-react";
 import { useDungeonAuth } from "@/app/_hooks/useDungeonAuth";
 
-export default function Header() {
+export function Header() {
   const pathname = usePathname();
 
   // ポップアップの開閉管理

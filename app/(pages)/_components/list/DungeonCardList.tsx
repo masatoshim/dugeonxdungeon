@@ -19,12 +19,10 @@ export function DungeonCardList({ dungeons, isLoading, error, variant }: Dungeon
   const cardWidthNum = isDashboard ? 265 : 280;
   const totalCount = dungeons?.length || 0;
 
-  // 【判定ロジック】
-  // 総数が4枚未満であり、かつ画面幅が十分に広くて1行で収まるときは左寄せ（justify-start）にする。
-  // 総数が4枚以上、または横幅を狭めて折り返しが発生したときは中央寄せ（justify-center）にする。
-  const gridClass = `grid grid-cols-[repeat(auto-fit,${cardWidthNum}px)] ${gapClass} w-full ${
-    totalCount < 4 ? "justify-start lg:justify-start" : "justify-center"
-  }`;
+  const gridClass = `grid ${gapClass} w-full ${totalCount < 4 ? "justify-start lg:justify-start" : "justify-center"}`;
+  const gridStyle = {
+    gridTemplateColumns: `repeat(auto-fit, ${cardWidthNum}px)`,
+  };
 
   if (error)
     return (
@@ -37,7 +35,7 @@ export function DungeonCardList({ dungeons, isLoading, error, variant }: Dungeon
     <div className="w-full flex justify-center">
       <div className={`w-full ${maxWidthClass}`}>
         {isLoading ? (
-          <div className={gridClass}>
+          <div className={gridClass} style={gridStyle}>
             {[...Array(8)].map((_, i) => (
               <div key={i} className={`${cardWidthClass} shrink-0`}>
                 <DungeonCardSkeleton />
@@ -45,7 +43,7 @@ export function DungeonCardList({ dungeons, isLoading, error, variant }: Dungeon
             ))}
           </div>
         ) : (
-          <div className={`${gridClass} animate-in fade-in slide-in-from-bottom-4 duration-700`}>
+          <div className={`${gridClass} animate-in fade-in slide-in-from-bottom-4 duration-700`} style={gridStyle}>
             {dungeons?.map((dungeon) => (
               <div key={dungeon.id} className={`${cardWidthClass} shrink-0`}>
                 <DungeonCard dungeon={dungeon} />
