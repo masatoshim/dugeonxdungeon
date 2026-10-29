@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 
 type Props = {
-  initialData?: DungeonResponse;
+  initialData?: DungeonDetailResponse;
   isEditMode: boolean;
   isAdmin?: boolean;
   defaultOpen?: boolean;

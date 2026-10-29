@@ -46,8 +46,8 @@ export function UserRankingRowDetail({ user, rank }: UserRankingRowDetailProps) 
       {/* プレイ回数 */}
       <td className="py-3.5 px-6 text-right font-mono text-slate-300">{user.totalPlayCount}</td>
 
-      {/* ダンジョン踏破数 */}
-      <td className="py-3.5 px-6 text-right font-mono text-slate-300">{user.clearPlayCount}</td>
+      {/* ダンジョン踏破回数 */}
+      <td className="py-3.5 px-6 text-right font-mono text-slate-300">{user.totalClearPlayCount}</td>
 
       {/* トータルプレイ時間 */}
       <td className="py-3.5 px-6 text-right font-mono text-slate-400">

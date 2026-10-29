@@ -54,8 +54,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.arcadeBody.setCollideWorldBounds(true);
     this.setMass(0.5);
 
-    this.setBodySize(20, 24); // Todo: 適切なプレイヤーサイズに
-    this.setOffset(6, 8);
+    this.setBodySize(16, 20); // Todo: 適切なプレイヤーサイズに
+    this.setOffset(8, 12);
 
     // 入力設定
     this.cursors = scene.input.keyboard!.createCursorKeys();

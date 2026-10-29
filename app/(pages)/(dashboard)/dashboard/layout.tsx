@@ -7,14 +7,14 @@ import { LogOut, Menu } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { getNavItems } from "@/app/(pages)/_components/navigation";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function UserDashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const navItems = getNavItems(session?.user?.role);
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed top-16 bottom-0 left-0 right-0 flex w-screen h-[calc(100vh-64px)] overflow-hidden bg-[#0f111a]">
+    <div className="fixed top-10 bottom-0 left-0 right-0 flex w-screen overflow-hidden bg-[#0f111a]">
       {/* モバイル用 */}
       {isOpen && (
         <div

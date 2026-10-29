@@ -1,11 +1,11 @@
 import useSWR from "swr";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 import { getDungeon } from "@/app/_apis/dungeons-api";
 import { useSession } from "next-auth/react";
 
 export const useGetDungeon = (id?: string) => {
   const { data: _, status } = useSession();
-  const { data, error, isLoading, mutate } = useSWR<DungeonResponse>(
+  const { data, error, isLoading, mutate } = useSWR<DungeonDetailResponse>(
     // 未ログインユーザーでも取得可能
     id ? ["/api/dungeons", id] : null,
     ([_, id]: [string, string]) => getDungeon(id),

@@ -10,13 +10,13 @@ import Image from "next/image";
 import { useProfileIcon } from "@/app/_hooks";
 import { deleteOldImage } from "@/app/_libs/storage";
 import { PasswordChangeModal } from "./PasswordChangeModal";
-import { UserResponse } from "@/app/_types";
+import { UserDetailResponse } from "@/app/_types";
 import { toast } from "sonner";
 
 interface ProfileCardProps {
-  user: UserResponse;
+  user: UserDetailResponse;
   mutate: () => void;
-  update: (data: Partial<UserResponse>) => Promise<UserResponse>;
+  update: (data: Partial<UserDetailResponse>) => Promise<UserDetailResponse>;
   remove?: (data: Partial<void>) => Promise<void>;
   isAdminMode?: boolean;
 }

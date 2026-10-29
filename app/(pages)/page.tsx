@@ -31,6 +31,18 @@ function HomeContent() {
     setShowLoginAlert(true);
   });
 
+  // スムーズスクロール用のハンドラー
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   const params: DungeonFilter = {
     limit: 4,
     status: "PUBLISHED",
@@ -42,8 +54,8 @@ function HomeContent() {
   return (
     <div className="min-h-screen bg-[#0b0f19] text-stone-100 font-sans antialiased selection:bg-amber-500 selection:text-stone-950 scroll-smooth">
       {/* メインビジュアル＆ボタンセクション */}
-      <main className="max-w-6xl mx-auto px-6 py-12 md:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <main className="min-h-[calc(100vh-80px)] flex items-center justify-center max-w-6xl mx-auto px-6 py-16 md:py-28">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
           <div className="flex flex-col gap-6">
             <div>
               <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 text-stone-100 leading-tight">
@@ -79,29 +91,32 @@ function HomeContent() {
               </p>
             </div>
 
-            {/* ページ内スクロールボタン（ブラッシュアップ版） */}
+            {/* ページ内スクロールボタン */}
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link
+              <a
                 href="#play"
-                className="group relative flex items-center gap-2 bg-teal-500/10 border border-teal-500/50 hover:bg-teal-500 text-teal-300 hover:text-stone-950 font-bold px-6 py-3 rounded-xl shadow-[0_0_15px_rgba(45,212,191,0.15)] hover:shadow-[0_0_20px_rgba(45,212,191,0.4)] transition-all duration-300 active:scale-95"
+                onClick={(e) => handleScrollTo(e, "play")}
+                className="group relative flex items-center gap-2 bg-teal-500/10 border border-teal-500/50 hover:bg-teal-500 text-teal-300 hover:text-stone-950 font-bold px-6 py-3.5 rounded-xl shadow-[0_0_15px_rgba(45,212,191,0.15)] hover:shadow-[0_0_20px_rgba(45,212,191,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
               >
                 <span>遊ぶ</span>
                 <span className="transform group-hover:translate-x-1 transition-transform">▶</span>
-              </Link>
-              <Link
+              </a>
+              <a
                 href="#create"
-                className="group relative flex items-center gap-2 bg-amber-500/10 border border-amber-500/50 hover:bg-amber-400 text-amber-300 hover:text-stone-950 font-bold px-6 py-3 rounded-xl shadow-[0_0_15px_rgba(251,191,36,0.15)] hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition-all duration-300 active:scale-95"
+                onClick={(e) => handleScrollTo(e, "create")}
+                className="group relative flex items-center gap-2 bg-amber-500/10 border border-amber-500/50 hover:bg-amber-400 text-amber-300 hover:text-stone-950 font-bold px-6 py-3.5 rounded-xl shadow-[0_0_15px_rgba(251,191,36,0.15)] hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
               >
                 <span>創る</span>
                 <span className="transform group-hover:translate-x-1 transition-transform">▶</span>
-              </Link>
-              <Link
+              </a>
+              <a
                 href="#compete"
-                className="group relative flex items-center gap-2 bg-orange-500/10 border border-orange-500/50 hover:bg-orange-500 text-orange-300 hover:text-stone-950 font-bold px-6 py-3 rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all duration-300 active:scale-95"
+                onClick={(e) => handleScrollTo(e, "compete")}
+                className="group relative flex items-center gap-2 bg-orange-500/10 border border-orange-500/50 hover:bg-orange-500 text-orange-300 hover:text-stone-950 font-bold px-6 py-3.5 rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
               >
                 <span>競う</span>
                 <span className="transform group-hover:translate-x-1 transition-transform">▶</span>
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -125,15 +140,12 @@ function HomeContent() {
       {/* 各セクション */}
 
       {/* 遊ぶ */}
-      <section id="play" className="max-w-6xl mx-auto px-6 py-16 scroll-mt-20">
-        <div className="bg-gradient-to-br from-[#121824] to-[#0f172a] border border-teal-500/30 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+      <section id="play" className="max-w-6xl mx-auto px-6 py-18 md:py-24 scroll-mt-20">
+        <div className="bg-gradient-to-br from-[#121824] to-[#0f172a] border border-teal-500/30 rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-500/10 border border-teal-500/30 rounded-full text-teal-400 text-xs font-mono w-fit">
-                FEATURE 01
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="flex flex-col gap-5">
               <h2 className="text-2xl md:text-3xl font-bold text-teal-400 font-mono">■ 遊ぶ</h2>
               <p className="text-stone-300 leading-relaxed text-sm md:text-base">
                 多彩なギミックやスリリングなトラップが待ち受ける無数のダンジョンへ挑もう。
@@ -168,11 +180,11 @@ function HomeContent() {
       </section>
 
       {/* 創る */}
-      <section id="create" className="max-w-6xl mx-auto px-6 py-16 scroll-mt-20">
-        <div className="bg-gradient-to-br from-[#121824] to-[#0f172a] border border-amber-500/30 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+      <section id="create" className="max-w-6xl mx-auto px-6 py-18 md:py-24 scroll-mt-20">
+        <div className="bg-gradient-to-br from-[#121824] to-[#0f172a] border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="order-2 md:order-1 relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-amber-500/30 shadow-lg group">
               <Image
                 src="/images/game-edit.png"
@@ -181,10 +193,7 @@ function HomeContent() {
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>
-            <div className="order-1 md:order-2 flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-amber-400 text-xs font-mono w-fit">
-                FEATURE 02
-              </div>
+            <div className="order-1 md:order-2 flex flex-col gap-5">
               <h2 className="text-2xl md:text-3xl font-bold text-amber-400 font-mono">■ 創る</h2>
               <p className="text-stone-300 leading-relaxed text-sm md:text-base">
                 あなたのアイデアを形にするダンジョンエディター。
@@ -210,15 +219,12 @@ function HomeContent() {
       </section>
 
       {/* 競う */}
-      <section id="compete" className="max-w-6xl mx-auto px-6 py-16 scroll-mt-20">
-        <div className="bg-gradient-to-br from-[#121824] to-[#0f172a] border border-orange-500/30 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+      <section id="compete" className="max-w-6xl mx-auto px-6 py-18 md:py-24 scroll-mt-20">
+        <div className="bg-gradient-to-br from-[#121824] to-[#0f172a] border border-orange-500/30 rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 border border-orange-500/30 rounded-full text-orange-400 text-xs font-mono w-fit">
-                FEATURE 03
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="flex flex-col gap-5">
               <h2 className="text-2xl md:text-3xl font-bold text-orange-400 font-mono">■ 競う</h2>
               <p className="text-stone-300 leading-relaxed text-sm md:text-base">
                 クリアタイムやハイスコアを他のプレイヤーと競い合おう。
@@ -258,10 +264,6 @@ function HomeContent() {
       <div id="recommend" className="max-w-6xl mx-auto px-6 py-12 scroll-mt-20">
         <DungeonSection title="おすすめダンジョン" viewMoreLink="/dungeons" dungeons={dungeons} isLoading={isLoading} />
       </div>
-
-      <footer className="w-full py-8 text-center text-xs text-stone-500 border-t border-stone-800/80 mt-16 font-mono">
-        © 2026 DUNGEONZ×DUNGEONZ
-      </footer>
 
       {/* 未ログインユーザー用のポップアップ */}
       <LoginAlertModal isOpen={showLoginAlert} onClose={() => setShowLoginAlert(false)} />

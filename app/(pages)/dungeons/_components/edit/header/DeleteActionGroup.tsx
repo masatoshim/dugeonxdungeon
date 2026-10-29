@@ -3,11 +3,11 @@ import { createPortal } from "react-dom";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUpdateDungeon, useDeleteDungeon } from "@/app/_hooks";
-import { DungeonResponse } from "@/app/_types";
+import { DungeonDetailResponse } from "@/app/_types";
 import { toast } from "sonner";
 
 type Props = {
-  initialData?: DungeonResponse;
+  initialData?: DungeonDetailResponse;
   isAdmin: boolean;
 };
 

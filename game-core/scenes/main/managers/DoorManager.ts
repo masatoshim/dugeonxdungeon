@@ -184,11 +184,15 @@ export class DoorManager {
   /**
    * トリガー起動時の処理
    */
-  public activateTarget(targetId: string): void {
+  public activateTarget(targetId: string, isButtonPressed: boolean = false): void {
     const targetDoor = this.targetDoors.get(targetId);
     if (targetDoor) {
       targetDoor.activate();
-      MessageManager.getInstance().notify("扉が開いた！");
+      if (isButtonPressed) {
+        MessageManager.getInstance().notify("どこかで扉が開いた！");
+      } else {
+        MessageManager.getInstance().notify("扉が開いた！");
+      }
     } else {
       // console.warn(`GimmickTarget with ID '${targetId}' not found.`);
     }
@@ -201,6 +205,7 @@ export class DoorManager {
     const targetDoor = this.targetDoors.get(targetId);
     if (targetDoor) {
       targetDoor.deactivate();
+      MessageManager.getInstance().notify("どこかで扉が閉じた！");
     }
   }
 

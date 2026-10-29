@@ -3,66 +3,44 @@
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import React, { useState, useEffect } from "react";
-import { Heart, CheckSquare, Square } from "lucide-react";
+import { Heart, CheckSquare, Square, Star } from "lucide-react";
 import { DungeonResponse, FavoriteDungeonResponse } from "@/app/_types";
-import {
-  useGetFavoriteDungeonStatus,
-  useCreateFavoriteDungeon,
-  useDeleteFavoriteDungeon,
-  useProfileIcon,
-} from "@/app/_hooks";
+import { useCreateFavoriteDungeon, useDeleteFavoriteDungeon, useProfileIcon } from "@/app/_hooks";
 import Link from "next/link";
 import { toast } from "sonner";
 
 interface DungeonCardProps {
   dungeon: DungeonResponse;
-  isCleared?: boolean;
 }
 
-export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared = false }: DungeonCardProps) {
+export const DungeonCard = React.memo(function DungeonCard({ dungeon }: DungeonCardProps) {
   const { data: session, status } = useSession();
   const currentUserId = session?.user?.id;
 
-  const { isFavorited: serverIsFavorited, mutate } = useGetFavoriteDungeonStatus(dungeon.id);
-
-  const [isFavorited, setIsFavorited] = useState(serverIsFavorited);
+  const [isFavorited, setIsFavorited] = useState(dungeon.isFavorited);
   const [favoritesCount, setFavoritesCount] = useState(dungeon.favoritesCount);
 
   useEffect(() => {
-    setIsFavorited(serverIsFavorited);
-  }, [serverIsFavorited]);
+    setIsFavorited(dungeon.isFavorited);
+  }, [dungeon]);
 
   useEffect(() => {
     setFavoritesCount(dungeon.favoritesCount);
   }, [dungeon.favoritesCount]);
 
-  const [isDraftStatus] = useState(dungeon.status === "DRAFT");
   const { create, isCreating } = useCreateFavoriteDungeon(dungeon.id);
   const { remove, isDeleting } = useDeleteFavoriteDungeon(dungeon.id);
   const { iconUrl } = useProfileIcon(dungeon.userIconImageKey);
 
-  // 条件ロジックの整理
   const isOwnDungeon = status === "authenticated" && currentUserId === dungeon.userId;
 
+  const [isDraftStatus] = useState(dungeon.status === "DRAFT");
   const shouldNavigateToEdit = isOwnDungeon && isDraftStatus; // 自分のダンジョン ＆ ドラフト ➔ 編集画面
   const isForbiddenDraft = !isOwnDungeon && isDraftStatus; // 他人のダンジョン ＆ ドラフト ➔ 遷移不可（ガード用）
   const shouldNavigateToGame = !isDraftStatus; // 上記以外 ➔ モーダル
 
   // 遷移先URL
   const destinationHref = shouldNavigateToEdit ? `/dungeons/${dungeon.id}/edit` : `?dungeonId=${dungeon.id}`;
-
-  // 難易度
-  const renderDifficulty = (difficulty: number) => {
-    return (
-      <div className="flex gap-0.5 my-1">
-        {[...Array(5)].map((_, i) => (
-          <span key={i} className={`text-lg ${i < difficulty ? "text-yellow-400" : "text-gray-600"}`}>
-            ★
-          </span>
-        ))}
-      </div>
-    );
-  };
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Link の遷移を防止
@@ -97,7 +75,6 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
       }
 
       setFavoritesCount(result.count);
-      mutate();
     } catch (err) {
       console.error(err);
       // エラー時は元の状態に戻す
@@ -109,16 +86,16 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
 
   const cardContent = (
     <div
-      className={`group relative max-w-[320px] min-w-[200px] bg-[#1a233a] border rounded-lg p-2.5 shadow-lg transition-all hover:-translate-y-1 cursor-pointer flex flex-col ${
-        isCleared
-          ? "border-slate-700/60 opacity-60 hover:opacity-90 bg-[#141b2d] hover:shadow-[0_0_15px_rgba(59,130,246,0.1)]" // クリア済み：少し暗く＆落ち着いた背景に
+      className={`group relative max-w-[320px] bg-[#1a233a] border rounded-lg p-2.5 shadow-lg transition-all hover:-translate-y-1 cursor-pointer flex flex-col ${
+        dungeon.isCleared
+          ? "border-slate-700/60 opacity-60 hover:opacity-90 bg-[#141b2d]"
           : "border-slate-700 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
       }`}
     >
       {/* ヘッダー */}
-      <div className="flex justify-between items-start mb-1.5">
-        <span className="text-[10px] font-mono text-slate-500 tracking-wider">{dungeon.code}</span>
-        <div className="flex items-center gap-2">
+      <div className="flex justify-between items-start gap-2 mb-1.5 min-w-0">
+        <span className="text-[10px] font-mono text-slate-500 tracking-wider truncate min-w-0">{dungeon.code}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* お気に入り */}
           <button
             type="button"
@@ -133,17 +110,17 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
           {/* クリア済みチェック */}
           {isOwnDungeon ? (
             <div
-              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30"
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 whitespace-nowrap shrink-0"
               title="あなたが作成したダンジョンです"
             >
               <span>マイダンジョン</span>
             </div>
           ) : (
             <div
-              className={`${isCleared ? "text-blue-400" : "text-slate-600"}`}
-              title={`${isCleared ? "攻略済み" : "未攻略"}`}
+              className={`${dungeon.isCleared ? "text-blue-400" : "text-slate-600"}`}
+              title={`${dungeon.isCleared ? "攻略済み" : "未攻略"}`}
             >
-              {isCleared ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+              {dungeon.isCleared ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
             </div>
           )}
         </div>
@@ -155,7 +132,21 @@ export const DungeonCard = React.memo(function DungeonCard({ dungeon, isCleared 
       </h3>
 
       {/* 難易度星アイコン */}
-      <div className="scale-90 origin-left -mb-1">{renderDifficulty(dungeon.difficulty || 2)}</div>
+      <div className="space-y-0.5 mt-2 text-[11px] text-slate-300 min-w-0">
+        <p className="flex justify-start gap-2">
+          <span className="text-slate-500 w-16">難易度：</span>
+          <span className="flex gap-1 text-yellow-400 shrink-0">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={14}
+                fill={i < (dungeon.difficulty || 5) ? "currentColor" : "none"}
+                className={i >= (dungeon.difficulty || 5) ? "text-slate-600" : ""}
+              />
+            ))}
+          </span>
+        </p>
+      </div>
 
       {/* ダンジョンサイズ & 制限時間 */}
       <div className="space-y-0.5 mt-2 text-[11px] text-slate-300 min-w-0">

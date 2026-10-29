@@ -1,4 +1,5 @@
 import * as Phaser from "phaser";
+import { MainScene } from "@/game-core/scenes/main/MainScene";
 import { DoorManager } from "@/game-core/scenes/main/managers/DoorManager";
 
 export interface LeverSwitchConfig {
@@ -19,6 +20,9 @@ export class LeverSwitch extends Phaser.Physics.Arcade.Sprite {
   private canToggle: boolean = true;
   private isPressed: boolean = false;
   private wasPressedThisFrame: boolean = false;
+
+  private unpressedFramesCount: number = 0;
+  private readonly RELEASE_DELAY_FRAMES = 15;
 
   constructor(
     scene: Phaser.Scene,
@@ -61,6 +65,7 @@ export class LeverSwitch extends Phaser.Physics.Arcade.Sprite {
    * プレイヤーと接触した際に呼び出す処理
    */
   public onOverlap(): void {
+    this.unpressedFramesCount = 0;
     this.wasPressedThisFrame = true;
 
     // 重なり続けている間、またはトグル不可状態ならスキップ
@@ -84,8 +89,21 @@ export class LeverSwitch extends Phaser.Physics.Arcade.Sprite {
    * overlapが発生したかを検証する
    */
   private postUpdateCheck(): void {
+    // シーンがポーズ中の場合は、カウンターを進めたり状態をリセットしたりしない
+    const mainScene = this.scene as MainScene;
+    if (mainScene && typeof mainScene.isGamePaused === "function" && mainScene.isGamePaused()) {
+      this.wasPressedThisFrame = false;
+      return;
+    }
     // プレイヤーが離れた場合
     if (!this.wasPressedThisFrame) {
+      this.unpressedFramesCount++;
+    } else {
+      this.unpressedFramesCount = 0;
+    }
+
+    // 一定フレーム数離れていたらトグル状態をリセット
+    if (this.unpressedFramesCount >= this.RELEASE_DELAY_FRAMES) {
       this.isPressed = false;
       this.canToggle = true; // 次回接触したときに再び切り替え可能にする
     }

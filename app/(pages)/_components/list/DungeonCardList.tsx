@@ -7,9 +7,23 @@ interface DungeonCardListProps {
   dungeons: DungeonResponse[] | undefined;
   isLoading: boolean;
   error: string;
+  variant?: "default" | "dashboard";
 }
 
-export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListProps) {
+export function DungeonCardList({ dungeons, isLoading, error, variant }: DungeonCardListProps) {
+  // レイアウト調整用
+  const isDashboard = variant === "dashboard";
+  const maxWidthClass = isDashboard ? "max-w-[1110px]" : "max-w-[1168px]";
+  const cardWidthClass = isDashboard ? "w-[265px]" : "w-[280px]";
+  const gapClass = isDashboard ? "gap-3" : "gap-4";
+  const cardWidthNum = isDashboard ? 265 : 280;
+  const totalCount = dungeons?.length || 0;
+
+  const gridClass = `grid ${gapClass} w-full ${totalCount < 4 ? "justify-start lg:justify-start" : "justify-center"}`;
+  const gridStyle = {
+    gridTemplateColumns: `repeat(auto-fit, ${cardWidthNum}px)`,
+  };
+
   if (error)
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-red-500">
@@ -19,20 +33,20 @@ export function DungeonCardList({ dungeons, isLoading, error }: DungeonCardListP
 
   return (
     <div className="w-full flex justify-center">
-      <div className="w-full max-w-[1168px]">
+      <div className={`w-full ${maxWidthClass}`}>
         {isLoading ? (
-          <div className="grid grid-cols-[repeat(auto-fit,280px)] justify-center gap-4 w-full">
+          <div className={gridClass} style={gridStyle}>
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="w-[280px] shrink-0">
+              <div key={i} className={`${cardWidthClass} shrink-0`}>
                 <DungeonCardSkeleton />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fit,280px)] justify-center gap-4 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className={`${gridClass} animate-in fade-in slide-in-from-bottom-4 duration-700`} style={gridStyle}>
             {dungeons?.map((dungeon) => (
-              <div key={dungeon.id} className="w-[280px] shrink-0">
-                <DungeonCard dungeon={dungeon} isCleared={dungeon.isCleared} />
+              <div key={dungeon.id} className={`${cardWidthClass} shrink-0`}>
+                <DungeonCard dungeon={dungeon} />
               </div>
             ))}
           </div>

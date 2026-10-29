@@ -154,7 +154,17 @@ export async function GET(request: Request) {
     const difficultyListParam = searchParams.get("difficultyList");
     if (difficultyListParam) {
       const difficultyList = difficultyListParam.split(",").map(Number);
-      andConditions.push({ difficulty: { in: difficultyList } });
+
+      if (difficultyList.length > 0) {
+        const difficultyConditions = difficultyList.map((val) => ({
+          difficulty: {
+            gte: val,
+            lt: val + 1,
+          },
+        }));
+
+        andConditions.push({ OR: difficultyConditions });
+      }
     }
 
     // プレイ状況による絞り込みロジック
@@ -243,15 +253,30 @@ export async function GET(request: Request) {
       prisma.dungeon.count({ where: { AND: andConditions } }),
       prisma.dungeon.findMany({
         where: { AND: andConditions },
-        include: {
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          userId: true,
+          description: true,
+          mapSizeHeight: true,
+          mapSizeWidth: true,
+          mapSize: true,
+          timeLimit: true,
+          difficulty: true,
+          status: true,
+          isTemplate: true,
+          favoritesCount: true,
+          createdBy: true,
+          updatedBy: true,
+          createdAt: true,
+          updatedAt: true,
           user: { select: { userName: true, nickName: true, iconImageKey: true } },
-          dungeonTags: { include: { tag: true } },
           // ログイン中ユーザーの「クリア実績」があるか（Ver問わず1件あればOK）
           playHistories: effectiveCheckUserId
             ? {
                 where: { userId: effectiveCheckUserId, playStatus: "CLEAR" },
                 take: 1,
-                select: { id: true, versionMajor: true, versionMinor: true },
               }
             : false,
           // ログイン中ユーザーの「お気に入り」があるか
@@ -259,7 +284,6 @@ export async function GET(request: Request) {
             ? {
                 where: { userId: effectiveCheckUserId },
                 take: 1,
-                select: { userId: true },
               }
             : false,
         },
@@ -271,22 +295,17 @@ export async function GET(request: Request) {
 
     // マッピング処理
     let dungeons: DungeonResponse[] = dungeonsRaw.map((d) => {
-      const { user, playHistories, favoritedBy, dungeonTags, ...rest } = d;
+      const { user, userId, playHistories, favoritedBy, ...rest } = d;
       const hasPrivateAccess = isAdmin || sessionUserId === d.userId;
-      const parsedMapData = mapDataSchema.parse(d.mapData);
 
       return {
         ...rest,
-        mapData: parsedMapData,
-        totalPlayCount: d.clearPlayCount + d.failurePlayCount + d.interruptPlayCount,
-        tags: d.dungeonTags.map((dt) => dt.tag.name),
         isCleared: (playHistories?.length ?? 0) > 0,
-        clearedVersionMajor: playHistories?.[0]?.versionMajor,
-        clearedVersionMinor: playHistories?.[0]?.versionMinor,
         isFavorited: (favoritedBy?.length ?? 0) > 0,
         nickName: user.nickName,
         userIconImageKey: user.iconImageKey,
         // 管理者のみ、または本人のみ取得可能にする項目
+        userId: hasPrivateAccess ? userId : undefined,
         userName: hasPrivateAccess ? user.userName : undefined,
         createdBy: hasPrivateAccess ? d.createdBy : undefined,
         updatedBy: hasPrivateAccess ? d.updatedBy : undefined,
@@ -294,18 +313,6 @@ export async function GET(request: Request) {
         updatedAt: hasPrivateAccess ? d.updatedAt.toISOString() : undefined,
       };
     });
-
-    const tpc = searchParams.get("totalPlayCount");
-    const tpcFrom = searchParams.get("totalPlayCountFrom");
-    const tpcTo = searchParams.get("totalPlayCountTo");
-    if (tpc || tpcFrom || tpcTo) {
-      dungeons = dungeons.filter((d) => {
-        if (tpc && d.totalPlayCount !== Number(tpc)) return false;
-        if (tpcFrom && d.totalPlayCount < Number(tpcFrom)) return false;
-        if (tpcTo && d.totalPlayCount > Number(tpcTo)) return false;
-        return true;
-      });
-    }
 
     return NextResponse.json({
       dungeons,
