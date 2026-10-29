@@ -148,7 +148,7 @@ export class LevelBuilder {
     stone.setPushable(false);
     stone.setFriction(0, 0);
 
-    stone.body.setSize(TILE_SIZE, TILE_SIZE);
+    stone.body.setSize(TILE_SIZE - 5, TILE_SIZE - 5);
     stone.setDepth(2);
   }
 }

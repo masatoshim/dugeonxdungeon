@@ -5,7 +5,7 @@ export const ITEM_TILES = {
     name: "剣",
     category: TILE_CATEGORIES.ITEM,
     texture: "weaponSword",
-    weaponData: { id: "SWORD", name: "剣", range: 28, size: 10, damage: 1 },
+    weaponData: { id: "SWORD", name: "剣", range: 28, size: 20, damage: 1 },
     setLoadTexture: ["playerSword", "weaponSwordAttackEffect"],
   },
   S2: {
