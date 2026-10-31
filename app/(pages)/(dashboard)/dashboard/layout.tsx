@@ -14,7 +14,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed top-10 bottom-0 left-0 right-0 flex w-screen overflow-hidden bg-[#0f111a]">
+    <div className="fixed top-[43px] bottom-0 left-0 right-0 flex w-screen overflow-hidden bg-[#0f111a]">
       {/* モバイル用 */}
       {isOpen && (
         <div
@@ -26,12 +26,12 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
       {/* サイドバー */}
       {/* PC: 常時表示 / モバイル: 通常非表示・スライド展開時 */}
       <aside
-        className={`fixed md:static top-16 bottom-0 left-0 z-50 w-24 md:w-64 h-[calc(100vh-64px)] bg-[#1a1d2b] flex flex-col pt-4 pb-8 border-r border-slate-800 shrink-0 transition-transform duration-300 ease-in-out ${
+        className={`fixed md:relative top-[44px] md:top-0 bottom-0 left-0 z-50 w-24 md:w-64 h-[calc(100vh-44px)] md:h-full bg-[#1a1d2b] flex flex-col justify-between border-r border-slate-800 shrink-0 transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         {/* ナビゲーションリスト */}
-        <nav className="flex-1 h-0 px-1.5 md:px-4 space-y-2 md:space-y-3 overflow-y-auto custom-scrollbar pt-2">
+        <nav className="flex-1 px-1.5 md:px-4 space-y-2 md:space-y-3 overflow-y-auto custom-scrollbar pt-4 md:pt-6">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
 
@@ -57,7 +57,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
         </nav>
 
         {/* ログアウトボタン */}
-        <div className="px-1.5 md:px-4 border-t border-slate-800/60 pt-4 md:pt-6 shrink-0">
+        <div className="px-1.5 md:px-4 border-t border-slate-800/60 py-3 md:py-4 shrink-0 bg-[#1a1d2b] pb-safe md:pb-4">
           <button
             type="button"
             onClick={() => {
