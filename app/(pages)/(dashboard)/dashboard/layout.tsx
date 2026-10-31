@@ -26,12 +26,12 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
       {/* サイドバー */}
       {/* PC: 常時表示 / モバイル: 通常非表示・スライド展開時 */}
       <aside
-        className={`fixed md:relative top-[44px] md:top-0 bottom-0 left-0 z-50 w-24 md:w-64 h-[calc(100vh-44px)] md:h-full bg-[#1a1d2b] flex flex-col justify-between border-r border-slate-800 shrink-0 transition-transform duration-300 ease-in-out ${
+        className={`fixed md:relative top-[43px] md:top-0 bottom-0 left-0 z-50 w-24 md:w-64 h-[calc(100vh-43px)] md:h-full bg-[#1a1d2b] flex flex-col justify-between border-r border-slate-800 shrink-0 transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         {/* ナビゲーションリスト */}
-        <nav className="flex-1 px-1.5 md:px-4 space-y-2 md:space-y-3 overflow-y-auto custom-scrollbar pt-4 md:pt-6">
+        <nav className="flex-1 px-1.5 md:px-4 space-y-2 md:space-y-3 overflow-y-auto custom-scrollbar pt-4 md:pt-6 pb-6">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
 
@@ -58,8 +58,8 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
 
         {/* ログアウトボタン */}
         <div
-          className="px-1.5 md:px-4 border-t border-slate-800/60 py-3 md:py-4 shrink-0 bg-[#1a1d2b]"
-          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+          className="px-1.5 md:px-4 border-t border-slate-800/60 pt-3 pb-4 md:py-4 shrink-0 bg-[#1a1d2b]"
+          style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom, 20px))" }}
         >
           <button
             type="button"
