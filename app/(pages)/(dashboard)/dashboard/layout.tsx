@@ -57,7 +57,10 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
         </nav>
 
         {/* ログアウトボタン */}
-        <div className="px-1.5 md:px-4 border-t border-slate-800/60 py-3 md:py-4 shrink-0 bg-[#1a1d2b] pb-safe md:pb-4">
+        <div
+          className="px-1.5 md:px-4 border-t border-slate-800/60 py-3 md:py-4 shrink-0 bg-[#1a1d2b]"
+          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           <button
             type="button"
             onClick={() => {
