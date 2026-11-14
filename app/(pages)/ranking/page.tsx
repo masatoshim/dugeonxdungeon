@@ -175,7 +175,7 @@ function UserRankingPageContent() {
         {page === 1 && topThree.length > 0 && (
           <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {topThree.map((user, index) => (
-              <UserRankingTop3Detail key={user.id} user={user} index={index} />
+              <UserRankingTop3Detail key={user?.id ? `${user.id}-${index}` : index} user={user} index={index} />
             ))}
           </section>
         )}
@@ -197,7 +197,7 @@ function UserRankingPageContent() {
               <tbody className="divide-y divide-slate-900 text-xs">
                 {remainingUsers.map((user, index) => {
                   const rank = page === 1 ? index + 4 : (page - 1) * limit + index + 1;
-                  return <UserRankingRowDetail key={user.id} user={user} rank={rank} />;
+                  return <UserRankingRowDetail key={user?.id ? `${user.id}-${rank}` : rank} user={user} rank={rank} />;
                 })}
               </tbody>
             </table>
